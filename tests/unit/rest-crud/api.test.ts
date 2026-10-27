@@ -196,6 +196,15 @@ describe('rest-crud api', () => {
     }
   });
 
+  it('idempotentlik sends highlight the call site, not the definition', () => {
+    const l = listing(LISTINGS, 'idempotentlik');
+    for (const t of ISTEKLER.idempotentlik.filter((x) => x.istek)) {
+      const g = gonder('idempotentlik', IDEM_BASLANGIC, t.id).gonderim;
+      expect(l.lines[g.satirlar[0] - 1]).toContain(t.cagri);
+      expect(l.lines[g.satirlar[g.satirlar.length - 1] - 1]).toContain(t.cagri);
+    }
+  });
+
   it('listings match the book', () => {
     expect(listing(LISTINGS, 'laboratuvar-api').lines[0]).toBe('// File: ChapterMiniApp.ts');
     expect(listing(LISTINGS, 'idempotentlik-cikti').lines).toHaveLength(6);

@@ -320,7 +320,9 @@ export function gonder(program: ProgramId, durum: LabDurum | IdemDurum, istekId:
 
   const istek = tanim.istek;
   const ana = program === 'laboratuvar-api' ? 'laboratuvarApi.' : '';
-  const cagriSatiri = lineOf(l, `${ana}${tanim.cagri.slice(0, tanim.cagri.indexOf('('))}`);
+  // idempotentlik: the call text itself (the bare name would hit the function definition first)
+  const cagriSatiri =
+    program === 'laboratuvar-api' ? lineOf(l, `${ana}${tanim.cagri.slice(0, tanim.cagri.indexOf('('))}`) : lineOf(l, tanim.cagri);
   const imza = lineOf(l, `${program === 'laboratuvar-api' ? '' : 'function '}${tanim.cagri.slice(0, tanim.cagri.indexOf('('))}(`);
   const evler: Ev[] = [];
   let yanit: HttpYanit | undefined;
