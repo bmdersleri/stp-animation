@@ -156,7 +156,7 @@ describe('katmanli-mimari view', () => {
     for (const uygunMu of [true, false]) {
       for (const mevcutOduncSayisi of [0, 1, 2, 3] as const) {
         const v = deriveKatmanView(tam({ tekrar: 2, uygunMu, mevcutOduncSayisi }));
-        expect(v.http.yanitlar[1].durumKodu, ).toBe(400);
+        expect(v.http.yanitlar[1].durumKodu).toBe(400);
       }
     }
   });
