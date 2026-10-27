@@ -110,7 +110,7 @@ describe('rate-limiting Lab controls', () => {
   });
 
   it('the page describes itself', () => {
-    expect(ratePage.title).toBe('Rate limiting: istek sınırlama');
+    expect(ratePage.title).toBe('Rate limiting: sabit pencere');
     expect(ratePage.chapter).toBe('Bölüm 11 · Güvenli Backend: Validation, Middleware ve Hata Yönetimi');
   });
 });

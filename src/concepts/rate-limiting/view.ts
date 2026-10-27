@@ -1,4 +1,4 @@
-import { lineOf, listing } from '../../core/listing';
+import { listing } from '../../core/listing';
 import { nodeInspect } from '../../core/node-inspect';
 import type { CheckListSpec, Denetim } from '../../core/plot/check-list';
 import type { CodeTraceSpec } from '../../core/plot/code-trace';
@@ -16,6 +16,15 @@ export interface Nokta { t: number; ip: string; izin: boolean; durum: NoktaDurum
 export interface Bant { ip: string; bas: number; son: number }
 export interface TimelineSpec { noktalar: readonly Nokta[]; bantlar: readonly Bant[]; xMax: number; ipler: readonly string[] }
 
+/** The book's own text on the intro and summary steps, verbatim without code ticks and bold marks. */
+export interface RateKitapBlok {
+  /** The definition paragraph, shown after a bold "Tanım. " (the book's own label). */
+  tanim?: string;
+  tablolar: readonly DataTableSpec[];
+  /** Further book sentences, shown muted under the rest. */
+  notlar: readonly string[];
+}
+
 export interface RateView {
   timeline: TimelineSpec;
   tablo: DataTableSpec;
@@ -26,7 +35,32 @@ export interface RateView {
   denetim: CheckListSpec | null;
   code: CodeTraceSpec;
   ozet: boolean;
+  /** The book block of the intro and summary steps (they draw no timeline, table or terminal); null on every flow step. */
+  kitap: RateKitapBlok | null;
 }
+
+/** The book's definition (L678) and warning (L675), as the intro step shows them. */
+const TANIM =
+  'Rate limiting, bir istemcinin (genellikle IP adresi veya kullanıcı kimliği bazında) belirli bir zaman aralığında gönderebileceği istek sayısını sınırlayan bir denetimdir. Sınır aşıldığında sunucu isteği işlemeden 429 Too Many Requests durum koduyla reddeder.';
+const DIKKAT = 'Dikkat: Rate limiting olmadan bir login endpoint’i, doğru parolayı bulana kadar otomatik deneme yapan bir saldırıya karşı pratikte korumasızdır.';
+
+/** The book's alternatives table (L767 title, L769 header, L771-774 rows). */
+const ALTERNATIF_TABLO: DataTableSpec = {
+  baslik: 'Alternatifler',
+  sutunlar: [{ ad: 'Yaklaşım' }, { ad: 'Avantajı' }, { ad: 'Dezavantajı' }, { ad: 'Uygun kullanım' }],
+  satirlar: [
+    { key: 'sabit', cells: ['Sabit pencere (bu bölümde örneklenen)', 'Basit, anlaşılırdır', 'Pencere sınırında ani istek patlamalarına (burst) izin verebilir', 'Küçük ve orta ölçekli API’ler'] },
+    { key: 'kayan', cells: ['Kayan pencere (sliding window)', 'Burst etkisini azaltır', 'Uygulaması sabit pencereden daha karmaşıktır', 'Daha hassas sınırlama gereken sistemler'] },
+    { key: 'token', cells: ['Token bucket', 'Kısa süreli patlamalara esnek izin verirken ortalama hızı sınırlar', 'Parametre ayarı (kova boyutu, doldurma hızı) gerektirir', 'API gateway’ler, yayın (streaming) sistemleri'] },
+    { key: 'redis', cells: ['express-rate-limit + Redis deposu', 'Çoklu sunucu örneğinde tutarlı çalışır', 'Redis gibi ek bir bağımlılık gerektirir', 'Ölçeklenen üretim ortamları'] },
+  ],
+};
+/** The book's Redis sentence (L763, its last sentence). */
+const REDIS_NOTU =
+  'Bu basit yaklaşım tek sunuculu uygulamalarda çalışır; birden fazla sunucu örneği varsa sayaçlar paylaşılan bir depoda (örneğin Redis) tutulmalıdır, aksi hâlde her sunucu örneği kendi sayacını tutar ve gerçek sınır etkisiz hale gelir.';
+
+const TANITIM_BLOK: RateKitapBlok = { tanim: TANIM, tablolar: [], notlar: [DIKKAT] };
+const OZET_BLOK: RateKitapBlok = { tablolar: [ALTERNATIF_TABLO], notlar: [REDIS_NOTU] };
 
 const K5 = listing(LISTINGS, 'kod-11-5');
 const K5_CIKTI = listing(LISTINGS, 'kod-11-5-cikti').lines;
@@ -42,8 +76,8 @@ const kodSeridi = (l: { title: string; lines: readonly string[] }, active: reado
 /** "t = 0 s" (R11): a window start shows as seconds. */
 const saniye = (ms: number): string => `t = ${String(ms / 1000).replace('.', ',')} s`;
 
-/** Intro and summary views: the empty timeline, table, terminal and check list, and a code strip with no active line. */
-function bosGorunum(ozet: boolean, kod: CodeTraceSpec = kodSeridi(K5, [])): RateView {
+/** An empty view: no timeline dots, table rows, terminal or check list, and a code strip with no active line. */
+function bosGorunum(ozet: boolean, kod: CodeTraceSpec = kodSeridi(K5, []), kitap: RateKitapBlok | null = null): RateView {
   return {
     timeline: { noktalar: [], bantlar: [], xMax: 0, ipler: [] },
     tablo: { baslik: TABLO_BASLIK, sutunlar: TABLO_SUTUNLARI, satirlar: [] },
@@ -52,6 +86,7 @@ function bosGorunum(ozet: boolean, kod: CodeTraceSpec = kodSeridi(K5, [])): Rate
     denetim: null,
     code: kod,
     ozet,
+    kitap,
   };
 }
 
@@ -76,8 +111,9 @@ const izinli = (s: Sonuc): boolean => s.dal !== undefined && s.dal !== 'sinirda'
  * L1207-1208 for the `login` pattern); otherwise the terminal shows the lines the run computed, in the same format.
  */
 export function deriveRateView(p: RateParams, kitapCiktisi = false): RateView {
-  if (p.asama === 'tanitim') return bosGorunum(false);
-  if (p.asama === 'ozet') return bosGorunum(true);
+  // intro and summary: the book's text, nothing computed
+  if (p.asama === 'tanitim') return bosGorunum(false, undefined, TANITIM_BLOK);
+  if (p.asama === 'ozet') return bosGorunum(true, undefined, OZET_BLOK);
 
   const login = p.desen === 'login';
   const { sonuclar, pencereMs } = sonuclariBul(p);
@@ -142,6 +178,7 @@ export function deriveRateView(p: RateParams, kitapCiktisi = false): RateView {
     denetim,
     code,
     ozet: false,
+    kitap: null,
   };
 }
 

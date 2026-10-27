@@ -118,7 +118,7 @@ export const concepts: ConceptEntry[] = [
     id: 'rate-limiting',
     chapter: 11,
     chapterTitle: CH[11],
-    title: 'Rate limiting: istek sınırlama',
+    title: 'Rate limiting: sabit pencere',
     status: 'hazir',
     href: 'rate-limiting/',
   },

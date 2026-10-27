@@ -8,7 +8,7 @@ import { mountRateExtra, mountRateScene } from './scene';
 const kayit = concepts.find((c) => c.id === 'rate-limiting')!;
 
 export const ratePage: ConceptPage<RateParams> = {
-  title: 'Rate limiting: istek sınırlama',
+  title: 'Rate limiting: sabit pencere',
   chapter: `Bölüm ${kayit.chapter} · ${kayit.chapterTitle}`,
   scenario: rateScenario,
   mountScene: mountRateScene,

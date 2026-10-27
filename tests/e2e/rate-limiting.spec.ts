@@ -5,10 +5,10 @@ const PAGE = '/rate-limiting/';
 const READY = '.rate-scene .rate-stage';
 const STEPS = 10;
 /** Scene boxes that must show all their content; the stage scrolls on purpose only at phone width. */
-const BOXES = '.data-table, .terminal, .check-list, .rate-cizelge';
+const BOXES = '.data-table, .terminal, .check-list, .rate-cizelge, .kitap-blok';
 /** Boxes checked against the `.rate-stage` box at desktop widths. */
-const STAGE_BOXES = '.rate-cizelge, .rate-alt, .data-table, .terminal, .check-list';
-const TEXTS = '.denetim, .terminal-satir, .data-table th, .data-table td';
+const STAGE_BOXES = '.rate-cizelge, .rate-alt, .data-table, .terminal, .check-list, .kitap-blok';
+const TEXTS = '.denetim, .terminal-satir, .data-table th, .data-table td, .tanim-metin, .kitap-not';
 
 test.use({ reducedMotion: 'reduce' });
 
@@ -62,6 +62,28 @@ test('ders: step 4 shows all 5 book terminal lines and step 8 a 403 mark at 1280
   await rest(page);
   await expect(page.locator('svg.plot .rate-nokta.cors')).toHaveCount(1);
   await expect(page.locator('.lejant-cors')).toBeVisible();
+});
+
+test('ders: steps 1 and 10 show the book block at 1280x720', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await open(page, PAGE, 'ders', READY);
+  const blok = page.locator('.kitap-blok');
+  await expect(blok).toBeVisible();
+  await expect(page.locator('.rate-cizelge')).toBeHidden();
+  await expect(page.locator('.rate-alt')).toBeHidden();
+  await expect(blok.locator('.tanim-metin')).toContainText('Tanım. Rate limiting, bir istemcinin');
+  await expect(blok.locator('.kitap-not')).toHaveText(/^Dikkat: Rate limiting olmadan bir login endpoint’i/);
+  expect((await pageOverflow(page)).x, 'step 1').toBeLessThanOrEqual(0);
+  expect((await pageOverflow(page)).y, 'step 1').toBeLessThanOrEqual(0);
+  expect(await stageBoxProblems(page, '.rate-stage', '.kitap-blok, .tanim-metin, .kitap-not'), 'step 1').toEqual([]);
+  await gotoStep(page, STEPS - 1, STEPS, 0);
+  await rest(page);
+  await expect(blok.locator('.data-table-title')).toHaveText(['Alternatifler']);
+  await expect(blok.locator('tbody tr')).toHaveCount(4);
+  await expect(blok.locator('.kitap-not')).toContainText('(örneğin Redis)');
+  expect((await pageOverflow(page)).x, 'step 10').toBeLessThanOrEqual(0);
+  expect((await pageOverflow(page)).y, 'step 10').toBeLessThanOrEqual(0);
+  expect(await stageBoxProblems(page, '.rate-stage', '.kitap-blok, .data-table, .data-table tbody tr, .kitap-not'), 'step 10').toEqual([]);
 });
 
 test('lab: lowering the limit turns accepted dots orange', async ({ page }) => {
@@ -137,7 +159,7 @@ test('ders font floors at 1280x720', async ({ page }, info) => {
     await rest(page);
     const m: Record<string, number[]> = {
       title: await fontSizes(page, '.step-title'),
-      body: await fontSizes(page, '.step-text'),
+      body: await fontSizes(page, '.step-text, .kitap-blok'),
       tick: await fontSizes(page, '.denetim, .terminal-satir, .data-table td, .data-table th, .code-trace-lines *, .kaynak-rozeti, .rate-lejant, svg.plot text:not(.probe)'),
       axis: await fontSizes(page, '.kart-baslik, .check-list-title, .data-table-title'),
     };

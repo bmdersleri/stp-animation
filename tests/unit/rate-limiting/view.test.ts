@@ -136,6 +136,37 @@ describe('rate-limiting view', () => {
     expect(deriveRateView(step(1), true).ozet).toBe(false);
   });
 
+  it('step 1 shows the book definition L678 and warning L675', () => {
+    const k = view(1).kitap!;
+    expect(k.tanim).toBe(
+      'Rate limiting, bir istemcinin (genellikle IP adresi veya kullanıcı kimliği bazında) belirli bir zaman aralığında gönderebileceği istek sayısını sınırlayan bir denetimdir. Sınır aşıldığında sunucu isteği işlemeden 429 Too Many Requests durum koduyla reddeder.',
+    );
+    expect(k.notlar).toEqual(['Dikkat: Rate limiting olmadan bir login endpoint’i, doğru parolayı bulana kadar otomatik deneme yapan bir saldırıya karşı pratikte korumasızdır.']);
+    expect(k.tablolar).toEqual([]);
+  });
+
+  it('step 10 shows the book table L769-774 and the Redis sentence L763', () => {
+    const k = view(10).kitap!;
+    expect(k.tanim).toBeUndefined();
+    const [t] = k.tablolar;
+    expect(k.tablolar).toHaveLength(1);
+    expect(t.baslik).toBe('Alternatifler');
+    expect(t.sutunlar.map((s) => s.ad)).toEqual(['Yaklaşım', 'Avantajı', 'Dezavantajı', 'Uygun kullanım']);
+    expect(t.satirlar.map((r) => r.cells)).toEqual([
+      ['Sabit pencere (bu bölümde örneklenen)', 'Basit, anlaşılırdır', 'Pencere sınırında ani istek patlamalarına (burst) izin verebilir', 'Küçük ve orta ölçekli API’ler'],
+      ['Kayan pencere (sliding window)', 'Burst etkisini azaltır', 'Uygulaması sabit pencereden daha karmaşıktır', 'Daha hassas sınırlama gereken sistemler'],
+      ['Token bucket', 'Kısa süreli patlamalara esnek izin verirken ortalama hızı sınırlar', 'Parametre ayarı (kova boyutu, doldurma hızı) gerektirir', 'API gateway’ler, yayın (streaming) sistemleri'],
+      ['express-rate-limit + Redis deposu', 'Çoklu sunucu örneğinde tutarlı çalışır', 'Redis gibi ek bir bağımlılık gerektirir', 'Ölçeklenen üretim ortamları'],
+    ]);
+    expect(k.notlar).toEqual([
+      'Bu basit yaklaşım tek sunuculu uygulamalarda çalışır; birden fazla sunucu örneği varsa sayaçlar paylaşılan bir depoda (örneğin Redis) tutulmalıdır, aksi hâlde her sunucu örneği kendi sayacını tutar ve gerçek sınır etkisiz hale gelir.',
+    ]);
+  });
+
+  it('flow steps carry no book block', () => {
+    for (let n = 2; n <= 9; n++) expect(view(n).kitap, `step ${n}`).toBeNull();
+  });
+
   it('lab badge is always book code', () => {
     expect(rateLabRozet(step(4))).toEqual({ tur: 'kitap-kodu' });
     expect(rateLabRozet({ ...step(4), desen: 'login' })).toEqual({ tur: 'kitap-kodu' });

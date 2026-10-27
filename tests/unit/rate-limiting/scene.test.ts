@@ -98,6 +98,29 @@ describe('rate-limiting scene', () => {
     expect(texts(el, '.terminal-satir')).not.toEqual(kitap);
   });
 
+  it('intro and summary show the book block in place of the timeline and lower row', () => {
+    const { el, player } = setup();
+    const gizli = (sel: string): boolean => el.querySelector<HTMLElement>(sel)!.hidden === true;
+    go(player, 'tanitim');
+    const blok = el.querySelector<HTMLElement>('.kitap-blok')!;
+    expect(blok.hidden).toBe(false);
+    expect([gizli('.rate-cizelge'), gizli('.rate-alt'), gizli('.rate-lejant')]).toEqual([true, true, true]);
+    expect(blok.querySelector('.tanim-metin strong')!.textContent).toBe('Tanım. ');
+    expect(blok.querySelector('.tanim-metin')!.textContent).toContain('Rate limiting, bir istemcinin');
+    expect(texts(blok, '.kitap-not')[0]).toMatch(/^Dikkat: Rate limiting olmadan/);
+    go(player, 'ozet');
+    expect(texts(blok, '.data-table-title')).toEqual(['Alternatifler']);
+    expect(blok.querySelectorAll('tbody tr')).toHaveLength(4);
+    expect(texts(blok, '.kitap-not')[0]).toContain('(örneğin Redis)');
+    go(player, 'sinir');
+    expect(blok.hidden).toBe(true);
+    expect([gizli('.rate-cizelge'), gizli('.rate-alt'), gizli('.rate-lejant')]).toEqual([false, false, false]);
+    expect(el.querySelectorAll('svg.plot .rate-dot')).toHaveLength(5);
+    go(player, 'ozet');
+    go(player, 'ozet');
+    expect(el.querySelectorAll('.kitap-blok .data-table')).toHaveLength(1);
+  });
+
   it('login step shows the check list', () => {
     const { el, player } = setup();
     go(player, 'login-429');
