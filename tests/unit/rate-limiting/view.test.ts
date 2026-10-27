@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LISTINGS } from '../../../src/concepts/rate-limiting/code-text';
-import { DAL_SATIRI } from '../../../src/concepts/rate-limiting/limiter';
+import { loginOynat } from '../../../src/concepts/rate-limiting/desenler';
+import { DAL_SATIRI, loginIsteginiIsle, yeniLimiter } from '../../../src/concepts/rate-limiting/limiter';
 import { ELLE_SINIRI, rateScenario as sc, TUMU, type RateParams } from '../../../src/concepts/rate-limiting/scenario';
 import { deriveRateView, rateLabRozet } from '../../../src/concepts/rate-limiting/view';
 import { lineOf, listing } from '../../../src/core/listing';
@@ -107,6 +108,27 @@ describe('rate-limiting view', () => {
     expect(hesap).toEqual(K7_CIKTI);
     expect(metinler(deriveRateView({ ...step(9), istek: 5 }, true)).slice(0, 2)).toEqual(K7_CIKTI);
     expect(metinler(deriveRateView({ ...step(9), istek: 5 }, true))).toHaveLength(5);
+  });
+
+  it('login code line comes from the model, per result', () => {
+    const basari = lineOf(K7, 'Giriş başarılı.');
+    expect(loginOynat().sonuclar.map((s) => s.satir)).toEqual([basari, lineOf(K7, 'if (!izinVerilenKokenler.includes(kaynakKoken))'), basari, basari, lineOf(K7, 'if (!loginLimiter.istegeIzinVer(istemciIp))')]);
+    expect(deriveRateView({ ...step(9), istek: 3 }).code.active).toEqual([basari]);
+    // no pattern sends a body without parola; call the model directly: the 400 points at the parola line
+    const c = { koken: 'https://kutuphane.mehmetakif.edu.tr', ip: '203.0.113.20', govde: { kullaniciAdi: 'elif' }, simdi: 0 };
+    const r = loginIsteginiIsle(yeniLimiter(3, 60_000), c, { JWT_SECRET: 'x' });
+    expect(r.sonuc.yanit.durumKodu).toBe(400);
+    expect(r.sonuc.satir).toBe(lineOf(K7, 'parola zorunludur.'));
+    expect(r.sonuc.satir).not.toBe(lineOf(K7, 'İstek gövdesi bir nesne olmalıdır.'));
+  });
+
+  it('kitapCiktisi true still shows computed lines when the call is not the one in the book', () => {
+    const v = deriveRateView({ ...step(4), maksimumIstek: 2 }, true);
+    expect(metinler(v)).not.toEqual(K5_CIKTI);
+    expect(metinler(v)[2]).toBe('Deneme 3: 429 Too Many Requests');
+    expect(metinler(v)[1]).toBe('Deneme 2: kabul edildi');
+    // login with a changed call count: lines past the book's two are computed
+    expect(metinler(deriveRateView({ ...step(9), istek: 5 }, true)).slice(2)).toEqual(metinler(deriveRateView({ ...step(9), istek: 5 }, false)).slice(2));
   });
 
   it('intro and summary views show no computed value', () => {

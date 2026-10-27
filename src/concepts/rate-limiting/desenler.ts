@@ -52,7 +52,7 @@ export function oynat(istekler: readonly Istek[], maksimumIstek: number, pencere
 }
 
 /** `dal` is absent when CORS refused the call before the limiter ran. */
-export function loginOynat(): { sonuclar: (Omit<IstekSonucu, 'dal'> & { dal?: Dal; denetimler: Denetim[] })[]; durum: LimiterDurum } {
+export function loginOynat(): { sonuclar: (Omit<IstekSonucu, 'dal'> & { dal?: Dal; denetimler: Denetim[]; satir: number })[]; durum: LimiterDurum } {
   let d = yeniLimiter(3, 60_000);
   const sonuclar = LOGIN_CAGRILARI.map((c) => {
     const r = loginIsteginiIsle(d, c, LOGIN_ORTAMI);
@@ -60,7 +60,7 @@ export function loginOynat(): { sonuclar: (Omit<IstekSonucu, 'dal'> & { dal?: Da
     const { durumKodu, mesaj } = r.sonuc.yanit;
     return {
       t: c.simdi, ip: c.ip, izin: durumKodu !== 429 && durumKodu !== 403, dal: r.sonuc.dal,
-      ...kayitOku(d, c.ip), durumKodu, mesaj, denetimler: r.sonuc.denetimler,
+      ...kayitOku(d, c.ip), durumKodu, mesaj, denetimler: r.sonuc.denetimler, satir: r.sonuc.satir,
     };
   });
   return { sonuclar, durum: d };

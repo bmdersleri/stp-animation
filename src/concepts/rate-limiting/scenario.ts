@@ -103,7 +103,7 @@ export const rateScenario: Scenario<RateParams> = {
       title: 'Kod 11.7: denetim sırası',
       term: 'denetim zinciri',
       text: 'Kod 11.7’de login isteği önce CORS denetiminden, sonra rate limit denetiminden geçer; ilk başarısız denetim zinciri durdurur. İlk iki çağrının çıktısı kitapta basılıdır: izinli kökenden gelen çağrı başarılı olur, kötü niyetli siteden gelen çağrı CORS’ta 403 alır. CORS’ta reddedilen çağrı sınırlayıcıya ulaşmaz.',
-      labText: 'Sınırlayıcı ayarları bu desende sabittir. Çağrı sayısını artıran desenlere geçerek zincirin devamını izleyin.',
+      labText: 'Sınırlayıcı ayarları bu desende sabittir. Zincirin devamını görmek için giriş sırası adımının sonrasındaki 429 adımına geçin.',
       params: { ...VARSAYILAN, desen: 'login', istek: 2 },
     },
     {
@@ -118,7 +118,7 @@ export const rateScenario: Scenario<RateParams> = {
       id: 'ozet',
       title: 'Özet: sabit pencere ve sınırı',
       term: 'rate limiting özeti',
-      text: 'Kitaba göre sabit pencere basit ve hızlıdır: anahtar başına bir sayaç yeter. Pencere dönünce sayaç sıfırlanır; bu yüzden sınırda kısa süreli bir patlama mümkündür. Sınırlayıcı CORS’tan sonra, doğrulamadan önce çalışır ve aşırı denemeleri 429 ile durdurur.',
+      text: 'Kitaba göre sabit pencere basit ve anlaşılırdır: anahtar başına bir sayaç yeter. Pencere dönünce sayaç sıfırlanır; bu yüzden sınırda kısa süreli bir patlama mümkündür. Sınırlayıcı CORS’tan sonra, doğrulamadan önce çalışır ve aşırı denemeleri 429 ile durdurur.',
       labText: 'Bu görünüm kitabın özetidir ve Lab seçimlerinizden etkilenmez.',
       params: { ...VARSAYILAN, asama: 'ozet' },
     },

@@ -30,16 +30,6 @@ const K7 = listing(LISTINGS, 'kod-11-7');
 /** The lines Kod 11.7 prints (L1207-1208), without the `// Çıktı: ` prefix. */
 const K7_CIKTI: readonly string[] = K7.lines.filter((s) => s.startsWith('// Çıktı: ')).map((s) => s.replace('// Çıktı: ', ''));
 
-/** Line of Kod 11.7 that returns the response, by status code. */
-const LOGIN_SATIRI: Readonly<Record<number, number>> = {
-  403: lineOf(K7, 'if (!izinVerilenKokenler.includes(kaynakKoken))'),
-  429: lineOf(K7, 'if (!loginLimiter.istegeIzinVer(istemciIp))'),
-  400: lineOf(K7, 'İstek gövdesi bir nesne olmalıdır.'),
-  500: lineOf(K7, 'JWT_SECRET eksik.'),
-  401: lineOf(K7, 'Kullanıcı adı veya parola hatalı.'),
-  200: lineOf(K7, 'Giriş başarılı.'),
-};
-
 const TABLO_BASLIK = 'Sınırlayıcı kayıtları';
 const TABLO_SUTUNLARI: DataTableSpec['sutunlar'] = [{ ad: 'anahtar' }, { ad: 'sayac' }, { ad: 'pencereBaslangici' }];
 
@@ -61,7 +51,7 @@ function bosGorunum(ozet: boolean, kod: CodeTraceSpec = kodSeridi(K5, [])): Rate
 }
 
 /** The request results of one pattern; `login` has fixed limiter settings (3, 60 s) and carries the check lists. */
-type Sonuc = Omit<IstekSonucu, 'dal' | 'izin'> & { dal?: Dal; denetimler?: Denetim[] };
+type Sonuc = Omit<IstekSonucu, 'dal' | 'izin'> & { dal?: Dal; denetimler?: Denetim[]; satir?: number };
 
 function sonuclariBul(p: RateParams): { sonuclar: Sonuc[]; pencereMs: number } {
   if (p.desen === 'login') return { sonuclar: loginOynat().sonuclar, pencereMs: 60_000 };
@@ -132,7 +122,7 @@ export function deriveRateView(p: RateParams, kitapCiktisi = false): RateView {
 
   const denetim: CheckListSpec | null = login && son.denetimler ? { baslik: 'Denetim zinciri', denetimler: son.denetimler } : null;
   const code: CodeTraceSpec = login
-    ? kodSeridi(K7, [LOGIN_SATIRI[son.durumKodu!]])
+    ? kodSeridi(K7, [son.satir!])
     : kodSeridi(K5, [DAL_SATIRI[son.dal as Dal]]);
 
   return {
