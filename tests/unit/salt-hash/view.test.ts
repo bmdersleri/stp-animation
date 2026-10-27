@@ -83,6 +83,12 @@ describe('salt-hash view', () => {
     expect(view(8).ozet).toBeNull();
   });
 
+  it('ozet closes with the book L374 verbatim', () => {
+    expect(view(9).ozet![3]).toBe(
+      'Doğru yaklaşım her kullanıcı için benzersiz bir salt üretmek ve bilinçli olarak yavaş çalışan bir anahtar türetme fonksiyonu (scrypt, bcrypt, argon2) kullanmaktır. Ayrıca parola karşılaştırması her zaman zamanlama saldırılarına dirençli bir fonksiyonla (timingSafeEqual) yapılmalıdır.',
+    );
+  });
+
   it('code strip line follows gorunum', () => {
     const k = listing(LISTINGS, 'kod-10-2');
     const c4 = listing(LISTINGS, 'code-004');

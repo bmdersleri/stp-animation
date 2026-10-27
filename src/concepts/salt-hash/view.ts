@@ -36,12 +36,12 @@ export const BEKLIYOR = 'hesaplanıyor…';
 const KULLANICI_1 = 'elif';
 const KULLANICI_2 = 'ahmet';
 
-/** The book's three critical lines (L311-313) and its closing sentence (L374), as the summary step shows them. */
+/** The book's three critical lines (L311-313) and its closing sentences (L374, verbatim without code ticks), as the summary step shows them. */
 const OZET: readonly string[] = [
   'randomBytes(16) her kullanıcı için benzersiz bir salt üretir; bu salt hash ile birlikte saklanır.',
   'scryptSync, bilinçli olarak yavaş çalışan bir anahtar türetme fonksiyonu olduğu için kaba kuvvet saldırılarını yavaşlatır.',
   'timingSafeEqual, hash karşılaştırmasını sabit sürede yaparak zamanlama saldırılarını engeller.',
-  'Doğru yaklaşım her kullanıcı için benzersiz bir salt üretmek ve bilinçli olarak yavaş çalışan bir anahtar türetme fonksiyonu kullanmaktır; parola karşılaştırması her zaman timingSafeEqual ile yapılmalıdır.',
+  'Doğru yaklaşım her kullanıcı için benzersiz bir salt üretmek ve bilinçli olarak yavaş çalışan bir anahtar türetme fonksiyonu (scrypt, bcrypt, argon2) kullanmaktır. Ayrıca parola karşılaştırması her zaman zamanlama saldırılarına dirençli bir fonksiyonla (timingSafeEqual) yapılmalıdır.',
 ];
 
 const KOD = listing(LISTINGS, 'kod-10-2');
@@ -67,18 +67,21 @@ function ikinciSalt(p: SaltParams): string {
 
 const anahtar = (parola: string, salt: string): string => `${parola}|${salt}`;
 
-/** Which records exist: the registered one and, in the hat views, the second user's. */
+/** The book-only views (tanim, yavas, ozet) show no computed value: their steps carry the `kitap` badge. */
+const hesapsiz = (p: SaltParams): boolean => p.gorunum === 'tanim' || p.gorunum === 'yavas' || p.gorunum === 'ozet';
+
+/** Which records exist: the registered one and, in the hat view, the second user's; none in the book-only views. */
 function kayitlar(p: SaltParams): { ad: string; salt: string }[] {
+  if (hesapsiz(p)) return [];
   const ilk = { ad: KULLANICI_1, salt: etkinSalt(p) };
-  const hat = p.gorunum === 'hat' || p.gorunum === 'tanim' || p.gorunum === 'yavas' || p.gorunum === 'ozet';
-  return hat && p.ikinciKullanici ? [ilk, { ad: KULLANICI_2, salt: ikinciSalt(p) }] : [ilk];
+  return p.gorunum === 'hat' && p.ikinciKullanici ? [ilk, { ad: KULLANICI_2, salt: ikinciSalt(p) }] : [ilk];
 }
 
 const denemeVar = (p: SaltParams): boolean => p.gorunum === 'dogrula' || p.gorunum === 'karsilastir';
 
 /** (parola, salt) pairs whose scrypt hash the view needs. Empty for sha256. */
 function gerekenler(p: SaltParams): [string, string][] {
-  if (p.yontem === 'sha256') return [];
+  if (p.yontem === 'sha256' || hesapsiz(p)) return [];
   const out: [string, string][] = kayitlar(p).map((k) => [p.parola, k.salt]);
   if (denemeVar(p)) out.push([p.deneme, etkinSalt(p)]);
   return out;
@@ -158,7 +161,7 @@ export function deriveSaltView(p: SaltParams, onbellek: Onbellek): SaltView {
       seritler.push({ baslik: k.ad, parcalar, ayirici: '·' });
     });
     // code_004 prints the comparison of two identical unsalted hashes (L371)
-    if (sha) terminal.push({ metin: 'true' });
+    if (sha && !hesapsiz(p)) terminal.push({ metin: 'true' });
   }
 
   return {

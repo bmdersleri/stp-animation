@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { stepIndex } from '../../../src/core/player';
 import { SALT_1, SCRYPT_ONBELLEK } from '../../../src/concepts/salt-hash/degerler';
 import { SALT_ROZET, saltScenario as sc, type SaltParams } from '../../../src/concepts/salt-hash/scenario';
-import { deriveSaltView } from '../../../src/concepts/salt-hash/view';
+import { deriveSaltView, saltAnahtarlari } from '../../../src/concepts/salt-hash/view';
 import { labTextTests } from '../lab-text';
 
 const IDS = ['tanitim', 'tuzsuz', 'salt-uret', 'ayni-parola', 'dogru-parola', 'yanlis-parola', 'zamanlama', 'yavas', 'ozet'];
@@ -11,8 +11,8 @@ const ROZET: [string, string | undefined][] = [
   ['kitap-kodu', 'L344, L371'],
   ['kitap-kodu', 'L282-283'],
   ['kitap-kodu', 'L246, L331'],
-  ['kitap', 'L303'],
-  ['kitap', 'L303-304'],
+  ['kitap-kodu', 'L303'],
+  ['kitap-kodu', 'L303-304'],
   ['kitaba-dayali', 'L316, L331'],
   ['kitap', 'L249, L312, L337-342'],
   ['kitap', 'L311-313, L374'],
@@ -39,6 +39,21 @@ describe('salt-hash scenario', () => {
   it('no Ders step waits for a hash', () => {
     const onbellek = new Map(Object.entries(SCRYPT_ONBELLEK));
     for (const s of sc.steps) expect(deriveSaltView(s.params as SaltParams, onbellek).bekliyor, s.id).toEqual([]);
+  });
+
+  it('kitap-badged steps show no computed hashes', () => {
+    const onbellek = new Map(Object.entries(SCRYPT_ONBELLEK));
+    const kitapAdimlari = sc.steps.filter((s) => SALT_ROZET[s.id].tur === 'kitap');
+    expect(kitapAdimlari.map((s) => s.id)).toEqual(['tanitim', 'yavas', 'ozet']);
+    for (const s of kitapAdimlari) {
+      const v = deriveSaltView(s.params as SaltParams, onbellek);
+      expect(v.seritler, s.id).toEqual([]);
+      expect(v.tablo.satirlar, s.id).toEqual([]);
+      expect(v.terminal, s.id).toEqual([]);
+      expect(v.karsilastirma, s.id).toBeNull();
+      expect(v.bekliyor, s.id).toEqual([]);
+      expect(saltAnahtarlari(s.params as SaltParams), s.id).toEqual([]);
+    }
   });
 
   it('uses the cached SALT_1 value for the default record', () => {
