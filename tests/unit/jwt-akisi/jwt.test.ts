@@ -14,14 +14,15 @@ import { b64urlCoz } from '../../../src/core/kripto';
 import { listing } from '../../../src/core/listing';
 import { nodeInspect } from '../../../src/core/node-inspect';
 
+const b64 = (s: string): string => Buffer.from(s).toString('base64url');
 const HEADER = 'eyJhbGciOiJIUzI1NiIsInRpcCI6IkpXVCJ9';
 const GOVDE = 'eyJrdWxsYW5pY2lBZGkiOiJlbGlmIiwicm9sIjoib2dyZW5jaSIsInNvbkdlY2VybGlsaWsiOjE3ODg2MDc0Mjg2MDB9';
 const IMZA = 'p1aKZ8iwwpShCIkzPs1HH23xYmZSUhwPknpJRwVpavM';
-const SURESIZ_GOVDE = 'eyJrdWxsYW5pY2lBZGkiOiJlbGlmIiwicm9sIjoib2dyZW5jaSJ9';
+/** Elif's payload without the expiry field (sure-alani-yok) and with the role changed (rol-degisti), re-derived from their JSON. */
+const SURESIZ_GOVDE = b64('{"kullaniciAdi":"elif","rol":"ogrenci"}');
+const ROL_GOVDE = b64('{"kullaniciAdi":"elif","rol":"kutuphaneci","sonGecerlilik":1788607428600}');
 const SURESIZ_IMZA = 'Nbua2B5HZZaFd1FQ6I_KfnJwFs2vKArT1EX0HUl0dmg';
-const ROL_GOVDE = 'eyJrdWxsYW5pY2lBZGkiOiJlbGlmIiwicm9sIjoia3V0dXBoYW5lY2kiLCJzb25HZWNlcmxpbGlrIjoxNzg4NjA3NDI4NjAwfQ';
 
-const b64 = (s: string): string => Buffer.from(s).toString('base64url');
 const imzaNode = (veri: string, anahtar = GIZLI_ANAHTAR): string => createHmac('sha256', anahtar).update(veri).digest('base64url');
 const KOD = listing(LISTINGS, 'kod-10-3');
 const token = (): string => tokenUret(payloadKur('elif', DERS_SIMDI)).token;
