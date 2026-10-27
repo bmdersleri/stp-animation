@@ -63,6 +63,48 @@ test('lab: choosing /api/notlar/ shows 400', async ({ page }) => {
   await expect(page.locator('.terminal')).toContainText('[400] Öğrenci numarası eksik.');
 });
 
+/** Whether the element's box lies inside the viewport. */
+const inViewport = (page: Page, sel: string) =>
+  page.locator(sel).first().evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return r.height > 0 && r.top >= 0 && r.bottom <= window.innerHeight && r.left >= 0 && r.right <= window.innerWidth;
+  });
+
+test('lab 1280x720: the code listing scrolls itself, not the side panel', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await open(page, PAGE, 'lab', READY);
+  for (let n = 1; n <= STEPS - 1; n++) {
+    await gotoStep(page, n - 1, STEPS, 0);
+    await rest(page);
+    const at = `step ${n}`;
+    expect(await page.locator('.side').evaluate((el) => el.scrollTop), at).toBe(0);
+    expect(await inViewport(page, '.step-title'), at).toBe(true);
+    expect(await inViewport(page, 'select[name="yol"]'), at).toBe(true);
+    // the active line is shown inside the listing's own box
+    const shown = await page.locator('.explain-extra .code-trace-lines').evaluate((list) => {
+      const li = list.querySelector('li.active');
+      if (!li) return true;
+      const a = list.getBoundingClientRect();
+      const b = li.getBoundingClientRect();
+      return b.top >= a.top - 1 && b.bottom <= a.bottom + 1;
+    });
+    expect(shown, at).toBe(true);
+  }
+});
+
+test('lab 390x844: a step change does not scroll the page', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await open(page, PAGE, 'lab', READY);
+  await page.locator('.stage').focus();
+  for (let n = 1; n < STEPS - 1; n++) {
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.keyboard.press('ArrowRight');
+    await expect(stepCount(page)).toHaveText(`Adım ${n + 1} / ${STEPS}`);
+    await rest(page);
+    expect(await page.evaluate(() => window.scrollY), `step ${n + 1}`).toBe(0);
+  }
+});
+
 for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
   for (const mode of ['ders', 'lab'] as const) {
     test(`${mode}: every step fits at ${w}x${h}`, async ({ page }) => {

@@ -47,6 +47,60 @@ describe('CodeTrace', () => {
     expect(host.querySelector('.code-trace-title')!.textContent).toBe('b');
   });
 
+  it('update scrolls only its own list: no scrollIntoView, no ancestor scrollTop change', () => {
+    const outer = document.createElement('div'); // stands in for the Lab side panel / the page
+    const host = document.createElement('div');
+    outer.append(host);
+    document.body.append(outer);
+    const writes: string[] = [];
+    const track = (el: Element, name: string): void => {
+      Object.defineProperty(el, 'scrollTop', { configurable: true, get: () => 0, set: () => void writes.push(name) });
+    };
+    track(document.documentElement, 'html');
+    track(document.body, 'body');
+    track(outer, 'outer');
+    track(host, 'host');
+    const calls: string[] = [];
+    const proto = Element.prototype as unknown as { scrollIntoView?: unknown };
+    const had = Object.prototype.hasOwnProperty.call(proto, 'scrollIntoView');
+    const saved = proto.scrollIntoView;
+    proto.scrollIntoView = function (): void {
+      calls.push('scrollIntoView');
+    };
+    try {
+      const ct = new CodeTrace(host);
+      const list = host.querySelector<HTMLOListElement>('ol.code-trace-lines')!;
+      // a 100 px tall list box; line n sits at (n - 1) * 20 px inside the content
+      let listTop = 0;
+      Object.defineProperty(list, 'clientHeight', { configurable: true, get: () => 100 });
+      Object.defineProperty(list, 'scrollTop', { configurable: true, get: () => listTop, set: (v: number) => void (listTop = v) });
+      const rect = (top: number, height: number): DOMRect => ({ top, height, bottom: top + height, left: 0, right: 100, width: 100, x: 0, y: top, toJSON: () => ({}) }) as DOMRect;
+      list.getBoundingClientRect = () => rect(0, 100);
+      const place = (): void => {
+        list.querySelectorAll<HTMLLIElement>('li').forEach((li) => {
+          const n = Number(li.dataset.line);
+          li.getBoundingClientRect = () => rect((n - 1) * 20 - listTop, 20);
+        });
+      };
+      const orig = list.replaceChildren.bind(list);
+      list.replaceChildren = (...nodes: (Node | string)[]): void => {
+        orig(...nodes);
+        place();
+      };
+      ct.update({ title: 't', lines, active: [9] });
+      expect(listTop).toBe(9 * 20 - 100); // line 9 brought to the bottom edge of the list box
+      ct.update({ title: 't', lines, active: [2] });
+      expect(listTop).toBe(20); // back up to line 2's top edge
+      ct.update({ title: 't', lines, active: [3] });
+      expect(listTop).toBe(20); // already visible: no scroll
+      expect(calls).toEqual([]);
+      expect(writes).toEqual([]);
+    } finally {
+      if (had) proto.scrollIntoView = saved;
+      else delete proto.scrollIntoView;
+    }
+  });
+
   it('destroy removes root', () => {
     const { host, ct } = make();
     ct.destroy();

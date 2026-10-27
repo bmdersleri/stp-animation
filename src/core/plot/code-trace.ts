@@ -61,6 +61,22 @@ export class CodeTrace {
     });
     this.list.replaceChildren(...rows);
     const target = first === undefined ? undefined : rows.find((li) => li.dataset.line === String(first));
-    if (target && typeof target.scrollIntoView === 'function') target.scrollIntoView({ block: 'nearest' });
+    if (target) this.reveal(target);
+  }
+
+  /**
+   * Scrolls only the list's own box so `target` is visible (nearest edge). Never `scrollIntoView`: that also
+   * scrolls every scrollable ancestor (the Lab side panel, the page below 900 px) and moves the step text away.
+   */
+  private reveal(target: HTMLLIElement): void {
+    const list = this.list;
+    const lr = list.getBoundingClientRect();
+    const tr = target.getBoundingClientRect();
+    const view = list.clientHeight;
+    if (view <= 0) return;
+    const top = tr.top - lr.top - list.clientTop + list.scrollTop;
+    const bottom = top + tr.height;
+    if (top < list.scrollTop) list.scrollTop = top;
+    else if (bottom > list.scrollTop + view) list.scrollTop = Math.min(top, bottom - view);
   }
 }

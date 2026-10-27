@@ -7,3 +7,6 @@
 .code-trace-text { flex:1 1 12em; min-width:0; white-space:pre-wrap; overflow-wrap:anywhere; }
 .code-trace-lines li.active { background:#F7CF9B; border-left-color:#E07B00; }
 .code-trace-note { font-family:var(--font); font-weight:700; color:#7A3E00; background:var(--surface); border:2px solid #E07B00; border-radius:6px; padding:0 6px; margin-left:auto; max-width:100%; box-sizing:border-box; overflow-wrap:anywhere; }
+/* Lab listing under the step text: bounded (about 20 lines, at most 40vh) and scrolls by itself, so the step
+   text above and the Lab controls below stay in view. */
+.explain-extra .code-trace-lines { max-height:min(calc(20 * 1.5em + 16px), 40vh); overflow:auto; overscroll-behavior:contain; }
