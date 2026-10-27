@@ -7,19 +7,19 @@ test('home: header and one card per concept', async ({ page }) => {
   await expect(page.locator('.card')).toHaveCount(15);
 });
 
-test('home: 7 hazır and 8 yakında cards', async ({ page }) => {
+test('home: 8 hazır and 7 yakında cards', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.card')).toHaveCount(15);
-  await expect(page.locator('a.card.hazir')).toHaveCount(7);
-  await expect(page.locator('article.card.yakinda')).toHaveCount(8);
+  await expect(page.locator('a.card.hazir')).toHaveCount(8);
+  await expect(page.locator('article.card.yakinda')).toHaveCount(7);
   await expect(page.locator('a.card.yakinda')).toHaveCount(0);
 });
 
 test('home: each hazır card has a Ders modunda aç link to ?mod=ders', async ({ page }) => {
   await page.goto('/');
   const ders = page.locator('a.card-ders');
-  await expect(ders).toHaveCount(7);
-  await expect(ders).toHaveText(Array(7).fill('Ders modunda aç'));
+  await expect(ders).toHaveCount(8);
+  await expect(ders).toHaveText(Array(8).fill('Ders modunda aç'));
   for (const href of await ders.evaluateAll((as) => as.map((a) => a.getAttribute('href')))) {
     expect(href).toMatch(/\?mod=ders$/);
   }
