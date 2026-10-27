@@ -1,0 +1,19 @@
+/* Check list (core/plot/check-list.ts). */
+.check-list { min-width:0; border:2px solid var(--line); border-radius:10px; background:var(--surface); padding:5px 12px; }
+.check-list-title { font-weight:700; font-size:var(--fs-axis); color:var(--muted); margin-bottom:2px; line-height:1.2; }
+.check-list-rows { list-style:none; margin:0; padding:0; }
+.denetim { display:grid; grid-template-columns:auto 1fr auto; align-items:baseline; gap:2px 8px; padding:2px 0; font-size:var(--fs-body); line-height:1.25; }
+.denetim + .denetim { border-top:1px dashed var(--line); }
+.denetim-ikon { font-weight:700; width:1.1em; text-align:center; }
+.denetim-orta { min-width:0; display:flex; flex-wrap:wrap; gap:0 10px; align-items:baseline; }
+.denetim-ad { font-weight:700; overflow-wrap:anywhere; }
+.denetim-ayrinti { font-family:var(--mono, ui-monospace, Consolas, monospace); font-size:var(--fs-tick); color:var(--muted); overflow-wrap:anywhere; }
+.denetim-sonuc { padding:0 .6em; border-radius:8px; font-weight:700; font-size:var(--fs-tick); color:#fff; background:var(--muted); font-variant-numeric:tabular-nums; }
+.denetim-gecti .denetim-ikon { color:#1E7B3A; }
+.denetim-gecti .denetim-sonuc { background:#1E7B3A; }
+.denetim-kaldi { background:#fdecea; }
+.denetim-kaldi .denetim-ikon, .denetim-kaldi .denetim-ad { color:#C0392B; }
+.denetim-kaldi .denetim-sonuc { background:#C0392B; }
+.denetim-atlandi, .denetim-bekliyor { color:var(--muted); }
+.denetim-atlandi .denetim-ad { font-weight:400; font-style:italic; }
+.denetim-atlandi .denetim-ayrinti { font-family:var(--font); font-style:italic; }

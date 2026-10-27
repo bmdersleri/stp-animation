@@ -276,4 +276,12 @@ describe('SequenceLayer', () => {
     expect(svg.getAttribute('role')).toBe('img');
     expect(svg.getAttribute('aria-label')).toBe('Sıra diyagramı');
   });
+
+  it('stale aria-label is removed', () => {
+    const { svg, layer } = setup();
+    layer.draw(spec({ ariaLabel: 'Sıra diyagramı' }), BOX, 0, 14);
+    layer.draw(spec(), BOX, 0, 14);
+    expect(svg.hasAttribute('aria-label')).toBe(false);
+    expect(svg.hasAttribute('role')).toBe(false);
+  });
 });

@@ -8,6 +8,11 @@
 .istek-satir .metot-post { color:#1E7B3A; }
 .istek-satir .metot-patch, .istek-satir .metot-put { color:#0b6b6a; }
 .istek-satir .metot-delete { color:#C0392B; }
+.istek-satir .metot-options { color:#6b3fa0; }
+.istek-satir .kaynak { font-family:var(--mono, ui-monospace, Consolas, monospace); font-size:var(--fs-tick); color:var(--muted); overflow-wrap:anywhere; }
+.yanit-ust { display:flex; flex-wrap:wrap; align-items:baseline; gap:0 6px; min-width:0; }
+.eksik-basliklar { list-style:none; margin:2px 0 0; padding:0; font-family:var(--mono, ui-monospace, Consolas, monospace); font-size:var(--fs-tick); }
+.eksik-baslik { color:#C0392B; font-weight:700; overflow-wrap:anywhere; }
 .istek-satir .yol, .alanlar, .terminal-satir, pre.govde { font-family:var(--mono, ui-monospace, Consolas, monospace); }
 .alanlar { display:grid; grid-template-columns:auto 1fr; gap:2px 12px; margin:0; font-size:var(--fs-tick); }
 .alanlar dt { color:var(--muted); }

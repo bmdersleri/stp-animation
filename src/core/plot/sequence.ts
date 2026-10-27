@@ -126,7 +126,12 @@ export class SequenceLayer {
 
   private label(spec: SequenceSpec): void {
     const svg = (this.lanesG.node() as Element | null)?.closest('svg');
-    if (!svg || spec.ariaLabel === undefined) return;
+    if (!svg) return;
+    if (spec.ariaLabel === undefined) {
+      svg.removeAttribute('role');
+      svg.removeAttribute('aria-label');
+      return;
+    }
     svg.setAttribute('role', 'img');
     svg.setAttribute('aria-label', spec.ariaLabel);
   }
