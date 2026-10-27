@@ -71,6 +71,16 @@ describe('rest-crud api', () => {
     ]);
   });
 
+  it('idempotentlik: only two calls print the book literal "iki kez"; other counts are the page summary', () => {
+    const bir: IstekId[] = ['stok-ayarla-5'];
+    expect(idemTerminal(bir, idem(bir).gonderimler)).toEqual(['// sayfa özeti: stokuAyarla(5) 1 kez, stok: 5']);
+    const uc: IstekId[] = ['stok-artir-1', 'stok-artir-1', 'stok-artir-1'];
+    const satir = idemTerminal(uc, idem(uc).gonderimler);
+    expect(satir).toHaveLength(1);
+    expect(satir[0]).toMatch(/^\/\/ sayfa özeti: stokuArtir\(1\) 3 kez, stok: \d+$/);
+    expect(satir[0]).not.toContain('iki kez');
+  });
+
   it('POST twice creates ids 3 and 4', () => {
     const r = lab(['post-santrifuj', 'post-santrifuj']);
     expect(r.gonderimler.map((g) => (JSON.parse(g.yanit!.govde!) as { veri: { kimlik: number } }).veri.kimlik)).toEqual([3, 4]);

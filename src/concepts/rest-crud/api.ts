@@ -377,9 +377,11 @@ export function calistirSira(program: ProgramId, sira: readonly IstekId[]): { du
   return { durumlar, gonderimler };
 }
 
-const SAYI = ['', 'bir', 'iki', 'üç'];
-
-/** The terminal lines the book program (code_014) prints for a request order. */
+/**
+ * The terminal lines the book program (code_014) prints for a request order. code_014 calls each stock function
+ * exactly twice and prints the literal "iki kez"; a Lab run that calls it once or three times gets a line marked as
+ * this page's own summary instead, since the book's code cannot print it.
+ */
 export function idemTerminal(sira: readonly IstekId[], gonderimler: readonly Gonderim[]): string[] {
   const { durumlar } = calistirSira('idempotentlik', sira);
   const satirlar: string[] = [];
@@ -391,8 +393,8 @@ export function idemTerminal(sira: readonly IstekId[], gonderimler: readonly Gon
     const d = durumlar[i] as IdemDurum;
     grup = i > 0 && sira[i - 1] === id ? grup + 1 : 1;
     const sonMu = sira[i + 1] !== id;
-    if (id === 'stok-ayarla-5' && sonMu) satirlar.push(`Mutlak atama ${SAYI[Math.min(grup, 3)]} kez: ${d.stok}`);
-    else if (id === 'stok-artir-1' && sonMu) satirlar.push(`Göreli artış ${SAYI[Math.min(grup, 3)]} kez: ${d.stok}`);
+    if (id === 'stok-ayarla-5' && sonMu) satirlar.push(grup === 2 ? `Mutlak atama iki kez: ${d.stok}` : `// sayfa özeti: stokuAyarla(5) ${grup} kez, stok: ${d.stok}`);
+    else if (id === 'stok-artir-1' && sonMu) satirlar.push(grup === 2 ? `Göreli artış iki kez: ${d.stok}` : `// sayfa özeti: stokuArtir(1) ${grup} kez, stok: ${d.stok}`);
     else if (id === 'delete-12') satirlar.push(`DELETE ${++silme}: ${gonderimler[i]?.yanit?.durumKodu} kalan: ${d.ekipmanlar.length}`);
     else if (id === 'post-anahtar-7' || id === 'post-anahtar-9') postKodlari.push(gonderimler[i]?.yanit?.durumKodu ?? 0);
   }
