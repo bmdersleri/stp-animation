@@ -35,7 +35,7 @@ Kabul ölçütleri:
    vmAnimation'ın ilgili çekirdek birim testleri buraya taşınır ve geçer.
 2. Ana sayfa başlığı "Modern Sunucu Tabanlı Programlama", alt başlık "Kavram Animasyonları",
    yazar "Prof. Dr. İsmail KIRBAŞ". 18 bölüm başlığı kayıtlıdır; 2 kavram **hazır**, Dalga 2–4'ün
-   14 kavramı **yakında** kartı olarak görünür.
+   13 kavramı **yakında** kartı olarak görünür.
 3. İki yeni sayfa: `istek-yanit/` ("İstek-yanıt yolculuğu: istemciden backend'e", Bölüm 1,
    10 adım) ve `event-loop/` ("Event loop: çağrı yığını ve kuyruklar", Bölüm 4, 11 adım); ikisi de
    Ders ve Laboratuvar modunda çalışır.
@@ -60,7 +60,7 @@ Kabul ölçütleri:
 | Portlar | Dev 5181 (`server.port`, `strictPort`), e2e `vite preview` 4174 | vmAnimation'ın 5180/4173'üyle çakışmasın |
 | Favicon yolu | Sayfalarda `href="../favicon.svg"`, ana sayfada `href="favicon.svg"` | Alt yolda (`/stp-animation/`) mutlak `/favicon.svg` kırılır |
 | Kayıt defteri | `src/concepts/registry.ts`, vmAnimation biçimi; `CH` 18 bölüm başlığını kitabın `chapter_manifest.yaml` / bölüm başlıklarından alır | Ana sayfa yol haritasını gösterir |
-| Yakında kartları | Dalga 2–4'ün 14 kavramı: `middleware-zinciri` (5), `rest-crud` (6), `sql-join` (7), `katmanli-mimari` (9), `salt-hash`, `jwt-akisi`, `rbac-401-403` (10), `cors-preflight`, `rate-limiting` (11), `docker-compose` (14), `nginx-tls` (15), `iot-zaman-serisi` (16), `timeout-retry` (17); başlıkları planda | Onaylanan dalga planı |
+| Yakında kartları | Dalga 2–4'ün 13 kavramı: `middleware-zinciri` (5), `rest-crud` (6), `sql-join` (7), `katmanli-mimari` (9), `salt-hash`, `jwt-akisi`, `rbac-401-403` (10), `cors-preflight`, `rate-limiting` (11), `docker-compose` (14), `nginx-tls` (15), `iot-zaman-serisi` (16), `timeout-retry` (17); başlıkları planda | Onaylanan dalga planı |
 | istek-yanıt kaynağı | Kitabın Kod 1.5 mini uygulaması (`ChapterMiniApp.ts`): `TarayiciIstemcisi` → `TersVekil` → `NotApi` → `NotBackendServisi`; şeritler Şekil 1.3'ün adlarıyla etiketlenir | Kitapta bütün katmanları ve üç sonucu çalıştıran tek somut akış bu |
 | event-loop kaynağı | Kod 4.4 (`eventLoopSirasi.ts`), Kod 4.5 (`asenkronMesaj.ts`), "Bitti / Geç" kodu, Şekil 4.3 (aşamalar). Kitapta liste olarak bulunmayan iki örnek (mikro/makro sırası, engelleme) kitabın cümlelerinden kurulur ve ekranda "Kitabın şu cümlesine dayalı örnek" notuyla işaretlenir | Kitap mikro görev önceliğini ve engellemeyi yalnız düz yazıda anlatır |
 | `process.nextTick` ve `setImmediate` | Simülasyona **girmez**; yalnız aşama adımındaki not metninde kitabın cümleleriyle geçer | ESM'de nextTick/Promise sırası CommonJS'ten farklıdır, `setTimeout(0)`/`setImmediate` sırası ana modülde belirsizdir (kitap da böyle der); yanlış öğretmemek için |
@@ -274,7 +274,7 @@ Kavram sayfaları `ConceptPage<P>` sözleşmesini (vmAnimation `shell.ts`) deği
 - `tests/e2e/istek-yanit.spec.ts`, `event-loop.spec.ts`: Ders klavye yürüyüşü, Lab parametre
   değişimi, sığma (1280×720, 1280×740, 390), Ders yazı tabanı; ekran görüntüsü taban çizgileri
   yalnız anahtar adımlar (istek-yanıt ders 7, ders 8, lab 9; event-loop ders 5, ders 10, lab 8).
-- `tests/e2e/home.spec.ts`: 2 hazır, 14 yakında kart; "Ders modunda aç" bağlantıları.
+- `tests/e2e/home.spec.ts`: 2 hazır, 13 yakında kart; "Ders modunda aç" bağlantıları.
 - `tests/e2e/dalga1.perf.spec.ts` (dalga sonunda bir kez): adım değişiminde uzun görev yok
   (> 50 ms), Lab'da kare kaydırıcısı p95 < 16 ms.
 - Kapı: `npm run check`.
