@@ -19,9 +19,9 @@ function setup(): { svg: SVGSVGElement; layer: SequenceLayer } {
 }
 
 const lanes = [
-  { id: 'a', label: ['Tarayıcı'] },
+  { id: 'a', label: ['TarayÄ±cÄ±'] },
   { id: 'b', label: ['Sunucu'], sub: ':8000' },
-  { id: 'c', label: ['Veritabanı'] },
+  { id: 'c', label: ['VeritabanÄ±'] },
   { id: 'd', label: ['Disk'] },
 ];
 const msg = (id: string, from: string, to: string, kind: Message['kind'] = 'request', extra: Partial<Message> = {}): Message => ({ id, from, to, label: id, kind, ...extra });
@@ -135,7 +135,7 @@ describe('SequenceLayer', () => {
       const top = y(g) + Number(r.getAttribute('y'));
       return { x: Number(r.getAttribute('x')), w: Number(r.getAttribute('width')), top, bottom: top + Number(r.getAttribute('height')) };
     };
-    const longNote = 'Bu uzun bir not metnidir ve birka� sat�ra sar�lmal�d�r';
+    const longNote = 'Bu uzun bir not metnidir ve birkaç satıra sarılmalıdır';
 
     it('rows push down two-line notes', () => {
       const { svg, layer } = setup();
