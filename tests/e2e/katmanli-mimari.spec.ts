@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { clippedBoxes, fontSizes, gotoStep, open, overlaps, pageOverflow, settled, stepCount } from './helpers';
+import { clippedBoxes, fontSizes, gotoStep, open, overlaps, pageOverflow, scrollReach, seqOutsideSvg, settled, stageBoxProblems, stepCount } from './helpers';
 
 const PAGE = '/katmanli-mimari/';
 const READY = 'svg.plot .seq-lane';
@@ -14,53 +14,8 @@ test.use({ reducedMotion: 'reduce' });
 /** A lane's class name sits directly under its label on purpose; their line boxes may touch by half a line. */
 const STACKS = [{ upper: '.seq-lane-label', lower: '.seq-lane-sub', within: '.seq-lane', maxShare: 0.5 }];
 
-/**
- * Under the diagram (phone width) the stage scrolls on purpose, so the cards and the lower part of a tall diagram
- * stick out of its box. For each such box (name returned) its nearest scrollable ancestor must contain it in its
- * scroll range, and that ancestor must itself sit inside the stage; the names of boxes that pass are `reachable`,
- * those that do not are `lost`.
- */
-async function scrollReach(page: Page, sel: string): Promise<{ reachable: string[]; lost: string[] }> {
-  return page.evaluate((sel) => {
-    const out = { reachable: [] as string[], lost: [] as string[] };
-    const stageEl = document.querySelector<HTMLElement>('.stage');
-    if (!stageEl) return { reachable: [], lost: ['no .stage'] };
-    const st = stageEl.getBoundingClientRect();
-    for (const el of document.querySelectorAll<Element>(sel)) {
-      const r = el.getBoundingClientRect();
-      if (r.width === 0 || r.height === 0 || el.closest('[hidden]')) continue;
-      if (r.left >= st.left - 1 && r.right <= st.right + 1 && r.top >= st.top - 1 && r.bottom <= st.bottom + 1) continue;
-      let anc: HTMLElement | null = el.parentElement;
-      while (anc && !(['auto', 'scroll'].includes(getComputedStyle(anc).overflowY) && anc.scrollHeight > anc.clientHeight + 1)) anc = anc.parentElement;
-      const name = el.getAttribute('class') ?? el.tagName;
-      const label = `${name} "${(el.textContent ?? '').trim().slice(0, 40)}"`;
-      if (!anc) { out.lost.push(label); continue; }
-      const a = anc.getBoundingClientRect();
-      const inRange = r.bottom - a.top + anc.scrollTop <= anc.scrollHeight + 1 && r.right - a.left + anc.scrollLeft <= anc.scrollWidth + 1;
-      const ancInside = a.left >= st.left - 1 && a.right <= st.right + 1 && a.top >= st.top - 1 && a.bottom <= st.bottom + 1;
-      (inRange && ancInside ? out.reachable : out.lost).push(name);
-    }
-    return out;
-  }, sel);
-}
-
-/** Visible card containers (and the cards in them) that scroll internally or are cut by the `.katman-stage` box. */
-async function cardBoxProblems(page: Page): Promise<string[]> {
-  return page.evaluate(() => {
-    const st = document.querySelector<HTMLElement>('.katman-stage')!.getBoundingClientRect();
-    const out: string[] = [];
-    const sel = '.katman-cards, .kol-a, .kol-b, .tablo-buyuk, .yanit-karti, .terminal, .data-table';
-    for (const el of document.querySelectorAll<HTMLElement>(sel)) {
-      const r = el.getBoundingClientRect();
-      const cs = getComputedStyle(el);
-      if (cs.display === 'contents' || el.closest('[hidden]') || cs.display === 'none' || r.width === 0 || r.height === 0) continue;
-      const name = el.className;
-      if (el.scrollHeight - el.clientHeight > 1) out.push(`${name}: scrolls ${el.scrollHeight - el.clientHeight}`);
-      if (r.top < st.top - 1 || r.bottom > st.bottom + 1 || r.left < st.left - 1 || r.right > st.right + 1) out.push(`${name}: outside the stage`);
-    }
-    return out;
-  });
-}
+/** Card containers (and the cards in them) checked against the `.katman-stage` box at desktop widths. */
+const CARD_BOXES = '.katman-cards, .kol-a, .kol-b, .tablo-buyuk, .yanit-karti, .terminal, .data-table';
 
 const rest = (page: Page) => settled(() => page.locator('.katman-scene').innerHTML());
 
@@ -139,6 +94,8 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         expect(await overlaps(page, LABELS, STACKS), at).toEqual([]);
         // diagram text outside the stage box must be reachable by scrolling the stage (phone width only)
         expect((await scrollReach(page, LABELS)).lost, at).toEqual([]);
+        // every visible diagram row, the stop mark and the token lie inside the diagram's own svg (it clips them)
+        expect(await seqOutsideSvg(page), `${at} diagram rows`).toEqual([]);
         const reach = await scrollReach(page, BOXES);
         expect(reach.lost, at).toEqual([]);
         const clipped = (await clippedBoxes(page, BOXES, '.katman-cards')).filter((c) => !(c.endsWith(': outside the stage') && reach.reachable.includes(c.split(':')[0])));
@@ -146,7 +103,7 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         // at desktop widths the boxes holding cards, table and summary must neither scroll nor stick out of the scene stage
         // (`.katman-cards` is `display: contents` in the Lab layout, so the real containers are checked)
         if (w === 1280) {
-          const bad = await cardBoxProblems(page);
+          const bad = await stageBoxProblems(page, '.katman-stage', CARD_BOXES);
           expect(bad, `${at} card boxes`).toEqual([]);
         }
         // the code strip sits under the stage, so the whole Ders page must fit the viewport height

@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { clippedBoxes, fontSizes, gotoStep, open, pageOverflow, settled, stepCount } from './helpers';
+import { clippedBoxes, fontSizes, gotoStep, open, pageOverflow, scrollReach, settled, stageBoxProblems, stepCount } from './helpers';
 
 const PAGE = '/sql-join/';
 const READY = '.sql-scene .data-table';
@@ -11,50 +11,8 @@ test.use({ reducedMotion: 'reduce' });
 
 const sql = (page: Page) => settled(() => page.locator('.sql-scene').innerHTML());
 
-/**
- * Under the tables (phone width) the stage scrolls on purpose, so boxes may stick out of its box. For each such box
- * the nearest scrollable ancestor must contain it in its scroll range and sit inside the stage.
- */
-async function scrollReach(page: Page, sel: string): Promise<{ reachable: string[]; lost: string[] }> {
-  return page.evaluate((sel) => {
-    const out = { reachable: [] as string[], lost: [] as string[] };
-    const stageEl = document.querySelector<HTMLElement>('.stage');
-    if (!stageEl) return { reachable: [], lost: ['no .stage'] };
-    const st = stageEl.getBoundingClientRect();
-    for (const el of document.querySelectorAll<Element>(sel)) {
-      const r = el.getBoundingClientRect();
-      if (r.width === 0 || r.height === 0 || el.closest('[hidden]')) continue;
-      if (r.left >= st.left - 1 && r.right <= st.right + 1 && r.top >= st.top - 1 && r.bottom <= st.bottom + 1) continue;
-      let anc: HTMLElement | null = el.parentElement;
-      while (anc && !(['auto', 'scroll'].includes(getComputedStyle(anc).overflowY) && anc.scrollHeight > anc.clientHeight + 1)) anc = anc.parentElement;
-      const name = el.getAttribute('class') ?? el.tagName;
-      if (!anc) { out.lost.push(`${name} "${(el.textContent ?? '').trim().slice(0, 40)}"`); continue; }
-      const a = anc.getBoundingClientRect();
-      const inRange = r.bottom - a.top + anc.scrollTop <= anc.scrollHeight + 1 && r.right - a.left + anc.scrollLeft <= anc.scrollWidth + 1;
-      const ancInside = a.left >= st.left - 1 && a.right <= st.right + 1 && a.top >= st.top - 1 && a.bottom <= st.bottom + 1;
-      (inRange && ancInside ? out.reachable : out.lost).push(name);
-    }
-    return out;
-  }, sel);
-}
-
-/** Visible containers and tables that scroll internally or are cut by the `.sql-stage` box. */
-async function boxProblems(page: Page): Promise<string[]> {
-  return page.evaluate(() => {
-    const st = document.querySelector<HTMLElement>('.sql-stage')!.getBoundingClientRect();
-    const out: string[] = [];
-    const sel = '.sql-stage, .sql-sol, .sql-sag, .sql-kaynaklar, .sql-orta, .tablo-yeri, .ozet-host, .data-table, .ozet-tablosu, .kosul-rozeti, .code-strip, .code-strip .code-trace';
-    for (const el of document.querySelectorAll<HTMLElement>(sel)) {
-      const r = el.getBoundingClientRect();
-      const cs = getComputedStyle(el);
-      if (cs.display === 'contents' || el.closest('[hidden]') || cs.display === 'none' || r.width === 0 || r.height === 0) continue;
-      const name = el.className;
-      if (el.scrollHeight - el.clientHeight > 1) out.push(`${name}: scrolls ${el.scrollHeight - el.clientHeight}`);
-      if (r.top < st.top - 1 || r.bottom > st.bottom + 1 || r.left < st.left - 1 || r.right > st.right + 1) out.push(`${name}: outside the stage`);
-    }
-    return out;
-  });
-}
+/** Containers and tables checked against the `.sql-stage` box at desktop widths. */
+const STAGE_BOXES = '.sql-stage, .sql-sol, .sql-sag, .sql-kaynaklar, .sql-orta, .tablo-yeri, .ozet-host, .data-table, .ozet-tablosu, .kosul-rozeti, .code-strip, .code-strip .code-trace';
 
 test('ders keyboard walkthrough', async ({ page }) => {
   await open(page, PAGE, 'ders', READY);
@@ -100,7 +58,7 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         expect(clipped, at).toEqual([]);
         await expect(page.locator('.sql-scene .kaynak-rozeti'), at).toHaveCount(1);
         // at desktop widths no table or container may scroll internally or stick out of the scene stage
-        if (w === 1280) expect(await boxProblems(page), `${at} boxes`).toEqual([]);
+        if (w === 1280) expect(await stageBoxProblems(page, '.sql-stage', STAGE_BOXES), `${at} boxes`).toEqual([]);
         // the code strip sits under the tables, so the whole Ders page must fit the viewport height
         if (mode === 'ders' && w === 1280) expect((await pageOverflow(page)).y, at).toBeLessThanOrEqual(0);
       }

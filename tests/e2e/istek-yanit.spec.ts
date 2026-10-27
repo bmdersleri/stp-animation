@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { clippedBoxes, fontSizes, gotoStep, open, outsideStage, overlaps, pageOverflow, settled, stepCount } from './helpers';
+import { clippedBoxes, fontSizes, gotoStep, open, outsideStage, overlaps, pageOverflow, seqOutsideSvg, settled, stepCount } from './helpers';
 
 const PAGE = '/istek-yanit/';
 const READY = 'svg.plot .seq-lane';
@@ -118,6 +118,8 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         expect((await pageOverflow(page)).x, at).toBeLessThanOrEqual(0);
         expect(await overlaps(page, LABELS, STACKS), at).toEqual([]);
         expect(await outsideStage(page, LABELS), at).toEqual([]);
+        // every visible diagram row, the stop mark and the token lie inside the diagram's own svg (it clips them)
+        expect(await seqOutsideSvg(page), `${at} diagram rows`).toEqual([]);
         const reach = await scrollReach(page);
         expect(reach.lost, at).toEqual([]);
         const clipped = (await clippedBoxes(page, BOXES, '.istek-cards')).filter((c) => !(c.endsWith(': outside the stage') && reach.reachable.includes(c.split(':')[0])));
