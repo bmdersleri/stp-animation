@@ -112,7 +112,7 @@ export const katmanScenario: Scenario<KatmanParams> = {
       title: 'Repository verisi değişir',
       term: 'yan etki',
       text: 'Kurallar geçince service iki yazma yapar: kitabiOduncteIsaretle("JAVA-101") kitabın uygunMu alanını true’dan false’a, oduncSayisiniArtir("2024001") öğrencinin mevcutOduncSayisi alanını 0’dan 1’e çevirir. Tablolarda değişen hücreler vurgulanır.',
-      labText: 'Başlangıç verisini değiştirdiğinizde tablolardaki önceki ve sonraki hücre değerleri de buna göre değişir.',
+      labText: 'Başlangıç verisini değiştirdiğinizde tablolardaki değişen hücreler de buna göre değişir.',
       params: { ...TABAN, olay: kadar((o) => o.from === 'ogrenciRepo' && o.tur === 'donus' && o.etiket.startsWith('mevcutOduncSayisi')) },
     },
     {
@@ -128,7 +128,7 @@ export const katmanScenario: Scenario<KatmanParams> = {
       title: 'Aynı istek ikinci kez: service hata fırlatır',
       term: 'throw',
       text: 'Aynı istek yeniden gelir. Repository durumu çağrılar arasında korunur: kitap artık uygun değildir, bu yüzden service "Kitap uygun değildir." hatasını fırlatır ve hata controller’a yükselir. Kitaba göre service yalnızca anlamlı bir hata üretir; controller bu hatanın nasıl HTTP yanıtına dönüşeceğini belirler. Controller, hangi iş kuralının ihlal edildiğini bilmez; yalnızca service’in fırlattığı hatayı genel bir 400 yanıtına çevirir.',
-      labText: 'Kesikli alarm oku hatanın service’ten controller’a yükselişidir. Başlangıçta kitabı uygun yaparsanız ikinci istek de başarılı olabilir.',
+      labText: 'Kesikli alarm oku hatanın service’ten controller’a yükselişidir. Başlangıç verisi ne olursa olsun ikinci istek başarılı olmaz: ilk istek başarılıysa kitap artık uygun değildir; başarısızsa durum değişmediği için aynı hata yinelenir.',
       params: { ...TABAN, tekrar: 2, olay: TUMU },
     },
     {

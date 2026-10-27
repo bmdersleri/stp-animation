@@ -151,4 +151,13 @@ describe('katmanli-mimari view', () => {
     expect(katmanLabRozet({ ...base, mevcutOduncSayisi: 1 }).tur).toBe('kitap-kodu');
     expect(katmanLabRozet({ ...base, ogrenciNumarasi: '' }).tur).toBe('kitap-kodu');
   });
+
+  it('a repeated request never yields a second 201 for any lab start', () => {
+    for (const uygunMu of [true, false]) {
+      for (const mevcutOduncSayisi of [0, 1, 2, 3] as const) {
+        const v = deriveKatmanView(tam({ tekrar: 2, uygunMu, mevcutOduncSayisi }));
+        expect(v.http.yanitlar[1].durumKodu, ).toBe(400);
+      }
+    }
+  });
 });
