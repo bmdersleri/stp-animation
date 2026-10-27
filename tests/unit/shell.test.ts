@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { mountConceptPage, type ConceptPage, type SceneHandle } from '../../src/core/shell';
 import type { Mode } from '../../src/core/mode';
 import type { StepPlayer } from '../../src/core/player';
+import self from './shell.test.ts?raw';
 
 type P = { k: number };
 
@@ -24,7 +25,7 @@ let size = { width: 800.6, height: 450.2 };
 beforeEach(() => {
   FakeRO.instances = [];
   vi.stubGlobal('ResizeObserver', FakeRO);
-  history.replaceState(null, '', '/knn/');
+  history.replaceState(null, '', '/event-loop/');
   size = { width: 800.6, height: 450.2 };
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
     () => ({ x: 0, y: 0, top: 0, left: 0, right: size.width, bottom: size.height, ...size, toJSON() {} }) as DOMRect,
@@ -41,7 +42,7 @@ afterEach(() => {
 });
 
 function setup(search = '') {
-  history.replaceState(null, '', `/knn/${search}`);
+  history.replaceState(null, '', `/event-loop/${search}`);
   const calls: string[] = [];
   const scene: SceneHandle = {
     resize: vi.fn((w: number, h: number) => { calls.push(`resize ${w}x${h}`); }),
@@ -53,8 +54,8 @@ function setup(search = '') {
   const mountParams = vi.fn((el: HTMLElement) => { el.append('PARAMS'); });
   const mountExplainExtra = vi.fn((el: HTMLElement) => { el.append('EXTRA'); });
   const page: ConceptPage<P> = {
-    title: 'k-En Yakın Komşu (k-NN)',
-    chapter: 'Bölüm 5 · Sınıflandırmaya Giriş',
+    title: 'Event loop',
+    chapter: 'Bölüm 4 · Node.js Çalışma Zamanı',
     scenario: {
       defaults: { k: 5 },
       steps: [
@@ -90,8 +91,8 @@ describe('shell', () => {
 
   it('renders top bar with title, chapter, home link and mode buttons', () => {
     const { q } = setup();
-    expect(q('.top-bar .title').textContent).toBe('k-En Yakın Komşu (k-NN)');
-    expect(q('.top-bar .chapter').textContent).toBe('Bölüm 5 · Sınıflandırmaya Giriş');
+    expect(q('.top-bar .title').textContent).toBe('Event loop');
+    expect(q('.top-bar .chapter').textContent).toBe('Bölüm 4 · Node.js Çalışma Zamanı');
     expect(q<HTMLAnchorElement>('.top-bar a.home').getAttribute('href')).toBe('../');
     expect(q('.mode-toggle [data-mode-btn=ders]').textContent).toBe('🎓 Ders');
     expect(q('.mode-toggle [data-mode-btn=lab]').textContent).toBe('🧪 Laboratuvar');
@@ -432,5 +433,9 @@ describe('shell', () => {
     expect(root.childElementCount).toBe(0);
     press('ArrowRight');
     expect(m.player.state.index).toBe(0);
+  });
+
+  it('shell fixtures carry no k-NN names', () => {
+    expect(self).not.toMatch(new RegExp(['k', 'nn'].join(''), 'i'));
   });
 });

@@ -30,7 +30,7 @@ export const PROGRAMS: Record<ProgramId, Program> = {
   },
   'bitti-gec': {
     id: 'bitti-gec',
-    file: 'b04-nodejs-runtime_code_008.ts',
+    file: BITTI_GEC.title,
     title: 'Yaygın hata: setTimeout(…, 0)',
     bookBased: true,
     code: BITTI_GEC.lines,

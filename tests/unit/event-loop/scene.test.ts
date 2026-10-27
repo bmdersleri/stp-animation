@@ -4,6 +4,7 @@ import { framesOf } from '../../../src/concepts/event-loop/programs';
 import { findFrame } from '../../../src/concepts/event-loop/scenario';
 import { deriveLoopView } from '../../../src/concepts/event-loop/view';
 import { go, setup, texts } from './harness';
+import { BITTI_GEC } from '../../../src/concepts/event-loop/code-text';
 
 describe('event-loop scene', () => {
   it('step 5 shows three terminal lines and an empty stack', () => {
@@ -139,5 +140,59 @@ describe('event-loop scene', () => {
     expect(n).toBeGreaterThan(0);
     expect(n).toBeLessThanOrEqual(300);
     expect(performance.getEntriesByName('loop-render-start', 'mark')).toHaveLength(0);
+  });
+  it('steps 2-5 force kod-4-4', () => {
+    const { host, player } = setup(1280, 540, 'lab');
+    player.setParam('program', 'engelleme');
+    for (const id of ['senkron', 'zamanlayici', 'devam', 'callback']) {
+      go(player, id);
+      expect(player.state.params.program, id).toBe('kod-4-4');
+    }
+    expect(host).toBeTruthy();
+  });
+
+  it('zero-delay timer carries the at-least-1-ms note', () => {
+    const { el, player } = setup();
+    go(player, 'sifir');
+    player.setParam('kare', findFrame('bitti-gec', (f) => f.timers.length === 1));
+    expect(el.querySelector('.kutu-zamanlayici .kalan')!.textContent).toBe('kalan 0 ms (en az 1 ms)');
+    go(player, 'zamanlayici');
+    expect(el.querySelector('.kutu-zamanlayici .kalan')!.textContent).toBe('kalan 1000 ms');
+  });
+
+  it('phase ring shows the edge labels and the exit of the figure', () => {
+    const { el, player } = setup();
+    go(player, 'asamalar');
+    const t = texts(el, 'svg.plot text:not(.probe)');
+    for (const label of [
+      'kuyruk boş, yeni olay bekleniyor',
+      'hazır olay işlendi',
+      'tur tamamlandı, döngü yeniden başlar',
+      'bekleyen iş kalmadı, süreç sonlanır',
+    ]) expect(t.join(' | ')).toContain(label);
+    expect(el.querySelectorAll('svg.plot .cikis-katman path')).toHaveLength(1);
+    expect(el.querySelectorAll('svg.plot g.flow-node')).toHaveLength(5);
+  });
+
+  it('phase ring svg has role img and a label', () => {
+    const { el } = setup();
+    const svg = el.querySelector('svg.plot')!;
+    expect(svg.getAttribute('role')).toBe('img');
+    expect(svg.getAttribute('aria-label')).toMatch(/event loop/i);
+  });
+
+  it('bitti-gec panel title is the listing title', () => {
+    const { el, player } = setup(1280, 540, 'ders');
+    go(player, 'sifir');
+    expect(el.querySelector('.code-strip .code-trace-title')!.textContent).toBe(BITTI_GEC.title);
+  });
+
+  it('ders step 1 shows the first lines of Kod 4.4', () => {
+    const { el } = setup(1280, 540, 'ders');
+    const strip = el.querySelector<HTMLElement>('.code-strip')!;
+    expect(strip.hidden).toBe(false);
+    expect(strip.hasAttribute('data-empty')).toBe(false);
+    expect([...strip.querySelectorAll('li')].map((li) => li.dataset.line)).toEqual(['1', '2', '3', '4', '5', '6', '7']);
+    expect(strip.querySelectorAll('li.active')).toHaveLength(0);
   });
 });

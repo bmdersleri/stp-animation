@@ -39,7 +39,8 @@
 .asamalar-sema .probe { visibility:hidden; font-size:var(--fs-tick); }
 .asamalar-notlar { display:grid; gap:6px; }
 .asamalar-notlar code { font-family:var(--mono, ui-monospace, Consolas, monospace); font-weight:700; }
-.poll-dongu { fill:none; }
+.poll-dongu, .cikis { fill:none; }
+.cikis-son { fill:#14365C; }
 
 /* a phone: every box in one column, the stage scrolls */
 .loop-stage[data-narrow] .tahta { flex:none; grid-template-columns:minmax(0,1fr); grid-template-rows:none; grid-template-areas:'saat' 'yigin' 'zaman' 'mikro' 'makro' 'terminal' 'notlar'; }
@@ -49,7 +50,6 @@
 /* code strip: --strip-lines lines at a tight line height */
 .code-strip { flex:none; height:calc(var(--strip-lines, 7) * 1.25 * var(--fs-tick) + var(--fs-axis) + 28px); }
 .code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:6px 12px; gap:4px; }
-.code-strip[data-empty] .code-trace-lines { visibility:hidden; }
 .code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:4px; }
 
 .loop-params { display:grid; gap:8px; }

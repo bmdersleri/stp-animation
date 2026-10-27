@@ -4,8 +4,9 @@ import type { SceneHandle } from '../../core/shell';
 import type { Mode } from '../../core/mode';
 import { CodeTrace } from '../../core/plot/code-trace';
 import { FlowGraphLayer, fitNode, type FlowNode } from '../../core/plot/flow-graph';
+import type { Box } from '../../core/plot/label-place';
 import { TextMeasure } from '../../core/plot/text-measure';
-import { RING_LOOP_ROOM, layoutColumn, layoutRing } from './phases';
+import { EXIT_LABEL, POLL_LOOP_LABEL, RING_LOOP_ROOM, layoutColumn, layoutRing } from './phases';
 import { LoopBoard } from './scene-board';
 import type { LoopParams } from './scenario';
 import { deriveLoopView, type LoopView } from './view';
@@ -30,8 +31,10 @@ const PHASE_MIN = 130;
 const PHASE_MAX = 240;
 /** Phone column: widest box, room (px) kept at the sides for the closing edge and poll's loop, and the column's shift right. */
 const COLUMN_MAX = 300;
-const COLUMN_SIDE = 100;
-const COLUMN_SHIFT = 20;
+const COLUMN_SIDE = 80;
+const COLUMN_SHIFT = 0;
+/** Gap (px) between the boxes of the phone column: just room for an arrow (a longer label pushes the boxes below apart). */
+const COLUMN_GAP = 16;
 /** How far (px) beyond the column's box edge the closing edge bows out. */
 const COLUMN_BOW = 30;
 /** The phase drawing is at least this tall (px); the stage scrolls below that. */
@@ -39,6 +42,16 @@ const RING_MIN_H = 300;
 /** Average glyph width of the notes, in em, and their line height, for estimating how tall they wrap. */
 const NOTE_EM = 0.55;
 const NOTE_LINE = 1.45;
+/** Exit edge: the mark's radius, its inset from close's left edge (ring) or right of the centre line (phone), and its height above close's box. */
+const EXIT_R = 6;
+const EXIT_INSET = 18;
+const EXIT_INSET_COLUMN = 10;
+const EXIT_UP = 20;
+/** On the ring the exit mark sits this far above close's box: clear of the label of the closing edge. */
+const EXIT_UP_RING = 44;
+/** How far (px) below poll's box its self-loop label starts (ring), and the label's line height in ticks. */
+const LOOP_LABEL_DROP = 30;
+const LABEL_LINE = 1.25;
 
 /** Most `loop-render` measures kept in the performance buffer. */
 const MEASURE_CAP = 300;
@@ -90,6 +103,8 @@ export function mountLoopScene(
   sema.className = 'asamalar-sema';
   const svg = doc.createElementNS(NS, 'svg');
   svg.setAttribute('class', 'plot');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'Event loop aşamaları: timers, pending callbacks, poll, check ve close callbacks; poll kendine döner, close turu yeniden başlatır veya süreci sonlandırır');
   const probe = doc.createElementNS(NS, 'text');
   probe.setAttribute('class', 'probe');
   const g = doc.createElementNS(NS, 'g');
@@ -120,7 +135,9 @@ export function mountLoopScene(
   defs.append(marker);
   const loopG = doc.createElementNS(NS, 'g');
   loopG.setAttribute('class', 'poll-dongu-katman');
-  svg.append(defs, loopG);
+  const exitG = doc.createElementNS(NS, 'g');
+  exitG.setAttribute('class', 'cikis-katman');
+  svg.append(defs, loopG, exitG);
 
   let mode = initialMode;
   let size: { w: number; h: number } | null = null;
@@ -135,21 +152,41 @@ export function mountLoopScene(
     return { w: size!.w, h: Math.max(160, size!.h - (stripShown ? STRIP_FALLBACK_H : 0)) };
   }
 
+  /** x of the column's centre line. */
+  const nodeCx = (ns: FlowNode[]): number => ns[0].x;
+
   function drawPhases(spec: NonNullable<LoopView['phases']>, notes: string[], a: { w: number; h: number }, tick: number, ms: number, narrow: boolean): void {
     const dw = a.w;
     // a phone has no room for a ring: one column, the closing edge bowing out on the left and poll's loop on the right
     const nw = narrow ? Math.max(PHASE_MIN, Math.min(COLUMN_MAX, dw - COLUMN_SIDE)) : Math.max(PHASE_MIN, Math.min(PHASE_MAX, Math.floor(dw * PHASE_SHARE)));
-    const sized = spec.nodes.map((n) => ({ ...n, w: nw }));
+    // on a phone the boxes are as low as their text: the labels below need the height
+    const sized = spec.nodes.map((n) => ({ ...n, w: nw, h: narrow ? 0 : n.h }));
     const fitted = sized.map((n) => fitNode(n, measure, tick).h);
     const nh = Math.max(...fitted);
     let nodes: FlowNode[];
     let dh: number;
     let edges = spec.edges;
+    const lh = tick * LABEL_LINE;
+    // poll's self-loop label: centred under poll on the ring, right of the column's centre line on a phone (wrapped to fit)
+    const loopMax = narrow ? Math.max(40, dw - 4 - (dw / 2 + COLUMN_SHIFT + 8)) : Infinity;
+    const loopLines = narrow ? measure.wrap(POLL_LOOP_LABEL, loopMax, 'flow-edge-label', tick) : [POLL_LOOP_LABEL];
+    // on a phone the closing edge's label is wrapped into the gap left of the check-to-close edge
+    const closeLabel = spec.edges.find((e) => e.id === 'close-timers')!.label!;
+    const closeMax = Math.max(40, dw / 2 + COLUMN_SHIFT - 8 - 4);
+    const closeLines = narrow ? measure.wrap(closeLabel, closeMax, 'flow-edge-label', tick) : [];
+    // on a phone the exit label shares that gap, right of the check-to-close edge
+    const exitX0 = dw / 2 + COLUMN_SHIFT + EXIT_INSET_COLUMN;
+    const exitLines = narrow ? measure.wrap(EXIT_LABEL, Math.max(40, dw - 4 - (exitX0 + EXIT_R + 6)), 'flow-edge-label', tick) : [EXIT_LABEL];
     if (narrow) {
-      const col = layoutColumn(sized.map((n, i) => ({ ...n, h: fitted[i] })), dw / 2 + COLUMN_SHIFT);
-      nodes = col.nodes;
-      dh = col.height;
-      edges = edges.map((e) => (e.id === 'close-timers' ? { ...e, bend: -(nw / 2 + COLUMN_BOW) } : e));
+      const col = layoutColumn(sized.map((n, i) => ({ ...n, h: fitted[i] })), dw / 2 + COLUMN_SHIFT, undefined, COLUMN_GAP);
+      const pollI = col.nodes.findIndex((n) => n.id === 'poll');
+      const checkI = col.nodes.findIndex((n) => n.id === 'check');
+      // a label that is taller than the gap between two boxes pushes the lower boxes down
+      const shift = Math.max(0, Math.ceil(loopLines.length * lh) + 4 - COLUMN_GAP);
+      const shiftClose = Math.max(0, Math.ceil(Math.max(closeLines.length, exitLines.length) * lh) + 4 - COLUMN_GAP);
+      nodes = col.nodes.map((n, i) => ({ ...n, y: n.y + (i > pollI ? shift : 0) + (i > checkI ? shiftClose : 0) }));
+      dh = col.height + shift + shiftClose;
+      edges = edges.map((e) => (e.id === 'close-timers' ? { ...e, bend: -(nw / 2 + COLUMN_BOW), label: undefined } : e));
     } else {
       const noteLines = Math.ceil(notes.join(' ').length / Math.max(8, a.w / (tick * NOTE_EM))) + notes.length;
       dh = Math.max(RING_MIN_H, a.h - Math.ceil(noteLines * tick * NOTE_LINE) - 16);
@@ -158,7 +195,22 @@ export function mountLoopScene(
     svg.setAttribute('width', String(dw));
     svg.setAttribute('height', String(dh));
     svg.setAttribute('viewBox', `0 0 ${dw} ${dh}`);
-    layer.draw({ ...spec, nodes, edges }, ms, tick);
+    const boxOf = (id: string): Box => {
+      const n = nodes.find((m) => m.id === id)!;
+      return { l: n.x - n.w / 2, t: n.y - n.h / 2, r: n.x + n.w / 2, b: n.y + n.h / 2 };
+    };
+    // the loop label and the exit edge are drawn here, so the flow layer is told to keep its edge labels clear of them
+    const pollBox = boxOf('poll');
+    const closeBox = boxOf('close');
+    const loopX = narrow ? (pollBox.l + pollBox.r) / 2 + 8 : (pollBox.l + pollBox.r) / 2;
+    const loopY = pollBox.b + (narrow ? 0 : LOOP_LABEL_DROP);
+    const loopW = Math.max(...loopLines.map((l) => measure.width(l, 'flow-edge-label', tick)));
+    const loopArea: Box = { l: narrow ? loopX : loopX - loopW / 2, t: loopY, r: narrow ? loopX + loopW : loopX + loopW / 2, b: loopY + loopLines.length * lh + 4 };
+    const exitX = narrow ? exitX0 : closeBox.l + EXIT_INSET;
+    const exitY = closeBox.t - (narrow ? EXIT_UP : EXIT_UP_RING);
+    const exitW = Math.max(...exitLines.map((l) => measure.width(l, 'flow-edge-label', tick)));
+    const exitArea: Box = { l: exitX - EXIT_R, t: exitY - (exitLines.length * lh) / 2, r: exitX + EXIT_R + 8 + exitW, b: exitY + (exitLines.length * lh) / 2 };
+    layer.draw({ ...spec, nodes, edges, avoid: [loopArea, exitArea] }, ms, tick);
     // the self-loop: out of poll's bottom edge and back in (ring) or out of its right edge and back in (column)
     const box = layer.nodeBox('poll');
     const depth = (RING_LOOP_ROOM - 6) * (4 / 3);
@@ -172,13 +224,38 @@ export function mountLoopScene(
       const half = (box.r - box.l) * 0.18;
       d = `M${cx + half},${box.b}C${cx + half},${box.b + depth} ${cx - half},${box.b + depth} ${cx - half},${box.b}`;
     }
-    select(loopG)
-      .selectAll('path')
-      .data([0])
-      .join('path')
-      .attr('class', 'flow-edge kind-forward poll-dongu')
-      .attr('marker-end', `url(#${markerId})`)
-      .attr('d', d);
+    const path = (cls: string, pd: string): SVGPathElement => {
+      const p = doc.createElementNS(NS, 'path');
+      p.setAttribute('class', cls);
+      p.setAttribute('marker-end', `url(#${markerId})`);
+      p.setAttribute('d', pd);
+      return p;
+    };
+    const label = (x: number, y: number, anchor: string, lines: string[]): SVGTextElement => {
+      const t = doc.createElementNS(NS, 'text');
+      t.setAttribute('class', 'flow-edge-label');
+      t.setAttribute('text-anchor', anchor);
+      lines.forEach((line, i) => {
+        const s = doc.createElementNS(NS, 'tspan');
+        s.setAttribute('x', String(Math.round(x)));
+        s.setAttribute('y', String(Math.round(y + tick * 0.9 + i * lh)));
+        s.textContent = line;
+        t.append(s);
+      });
+      return t;
+    };
+    loopG.replaceChildren(path('flow-edge kind-forward poll-dongu', d), label(loopX, loopY, narrow ? 'start' : 'middle', loopLines));
+    // the exit edge: out of close's box to the end mark, labelled as in the figure
+    const mark = doc.createElementNS(NS, 'circle');
+    mark.setAttribute('class', 'cikis-son');
+    mark.setAttribute('cx', String(Math.round(exitX)));
+    mark.setAttribute('cy', String(Math.round(exitY)));
+    mark.setAttribute('r', String(EXIT_R));
+    const from = closeBox.t;
+    const to = exitY + EXIT_R;
+    const exitText = label(exitX + EXIT_R + 6, exitY - (exitLines.length * lh) / 2, 'start', exitLines);
+    const closeText = narrow ? [label(nodeCx(nodes) - 8, boxOf('check').b + 4, 'end', closeLines)] : [];
+    exitG.replaceChildren(path('flow-edge kind-forward cikis', `M${Math.round(exitX)},${Math.round(from)}L${Math.round(exitX)},${Math.round(to)}`), mark, exitText, ...closeText);
     noteHost.replaceChildren(
       ...notes.map((t) => {
         const p = doc.createElement('p');
@@ -209,14 +286,14 @@ export function mountLoopScene(
     } else {
       layer.clear();
       loopG.replaceChildren();
+      exitG.replaceChildren();
       noteHost.replaceChildren();
       board.update(v, ms);
     }
     const window = narrow ? STRIP_WINDOW_NARROW : STRIP_WINDOW;
     stripHost.style.setProperty('--strip-lines', String(window * 2 + 1));
-    stripHost.toggleAttribute('data-empty', v.code.active.length === 0);
-    // before the first line runs nothing is highlighted: the strip keeps its height but lists nothing
-    strip.update({ ...v.code, lines: v.code.active.length === 0 ? [] : v.code.lines, window });
+    // before the first line runs nothing is highlighted: the strip shows the listing's first lines
+    strip.update({ ...v.code, lines: v.code.active.length === 0 ? v.code.lines.slice(0, window * 2 + 1) : v.code.lines, window });
     rendered = true;
   }
 

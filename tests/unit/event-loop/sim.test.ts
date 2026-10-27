@@ -167,7 +167,7 @@ describe('event-loop programs', () => {
 
   it('program metadata', () => {
     expect(PROGRAM_IDS).toEqual(['kod-4-4', 'bitti-gec', 'kod-4-5', 'mikro-makro', 'engelleme']);
-    expect(PROGRAMS['bitti-gec'].file).toBe('b04-nodejs-runtime_code_008.ts');
+    expect(PROGRAMS['bitti-gec'].file).toBe('Yanlış beklenti: Bitti / Geç');
     expect(PROGRAM_IDS.filter((id) => PROGRAMS[id].bookBased)).toEqual(['kod-4-4', 'bitti-gec', 'kod-4-5']);
   });
 
