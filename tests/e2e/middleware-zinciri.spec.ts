@@ -123,6 +123,11 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         expect(reach.lost, at).toEqual([]);
         const clipped = (await clippedBoxes(page, BOXES, '.mw-cards')).filter((c) => !(c.endsWith(': outside the stage') && reach.reachable.includes(c.split(':')[0])));
         expect(clipped, at).toEqual([]);
+        // at desktop widths no card may hide behind the cards column's own scrollbar
+        if (w === 1280) {
+          const hidden = await page.locator('.mw-cards').evaluate((el) => el.scrollHeight - el.clientHeight);
+          expect(hidden, `${at} .mw-cards scrolls`).toBeLessThanOrEqual(1);
+        }
         // the code strip sits under the stage, so the whole Ders page must fit the viewport height
         if (mode === 'ders' && w === 1280) expect((await pageOverflow(page)).y, at).toBeLessThanOrEqual(0);
       }

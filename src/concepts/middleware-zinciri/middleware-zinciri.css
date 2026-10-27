@@ -12,11 +12,17 @@
 
 .mw-cards { min-width:0; min-height:0; display:flex; flex-direction:column; gap:6px; overflow:auto; }
 .mw-cards [hidden] { display:none; }
+/* compact cards: every card and terminal line must fit the column without scrolling at desktop size */
+.mw-cards { gap:4px; }
+.mw-cards .istek-karti, .mw-cards .yanit-karti, .mw-cards .terminal, .mw-cards .karsilastirma { padding:3px 10px; }
+.mw-cards .kart-baslik { margin-bottom:0; }
+.mw-cards .durum-kodu { font-size:var(--fs-body); padding:0 .5em; }
+.mw-cards .yanit-karti .mesaj, .mw-cards pre.govde { margin-top:0; }
 .karsilastirma { border:2px solid var(--line); border-radius:10px; background:var(--surface); padding:5px 12px; }
 .karsilastirma .terminal-satir { color:var(--navy); }
 
 .ozet-tablosu { width:100%; border-collapse:collapse; font-size:var(--fs-tick); background:var(--surface); }
-.ozet-tablosu th, .ozet-tablosu td { border:1px solid var(--line); padding:4px 8px; text-align:left; vertical-align:top; }
+.ozet-tablosu th, .ozet-tablosu td { border:1px solid var(--line); padding:2px 6px; text-align:left; vertical-align:top; }
 .ozet-tablosu th { background:var(--navy-soft); }
 .ozet-tablosu td.katman { font-family:var(--mono, ui-monospace, Consolas, monospace); overflow-wrap:anywhere; }
 
