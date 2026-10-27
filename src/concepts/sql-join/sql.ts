@@ -40,7 +40,7 @@ export interface CiftAdimi {
   solKey: string;
   sagKey: string | null;
   on: boolean | null;
-  /** The `secim` values of the row this step added to the result (absent when none, or when WHERE removed it). */
+  /** The `secim` values of the row the JOIN produced at this step (absent when none); WHERE may still remove it later (it is then also in `elenen`). */
   eklenen?: readonly Deger[];
 }
 export interface SorguSonucu {
@@ -94,7 +94,7 @@ const AD_KITAP: readonly Sutun[] = ['y.ad_soyad', 'k.kitap_adi'];
 const INCE_MEMED_DEGIL: Kosul = { sutun: 'k.kitap_adi', op: '<>', deger: 'İnce Memed' };
 
 export const SORGULAR: Readonly<Record<SorguId, Sorgu>> = {
-  kartezyen: { id: 'kartezyen', sql: code015.slice(4, 6), tur: 'kartezyen', secim: AD_KITAP, kaynak: 'kitap', ref: 'L877-882' },
+  kartezyen: { id: 'kartezyen', sql: code015.slice(4, 6), tur: 'kartezyen', secim: AD_KITAP, kaynak: 'kitap', ref: 'L881-882' },
   inner: { id: 'inner', sql: kod77.slice(4, 8), tur: 'inner', secim: AD_KITAP, kaynak: 'kitap', ref: 'L777-780' },
   left: { id: 'left', sql: kod77.slice(9, 14), tur: 'left', orderBy: 'ad_soyad', secim: AD_KITAP, kaynak: 'kitap', ref: 'L782-786' },
   'is-null': {
@@ -112,7 +112,7 @@ export const SORGULAR: Readonly<Record<SorguId, Sorgu>> = {
   parametreli: {
     id: 'parametreli', sql: KITABA_DAYALI.parametreli, tur: 'left',
     where: { sutun: 'y.yazar_id', op: '=', deger: '$1' }, secim: AD_KITAP,
-    parametreler: [3], kaynak: 'kitaba-dayali', ref: 'L1686-1691',
+    parametreler: [3], kaynak: 'kitaba-dayali', ref: 'L1687-1690',
   },
 };
 
@@ -127,12 +127,9 @@ export function calistir(id: SorguId, deger = 3): SorguSonucu {
 
   const ekle = (c: SatirCifti, adim: CiftAdimi): void => {
     const secim = sorgu.secim.map((s) => sutunDegeri(s, c));
-    if (sorgu.where && kosulDegeri(sorgu.where, c, parametreler) !== true) {
-      elenen.push(secim);
-    } else {
-      gelen.push(secim);
-      adim.eklenen = secim;
-    }
+    adim.eklenen = secim;
+    if (sorgu.where && kosulDegeri(sorgu.where, c, parametreler) !== true) elenen.push(secim);
+    else gelen.push(secim);
   };
 
   for (const y of YAZARLAR) {

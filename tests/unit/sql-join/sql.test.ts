@@ -86,9 +86,31 @@ describe('sql-join evaluator', () => {
   it('parameter stays out of the text', () => {
     const metin = SORGULAR.parametreli.sql.join('\n');
     expect(metin).toContain('$1');
-    expect(metin).not.toContain('3');
+    expect(metin).not.toMatch(/=\s*3/);
     expect(calistir('parametreli', 3).satirlar).toEqual([['Bilge Karasu', null]]);
     expect(calistir('parametreli', 1).satirlar).toEqual([['Yaşar Kemal', 'İnce Memed']]);
+  });
+
+  it('every row the JOIN produces is on its step, WHERE-removed ones too', () => {
+    const s = calistir('where-tuzagi');
+    const eklenenler = s.adimlar.filter((a) => a.eklenen).map((a) => a.eklenen);
+    expect(eklenenler).toHaveLength(s.satirlar.length + s.elenen.length);
+    expect(eklenenler).toContainEqual(['Yaşar Kemal', 'İnce Memed']);
+    expect(eklenenler).toContainEqual(['Bilge Karasu', null]);
+    expect(s.elenen).toContainEqual(['Yaşar Kemal', 'İnce Memed']);
+  });
+
+  it('kaynak and ref of every query follow the spec table', () => {
+    const beklenen: Record<string, [string, string]> = {
+      kartezyen: ['kitap', 'L881-882'],
+      inner: ['kitap', 'L777-780'],
+      left: ['kitap', 'L782-786'],
+      'is-null': ['kitaba-dayali', 'L1936-1938'],
+      'where-tuzagi': ['kitaba-dayali', 'L920'],
+      'on-filtre': ['kitaba-dayali', 'L920'],
+      parametreli: ['kitaba-dayali', 'L1687-1690'],
+    };
+    for (const id of SORGU_IDS) expect([SORGULAR[id].kaynak, SORGULAR[id].ref], id).toEqual(beklenen[id]);
   });
 
   it('deger is clamped', () => {
