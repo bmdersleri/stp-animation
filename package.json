@@ -1,0 +1,33 @@
+{
+  "name": "stp-animasyon",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5181 --strictPort",
+    "yeni-kavram": "node scripts/yeni-kavram.mjs",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run --exclude \"**/*.perf.test.ts\" && vitest run --no-file-parallelism --passWithNoTests .perf.test.ts",
+    "test:e2e": "playwright test --project=islevsel && playwright test --project=performans --workers=1",
+    "check": "npm test && npm run test:e2e",
+    "prepare": "git config core.hooksPath .githooks"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/d3-ease": "^3.0.2",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-selection": "^3.0.12",
+    "@types/d3-transition": "^3.0.9",
+    "jsdom": "^30.1.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
+  },
+  "dependencies": {
+    "d3-ease": "^3.0.1",
+    "d3-scale": "^4.0.2",
+    "d3-selection": "^3.0.0",
+    "d3-transition": "^3.0.1"
+  }
+}
