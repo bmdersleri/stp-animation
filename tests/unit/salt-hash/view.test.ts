@@ -7,7 +7,7 @@ import { lineOf, listing } from '../../../src/core/listing';
 
 const ONBELLEK = new Map(Object.entries(SCRYPT_ONBELLEK));
 const step = (n: number): SaltParams => sc.steps[n - 1].params as SaltParams;
-const view = (n: number) => deriveSaltView(step(n), ONBELLEK);
+const view = (n: number, kitapCiktisi = true) => deriveSaltView(step(n), ONBELLEK, kitapCiktisi);
 const hashParca = (v: ReturnType<typeof view>, i: number) => v.seritler[i].parcalar.find((p) => p.etiket === 'hash')!;
 
 describe('salt-hash view', () => {
@@ -40,6 +40,16 @@ describe('salt-hash view', () => {
     expect(v.terminal.map((t) => t.metin)).toEqual(['false']);
   });
 
+  it('book pair L303-304 only while the step badge shows', () => {
+    // a Lab change back to the book's own inputs is still the reader's run: one line
+    expect(view(6, false).terminal.map((t) => t.metin)).toEqual(['false']);
+    expect(deriveSaltView(step(6), ONBELLEK).terminal.map((t) => t.metin)).toEqual(['false']);
+  });
+
+  it('step 7 prints only its own comparison result', () => {
+    expect(view(7).terminal.map((t) => t.metin)).toEqual(['false']);
+  });
+
   it('step 7 counters 1 and 64', () => {
     const k = view(7).karsilastirma!;
     expect(k.esittir).toBe(1);
@@ -66,6 +76,17 @@ describe('salt-hash view', () => {
     const r = view(3).tablo.satirlar[0];
     expect(r.cells).toEqual(['elif', SALT_1, `${SCRYPT_ONBELLEK[`guclu-Parola123|${SALT_1}`].slice(0, 16)}…`]);
     expect(view(3).tablo.sutunlar.map((s) => s.ad)).toEqual(['kullaniciAdi', 'salt', 'hash']);
+  });
+
+  it('fixed-salt hash line carries the page note under the table (R3)', () => {
+    const not = 'Bu sayfadaki salt değeri örnek bir sabittir; her çağrıda yeni salt üretilmesi kitabın kodunun işidir.';
+    expect(view(3).tablo.not).toBe(not);
+    expect(view(4).tablo.not).toBe(not);
+    expect(sc.steps[2].text).toContain(not);
+    expect(view(2).tablo.not).toBeUndefined();
+    expect(view(5).tablo.not).toBeUndefined();
+    expect(deriveSaltView({ ...step(3), salt: 'yeni', yeniSalt: 'abc' }, ONBELLEK).tablo.not).toBeUndefined();
+    expect(deriveSaltView({ ...step(3), salt: 'sabit-2' }, ONBELLEK).tablo.not).toBe(not);
   });
 
   it('sha256 hides salt column value', () => {

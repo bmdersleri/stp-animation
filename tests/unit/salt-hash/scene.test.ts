@@ -63,6 +63,24 @@ describe('salt-hash scene', () => {
     expect(hashler(el)).toEqual(['b'.repeat(128)]);
   });
 
+  it('lab step 6: changing the attempt and changing it back prints only that attempt', async () => {
+    vi.useFakeTimers();
+    const { el, player, bekleyen } = setup(1280, 540, 'lab');
+    go(player, 'yanlis-parola');
+    expect(texts(el, '.terminal-satir')).toEqual(['true', 'false']);
+    player.setParam('deneme', 'yanlis-parolaX');
+    await vi.advanceTimersByTimeAsync(250);
+    bekleyen[0].coz('e'.repeat(128));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(texts(el, '.terminal-satir')).toEqual(['false']);
+    player.setParam('deneme', 'yanlis-parola');
+    await vi.advanceTimersByTimeAsync(250);
+    expect(texts(el, '.terminal-satir')).toEqual(['false']);
+    player.next();
+    player.prev();
+    expect(texts(el, '.terminal-satir')).toEqual(['true', 'false']);
+  });
+
   it('lab measurement line appears after compute', async () => {
     vi.useFakeTimers();
     const { el, player, bekleyen } = setup(1280, 540, 'lab');

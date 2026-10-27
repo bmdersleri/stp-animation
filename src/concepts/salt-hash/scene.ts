@@ -126,7 +126,8 @@ export function mountSaltScene(
 
   function draw(state: PlayerState<SaltParams>): void {
     const p = state.params;
-    const v = deriveSaltView(p, onbellek);
+    // the book's printed output belongs to the step's own badge; a Lab change drops it
+    const v = deriveSaltView(p, onbellek, !labRozeti);
     const tanimGorunumu = p.gorunum === 'tanim';
     const yavasGorunumu = v.yavasTablo;
     const ozetGorunumu = v.ozet !== null;

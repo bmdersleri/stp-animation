@@ -33,6 +33,9 @@ export interface SaltView {
 /** Text of a hash that is not in the cache yet. */
 export const BEKLIYOR = 'hesaplanıyor…';
 
+/** The page's own note under the user table (R3): the step 3 sentence, not attributed to the book. */
+export const SABIT_SALT_NOTU = 'Bu sayfadaki salt değeri örnek bir sabittir; her çağrıda yeni salt üretilmesi kitabın kodunun işidir.';
+
 const KULLANICI_1 = 'elif';
 const KULLANICI_2 = 'ahmet';
 
@@ -102,7 +105,12 @@ function kodSeridi(p: SaltParams): CodeTraceSpec {
   return { title: KOD.title, lines: KOD.lines, active: [active] };
 }
 
-export function deriveSaltView(p: SaltParams, onbellek: Onbellek): SaltView {
+/**
+ * Everything the scene draws for one parameter set; no DOM. `kitapCiktisi` true (the scene passes it while the step's own
+ * badge shows) prints the book's two lines (L303-304) for its own verification calls; otherwise the terminal shows the one
+ * line the reader's attempt computed.
+ */
+export function deriveSaltView(p: SaltParams, onbellek: Onbellek, kitapCiktisi = false): SaltView {
   const sha = p.yontem === 'sha256';
   const hashi = (parola: string, salt: string): string | undefined =>
     sha ? sha256Hex(parola) : onbellek.get(anahtar(parola, salt));
@@ -117,6 +125,8 @@ export function deriveSaltView(p: SaltParams, onbellek: Onbellek): SaltView {
     satirlar: liste.map(
       (k, i): TabloSatiri => ({ key: k.ad, cells: [k.ad, sha ? '—' : k.salt, kisalt(hashler[i])] }),
     ),
+    // the hash line shows the page's fixed salts; a typed salt (yeni) is the reader's own
+    ...(p.gorunum === 'hat' && !sha && p.salt !== 'yeni' ? { not: SABIT_SALT_NOTU } : {}),
   };
 
   const hashParcasi = (h: string | undefined, fark?: readonly number[]): Parca => ({
@@ -147,8 +157,9 @@ export function deriveSaltView(p: SaltParams, onbellek: Onbellek): SaltView {
           ilkFark: fark.length === 0 ? -1 : fark[0],
         };
       }
-      // the book prints the right attempt first, then the wrong one (L303-304); a Lab attempt prints its own line only
-      const kitabinki = !sha && p.parola === 'guclu-Parola123' && p.deneme === 'yanlis-parola' && p.salt === 'sabit-1';
+      // the book prints the right attempt first, then the wrong one (L303-304), and only the verification view makes those
+      // two calls; a Lab attempt (even one changed back to the book's inputs) prints its own line only
+      const kitabinki = kitapCiktisi && p.gorunum === 'dogrula' && !sha && p.parola === 'guclu-Parola123' && p.deneme === 'yanlis-parola' && p.salt === 'sabit-1';
       if (kitabinki) terminal.push({ metin: 'true' });
       terminal.push({ metin: String(sonuc) });
     }
