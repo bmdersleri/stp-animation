@@ -42,6 +42,7 @@ describe('rbac-401-403 scenario', () => {
       expect(metin, s.id).not.toContain('eyJ');
       expect(metin, s.id).not.toMatch(/[0-9a-f]{32}/);
       expect(metin, s.id).not.toMatch(/[0-9a-f]{128}/);
+      expect(metin, s.id).not.toContain('durumMetni');
     }
   });
 

@@ -31,7 +31,7 @@ describe('rbac-401-403 view', () => {
     expect(v.tokenNotu).toBe('token yok: girisYap 401 fırlattı');
     expect(v.denetim).toBeNull();
     expect(v.sequence!.messages.some((m) => m.label.startsWith('kitapEkle'))).toBe(false);
-    expect(v.http.yanitlar).toEqual([{ durumKodu: 401, durumMetni: 'Unauthorized', govde: '401: Kullanıcı adı veya parola hatalı.' }]);
+    expect(v.http.yanitlar).toEqual([{ durumKodu: 401, govde: '401: Kullanıcı adı veya parola hatalı.' }]);
   });
 
   it('step 8 first request card has no Authorization header', () => {

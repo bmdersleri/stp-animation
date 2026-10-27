@@ -105,7 +105,7 @@ export const rbacScenario: Scenario<RbacParams> = {
       id: 'bearer',
       title: 'Kod 10.4: Bearer başlığı',
       term: 'authMiddleware',
-      text: 'authMiddleware yalnızca kimliği denetler. Authorization başlığı yoksa ya da “Bearer ” ile başlamıyorsa 401 ve “Token bulunamadı.” döner. Başlık geçerli bir token taşıyorsa istek.kullanici doldurulur ve next() çağrılır. İstek kartlarındaki /kitaplar yolu bu sayfaya aittir; Kod 10.4’te bir yol yoktur. Kitap burada rol denetimi yapılmadığını dikkat notuyla belirtir.',
+      text: 'authMiddleware yalnızca kimliği denetler. Authorization başlığı yoksa ya da “Bearer ” ile başlamıyorsa 401 ve “Token bulunamadı.” döner. Başlık geçerli bir token taşıyorsa istek.kullanici doldurulur ve next() çağrılır. İstek kartlarındaki /kitaplar yolu bu sayfaya aittir; Kod 10.4’te bir yol yoktur. Terminaldeki next() → istek.kullanici satırı sayfanın kendi özetidir, kitabın çıktısı değildir. Kitap burada rol denetimi yapılmadığını dikkat notuyla belirtir.',
       labText: 'Bu görünüm kitabın ara katman örneğinin iki çağrısını gösterir ve kullanıcı, token ya da rol seçimlerinden etkilenmez.',
       params: { ...VARSAYILAN, program: 'kod-10-4' },
     },

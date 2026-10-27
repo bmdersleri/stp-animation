@@ -55,10 +55,9 @@ const SATIR = {
   yanlis401: lineOf(K12, 'return { durumKodu: 401 }'),
 };
 
-const DURUM_METNI: Readonly<Record<number, string>> = { 200: 'OK', 201: 'Created', 401: 'Unauthorized', 403: 'Forbidden' };
-
-function yanitKarti(yanit: { durumKodu: number; mesaj?: string }, govde: string): HttpYanit {
-  return { durumKodu: yanit.durumKodu, durumMetni: DURUM_METNI[yanit.durumKodu], govde };
+/** Book results are plain `{ durumKodu, mesaj }` objects, not HTTP responses: the card shows the number and the object only. */
+function yanitKarti(yanit: { durumKodu: number }, govde: string): HttpYanit {
+  return { durumKodu: yanit.durumKodu, govde };
 }
 
 /** The book's status code table (L926-931). */
@@ -146,7 +145,7 @@ function girisHatasi(hata: string, kayitVar: boolean): RbacView {
   ];
   return {
     sequence: { lanes: GIRIS_LANES, messages, active: 'hata', stopAt: 'cagiran', stopTone: 'alarm', ariaLabel: 'Başarısız giriş sıra diyagramı' },
-    http: { yanitlar: [{ durumKodu: 401, durumMetni: DURUM_METNI[401], govde: hata }], terminal: [{ metin: hata, akis: 'stderr' }] },
+    http: { yanitlar: [{ durumKodu: 401, govde: hata }], terminal: [{ metin: hata, akis: 'stderr' }] },
     istekler: [],
     tablo: null,
     denetim: null,
@@ -236,7 +235,7 @@ function bearerGorunumu(): RbacView {
       stopTone: 'ok',
       ariaLabel: 'authMiddleware sıra diyagramı',
     },
-    http: { istek: istekler[0], yanitlar: [yanitKarti(a, JSON.stringify({ mesaj: a.mesaj }))], terminal: terminalSatirlari([`next() → istek.kullanici = ${nodeInspect(b.kullanici)}`]) },
+    http: { istek: istekler[0], yanitlar: [{ ...yanitKarti(a, JSON.stringify({ mesaj: a.mesaj })), durumMetni: 'Unauthorized' }], terminal: terminalSatirlari([`next() → istek.kullanici = ${nodeInspect(b.kullanici)}`]) },
     istekler,
     tablo: null,
     denetim: null,
