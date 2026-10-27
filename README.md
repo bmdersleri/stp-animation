@@ -41,7 +41,7 @@ Herhangi bir kavram sayfasına `?mod=ders` eklemek, sınıfta projeksiyon için 
 | T | REST CRUD: tekrar sayısını döndür |
 | U | Katmanlı mimari: kitap uygunluğunu değiştir |
 | S | Parola güvenliği: yeni salt |
-| B | JWT akışı: bozulmayı döndür |
+| B | JWT akışı: bozulmayı değiştir |
 | R | RBAC: izinli rolleri değiştir |
 | O | CORS: kökeni döndür |
 | G | Rate limiting: istek gönder |
