@@ -108,11 +108,21 @@ describe('Kod 10.7', () => {
     expect(iz.denetimler.map((d) => d.durum)).toEqual(['gecti', 'gecti']);
   });
 
-  it('decision lines come from the listing', () => {
+  it('pins the executed book lines per path', () => {
     const l = listing(LISTINGS, 'kod-10-7').lines;
-    const iz = kitapEkle('x.y.z', DERS_SIMDI);
-    for (const n of iz.satirlar) expect(l[n - 1]).toBeDefined();
-    expect(l[tokenDogrulaKisa('x', DERS_SIMDI).satir - 1]).toContain('imza !==');
+    /** satirlar are 1-based in the listing; the book line is 1117 + n. */
+    const kitap = (n: number[]) => n.map((x) => x + 1117);
+    expect(kitap(kitapEkle(tokenAl('yasemin'), DERS_SIMDI).satirlar)).toEqual([1230, 1231, 1219, 1232]);
+    expect(kitap(kitapEkle(tokenAl('elif'), DERS_SIMDI).satirlar)).toEqual([1230, 1231, 1219, 1235]);
+    expect(kitap(kitapEkle('gecersiz.token.deger', DERS_SIMDI).satirlar)).toEqual([1230, 1171, 1235]);
+    expect(kitap(kitapEkle(tokenAl('yasemin'), DERS_SIMDI + SURE_MS + 1).satirlar)).toEqual([1230, 1175, 1235]);
+    expect(l[1219 - 1118]).toContain('if (!izinVerilenRoller.includes');
+    expect(l[1171 - 1118]).toContain('if (imza !==');
+    expect(l[1175 - 1118]).toContain('Date.now() > payload.sonGecerlilik');
+    expect(l[1235 - 1118]).toContain('mesaj.startsWith');
+    expect(l[1230 - 1118]).toContain('tokenDogrula(token)');
+    expect(l[1231 - 1118]).toContain('sadeceKutuphaneci(payload)');
+    expect(l[1232 - 1118]).toContain('durumKodu: 201');
   });
 });
 

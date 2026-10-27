@@ -22,7 +22,7 @@ const SATIR = {
   basari: lineOf(K7, 'return payload;'),
   dogrulaCagri: lineOf(K7, 'const payload = tokenDogrula(token);'),
   rolCagri: lineOf(K7, 'this.sadeceKutuphaneci(payload);'),
-  rolHata: lineOf(K7, 'throw new Error("403'),
+  rolKarar: lineOf(K7, 'if (!izinVerilenRoller.includes'),
   olustur: lineOf(K7, 'return { durumKodu: 201'),
   yakala: lineOf(K7, 'return { durumKodu: mesaj.startsWith'),
 };
@@ -47,6 +47,7 @@ export function girisYap(kayitlar: readonly KullaniciKaydi[], ad: string, parola
   return { token };
 }
 
+/** L1205 `parolaDogrula`: a lookup in the R17 precomputed `HASHLER` table in place of scrypt + `timingSafeEqual`. */
 function parolaDogrulaOnbellek(parola: string, salt: string, kayitliHash: string): boolean {
   const hash = HASHLER[`${parola}|${salt}`];
   if (hash === undefined) throw new Error(`HASHLER has no entry for this password and salt`);
@@ -115,9 +116,8 @@ export function kitapEkle(token: string, simdi: number, roller: IzinliRoller = '
     { id: 'm3', from: 'tokenDogrula', to: 'kitapEkle', label: `payload (${d.payload.rol})`, kind: 'response', tone: 'ok' },
     { id: 'm4', from: 'kitapEkle', to: 'sadeceKutuphaneci', label: 'sadeceKutuphaneci(payload)', kind: 'request' },
   );
-  satirlar.push(SATIR.rolCagri);
+  satirlar.push(SATIR.rolCagri, SATIR.rolKarar);
   if (!izinli.includes(d.payload.rol)) {
-    satirlar.push(SATIR.rolHata);
     yetki.durum = 'kaldi';
     yetki.ayrinti = `rol: ${d.payload.rol}`;
     yetki.sonuc = '403';
