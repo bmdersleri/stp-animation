@@ -1,0 +1,19 @@
+/* Data table (core/plot/data-table.ts). */
+.data-table { min-width:0; font-family:var(--font); color:var(--navy); }
+.data-table-title { font-weight:700; font-size:var(--fs-axis); color:var(--muted); margin-bottom:2px; font-family:var(--mono, ui-monospace, Consolas, monospace); }
+.data-table table { width:100%; border-collapse:collapse; font-size:var(--fs-tick); background:var(--surface); }
+.data-table th, .data-table td { border:1px solid var(--line); padding:3px 8px; text-align:left; vertical-align:top; }
+.data-table th { background:var(--navy-soft); }
+.data-table td.null { color:var(--muted); font-style:italic; }
+.data-table td.degisti { background:var(--accent-soft); font-weight:700; }
+.anahtar-rozeti { display:inline-block; padding:0 .4em; border-radius:6px; background:var(--navy); color:#fff; font-size:.8em; font-weight:700; }
+.data-table-not { margin:4px 0 0; font-size:var(--fs-tick); color:var(--muted); }
+.data-table tr.satir-yeni td { background:#dff3e4; animation:data-table-yeni 900ms ease-out; }
+.data-table tr.satir-degisti td { background:var(--accent-soft); }
+.data-table tr.satir-silindi td { text-decoration:line-through; opacity:.45; }
+.data-table tr.satir-eslesti td { background:#dff3e4; }
+.data-table tr.satir-eslesmedi td { background:#f8dcd8; }
+.data-table tr.satir-etkin td { background:var(--accent-soft); outline:2px solid var(--accent); outline-offset:-2px; }
+.data-table tr.satir-soluk td { opacity:.4; }
+@keyframes data-table-yeni { from { background:#8fd3a0; } }
+@media (prefers-reduced-motion: reduce) { .data-table tr.satir-yeni td { animation:none; } }

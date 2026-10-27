@@ -1,3 +1,4 @@
+import { HttpCards } from '../../core/plot/http-cards';
 import type { IstekView } from './view';
 import { LANES } from './view';
 
@@ -11,68 +12,41 @@ function el<K extends keyof HTMLElementTagNameMap>(doc: Document, tag: K, cls: s
 const layerLabel = (id: string): string => LANES.find((l) => l.id === id)?.label.join(' ') ?? id;
 
 /**
- * The HTML cards beside (or under) the diagram: request card, response card, terminal and, on the summary
+ * The HTML beside (or under) the diagram: the shared request / response / terminal cards and, on the summary
  * step, the three-call table. `update` rebuilds their content from the view; the cards themselves persist.
  */
 export class IstekCards {
   readonly root: HTMLDivElement;
-  private readonly istek: HTMLDivElement;
-  private readonly yanit: HTMLDivElement;
-  private readonly terminal: HTMLDivElement;
+  private readonly cards: HttpCards;
   private readonly tablo: HTMLDivElement;
 
   constructor(host: HTMLElement) {
     const doc = host.ownerDocument;
     this.root = el(doc, 'div', 'istek-cards');
     this.tablo = el(doc, 'div', 'ozet-host');
-    this.istek = el(doc, 'div', 'istek-karti');
-    this.yanit = el(doc, 'div', 'yanit-karti');
-    this.terminal = el(doc, 'div', 'terminal');
-    this.root.append(this.tablo, this.istek, this.yanit, this.terminal);
+    this.root.append(this.tablo);
+    this.cards = new HttpCards(this.root);
     host.append(this.root);
   }
 
   destroy(): void {
+    this.cards.destroy();
     this.root.remove();
   }
 
   update(v: IstekView): void {
     const doc = this.root.ownerDocument;
-    this.renderIstek(doc, v);
-    this.renderYanit(doc, v);
-    this.renderTablo(doc, v);
-    const lines = v.terminal.map((t) => el(doc, 'p', 'terminal-satir', t));
-    this.terminal.replaceChildren(el(doc, 'div', 'kart-baslik', 'Terminal'), ...lines);
-    this.terminal.hidden = lines.length === 0;
-  }
-
-  private renderIstek(doc: Document, v: IstekView): void {
-    const ozet = v.ozet !== null;
-    this.istek.hidden = ozet || !v.istekKarti;
-    if (ozet || !v.istekKarti) {
-      this.istek.replaceChildren();
-      return;
-    }
+    // the summary step lists the calls in the table; only the terminal stays
+    const kartlar = v.ozet === null;
     const i = v.istekKarti;
-    const satir = el(doc, 'p', 'istek-satir');
-    satir.append(el(doc, 'span', 'metot', 'GET'), ' ', el(doc, 'code', 'yol', i.yol));
-    const dl = el(doc, 'dl', 'alanlar');
-    for (const [k, val] of [['kullaniciAdi', i.kullaniciAdi], ['yetkiliMi', String(i.yetkiliMi)]]) {
-      dl.append(el(doc, 'dt', '', k), el(doc, 'dd', '', val));
-    }
-    this.istek.replaceChildren(el(doc, 'div', 'kart-baslik', 'İstek'), satir, dl);
-  }
-
-  private renderYanit(doc: Document, v: IstekView): void {
-    const hide = v.ozet !== null || !v.yanit;
-    this.yanit.hidden = hide;
-    if (hide || !v.yanit) {
-      this.yanit.replaceChildren();
-      return;
-    }
-    const y = v.yanit;
-    const rozet = el(doc, 'span', `durum-kodu ${y.durumKodu === 200 ? 'ok' : 'alarm'}`, String(y.durumKodu));
-    this.yanit.replaceChildren(el(doc, 'div', 'kart-baslik', 'Yanıt'), rozet, el(doc, 'p', 'mesaj', y.mesaj));
+    this.cards.update({
+      ...(kartlar && i
+        ? { istek: { metot: 'GET' as const, yol: i.yol, basliklar: [['kullaniciAdi', i.kullaniciAdi], ['yetkiliMi', String(i.yetkiliMi)]] as [string, string][] } }
+        : {}),
+      yanitlar: kartlar && v.yanit ? [{ durumKodu: v.yanit.durumKodu, govde: v.yanit.mesaj }] : [],
+      terminal: v.terminal.map((metin) => ({ metin })),
+    });
+    this.renderTablo(doc, v);
   }
 
   private renderTablo(doc: Document, v: IstekView): void {

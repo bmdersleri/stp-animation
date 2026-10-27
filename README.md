@@ -9,6 +9,10 @@ Sunucu tabanlı programlama kavramlarını adım adım animasyonlarla anlatan, d
 - Ana sayfa: https://bmdersleri.github.io/stp-animation/
 - İstek-yanıt yolculuğu: https://bmdersleri.github.io/stp-animation/istek-yanit/
 - Event loop: https://bmdersleri.github.io/stp-animation/event-loop/
+- Middleware zinciri: https://bmdersleri.github.io/stp-animation/middleware-zinciri/
+- REST CRUD: https://bmdersleri.github.io/stp-animation/rest-crud/
+- SQL JOIN: https://bmdersleri.github.io/stp-animation/sql-join/
+- Katmanlı mimari: https://bmdersleri.github.io/stp-animation/katmanli-mimari/
 - Ders modu: https://bmdersleri.github.io/stp-animation/istek-yanit/?mod=ders
 
 Site, GitHub Pages etkinleştirildiğinde (Settings > Pages > Source: GitHub Actions) `main` dalına her push ile yayına girer. GitHub Actions yalnızca derleyip yayınlar; testler yerelde çalışır. `npm ci` bir push öncesi kancası (`.githooks/pre-push`) kurar: `main`'e her push'tan önce `npm run check` kendiliğinden çalışır ve geçmezse push durur.
@@ -28,7 +32,12 @@ Herhangi bir kavram sayfasına `?mod=ders` eklemek, sınıfta projeksiyon için 
 | Home / End | İlk / son adım |
 | ? | Yardım |
 | Y | İstek-yanıt: yetkiyi aç / kapa |
-| [ / ] | Event loop (Lab): önceki / sonraki kare |
+| N | Middleware zinciri: istekGunlugu'nda next'i aç / kapa |
+| T | REST CRUD: tekrar sayısını döndür |
+| U | Katmanlı mimari: kitap uygunluğunu değiştir |
+| [ / ] | Bütün sayfalar (Lab): önceki / sonraki kare (event loop), olay (istek-yanıt, middleware, katmanlı mimari), gönderim (REST CRUD), çift (SQL JOIN) |
+
+390 px genişliğindeki telefonlarda Ders modundaki kod şeridi gizlenir.
 
 ## Geliştirme
 
@@ -38,6 +47,10 @@ npm run dev        # geliştirme sunucusu, http://localhost:5181
 npm test           # birim testleri
 npm run check      # yayın öncesi kapı: birim testleri + Playwright
 ```
+
+## Kitap doğrulama
+
+`npm run kitap-dogrula`, ekrandaki kod satırlarını kitaptaki listing'lerle harfiyen karşılaştıran yerel bir araçtır; kapıda (`npm run check`) çalışmaz. Kitap deposunun yolu `KITAP_DIZINI` ortam değişkeniyle verilir (varsayılan `C:/projects/modernSunucuTabProg`). Bütün kavramlar `tamam` çıkmalıdır.
 
 ## Yeni kavram
 

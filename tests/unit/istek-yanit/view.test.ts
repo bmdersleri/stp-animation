@@ -84,4 +84,15 @@ describe('istek-yanit view', () => {
     expect(v.code.lines).toBe(MINI_APP);
     expect(v.code.title).toBe('ChapterMiniApp.ts');
   });
+
+  it('step 7 stops with the ok tone', () => {
+    const v = deriveIstekView({ ...base, olay: all });
+    expect(v.sequence.stopTone).toBe('ok');
+    expect(v.sequence.ariaLabel).toBe('İstek-yanıt sıra diyagramı');
+  });
+
+  it('step 8 stops with the alarm tone', () => {
+    const n = notSorgula(base.yol, false).olaylar.length;
+    expect(deriveIstekView({ ...base, yetkiliMi: false, olay: n }).sequence.stopTone).toBe('alarm');
+  });
 });

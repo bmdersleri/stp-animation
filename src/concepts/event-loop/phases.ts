@@ -33,14 +33,14 @@ const COLUMN_GAP = 26;
  * Phone layout: the nodes in one column, top to bottom in visiting order, centred on `cx`, from `top` down.
  * Returns the nodes and the height the column needs (the closing edge and poll's loop run beside it). Pure.
  */
-export function layoutColumn(nodes: readonly FlowNode[], cx: number, top = RING_MARGIN): { nodes: FlowNode[]; height: number } {
+export function layoutColumn(nodes: readonly FlowNode[], cx: number, top = RING_MARGIN, gap = COLUMN_GAP): { nodes: FlowNode[]; height: number } {
   let y = top;
   const out = nodes.map((n) => {
     const c = { ...n, x: Math.round(cx), y: Math.round(y + n.h / 2) };
-    y += n.h + COLUMN_GAP;
+    y += n.h + gap;
     return c;
   });
-  return { nodes: out, height: Math.ceil(y - COLUMN_GAP + RING_MARGIN) };
+  return { nodes: out, height: Math.ceil(y - gap + RING_MARGIN) };
 }
 
 /** Şekil 4.3: the five phases of one event-loop turn, in the order they are visited, laid out on a ring (nominal 720 x 460; the scene re-lays it out for the stage). */
@@ -59,11 +59,15 @@ export const PHASES: FlowGraphSpec = {
   edges: [
     { id: 'timers-pending', from: 'timers', to: 'pending', kind: 'forward' },
     { id: 'pending-poll', from: 'pending', to: 'poll', kind: 'forward' },
-    { id: 'poll-check', from: 'poll', to: 'check', kind: 'forward' },
+    { id: 'poll-check', from: 'poll', to: 'check', kind: 'forward', label: 'hazır olay işlendi' },
     { id: 'check-close', from: 'check', to: 'close', kind: 'forward' },
-    { id: 'close-timers', from: 'close', to: 'timers', kind: 'forward' },
+    { id: 'close-timers', from: 'close', to: 'timers', kind: 'forward', label: 'tur tamamlandı, döngü yeniden başlar' },
   ],
 };
+
+/** Şekil 4.3's edge `poll --> poll` (drawn by the scene, a flow edge needs two nodes) and its exit edge `close --> [*]`. */
+export const POLL_LOOP_LABEL = 'kuyruk boş, yeni olay bekleniyor';
+export const EXIT_LABEL = 'bekleyen iş kalmadı, süreç sonlanır';
 
 /** The note beside `poll` in Şekil 4.3. */
 export const POLL_NOTE = 'Her aşama arasında önce process.nextTick, ardından Promise mikro görev kuyruğu boşaltılır.';

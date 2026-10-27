@@ -106,4 +106,11 @@ describe('CodeTrace', () => {
     ct.destroy();
     expect(host.querySelector('.code-trace')).toBeNull();
   });
+
+  it('active lines carry aria-current', () => {
+    const { host, ct } = make();
+    ct.update({ title: 't', lines, active: [2, 4] });
+    expect([...host.querySelectorAll('li[aria-current="true"]')].map((l) => l.getAttribute('data-line'))).toEqual(['2', '4']);
+    expect(host.querySelectorAll('li[aria-current]')).toHaveLength(2);
+  });
 });

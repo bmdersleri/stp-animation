@@ -23,7 +23,7 @@ export const loopScenario: Scenario<LoopParams> = {
       title: 'Tek iş parçacığı, bekleyen işler',
       term: 'tek iş parçacığı',
       text: 'Event loop, Node.js’in olayları ve tamamlanan asenkron işleri uygun sırayla işleyen mekanizmasıdır. JavaScript kodunuz ana yürütme akışında çalışır; zamanlayıcı, ağ veya dosya işlemi gibi bekleyen işler tamamlandığında callback veya promise devamı kuyruğa alınır.',
-      labText: 'Örnek kod henüz çalışmadı; yığın, zamanlayıcı kuyruğu ve çıktı boş. Kare çubuğunu ilerleterek programı satır satır izleyin.',
+      labText: 'Örnek kod henüz çalışmadı; yığın, zamanlayıcılar ve çıktı boş. Kare çubuğunu ilerleterek programı satır satır izleyin.',
       params: { program: 'kod-4-4', kare: 0, gorunum: 'tahta' },
     },
     {
@@ -32,15 +32,15 @@ export const loopScenario: Scenario<LoopParams> = {
       term: 'ana çağrı yığını',
       text: 'İlk console.log hemen çalışır. Önce senkron satırlar çalışır; JavaScript kodunuz ana yürütme akışında çalışır.',
       labText: 'Yığında main görünür ve çıktıda ilk satır belirir. Başka bir kareye giderek yığının nasıl değiştiğine bakın.',
-      params: { kare: findFrame('kod-4-4', (f) => f.output.length === 1) },
+      params: { program: 'kod-4-4', kare: findFrame('kod-4-4', (f) => f.output.length === 1) },
     },
     {
       id: 'zamanlayici',
       title: 'setTimeout callback’i kuyruğa kaydeder',
-      term: 'zamanlayıcı kuyruğu',
-      text: 'setTimeout çağrısı callback’i hemen çalıştırmaz; yalnızca en az 1000 ms sonra çalıştırılmak üzere event loop’un zamanlayıcı kuyruğuna kaydeder.',
-      labText: 'Zamanlayıcı kuyruğunda callback bekliyor; saat henüz ilerlemedi. Callback’in kuyrukta ne zamana kadar kaldığına bakın.',
-      params: { kare: findFrame('kod-4-4', (f) => f.timers.length === 1) },
+      term: 'zamanlayıcılar (libuv)',
+      text: 'setTimeout çağrısı callback’i hemen çalıştırmaz; yalnızca en az 1000 ms sonra çalıştırılmak üzere event loop’un libuv zamanlayıcılarına kaydeder.',
+      labText: 'Zamanlayıcılar kutusunda callback bekliyor; saat henüz ilerlemedi. Callback’in orada ne zamana kadar kaldığına bakın.',
+      params: { program: 'kod-4-4', kare: findFrame('kod-4-4', (f) => f.timers.length === 1) },
     },
     {
       id: 'devam',
@@ -48,7 +48,7 @@ export const loopScenario: Scenario<LoopParams> = {
       term: 'engellemeyen',
       text: 'İki console.log satırı senkron olduğu için, aralarında duran setTimeout’a rağmen sırayla hemen çalışır. Zamanlayıcı bekleme süresince programı durdurmaz.',
       labText: 'İkinci satır, callback hâlâ kuyruktayken çıktıya yazıldı. Kuyrukta bekleyen işin çıktıya karışmadığını görün.',
-      params: { kare: findFrame('kod-4-4', (f) => f.output.length === 2) },
+      params: { program: 'kod-4-4', kare: findFrame('kod-4-4', (f) => f.output.length === 2) },
     },
     {
       id: 'callback',
@@ -56,7 +56,7 @@ export const loopScenario: Scenario<LoopParams> = {
       term: 'callback',
       text: 'Zamanlayıcı callback’i yalnızca ana çağrı yığını boşaldıktan ve süre dolduktan sonra çalıştırılır. Çıktıdaki sıralama kodun yazıldığı sıradan değil, senkron/asenkron ayrımından kaynaklanır.',
       labText: 'Saat zamanlayıcının süresine ulaştı, callback yığına çıkıp çalıştı ve çıktı tamamlandı. Başa dönüp sırayı yeniden izleyin.',
-      params: { kare: last('kod-4-4') },
+      params: { program: 'kod-4-4', kare: last('kod-4-4') },
     },
     {
       id: 'sifir',

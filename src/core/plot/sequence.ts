@@ -1,5 +1,6 @@
 import type { Selection } from 'd3-selection';
 import './sequence.css';
+import { breakWord } from './lane-words';
 import { r1 } from './marks';
 import type { TextMeasure } from './text-measure';
 import { tr } from './transition';
@@ -31,6 +32,10 @@ export interface SequenceSpec {
   stopAt?: string;
   /** Lane ids drawn faded. */
   dim?: string[];
+  /** Stop mark look: 'alarm' (red cross, default) or 'ok' (green return mark, the flow ended as intended). */
+  stopTone?: 'alarm' | 'ok';
+  /** Written to the nearest `<svg>` as `role="img"` + `aria-label`. */
+  ariaLabel?: string;
 }
 
 const MAX_ROWS = 8;
@@ -44,6 +49,10 @@ const NOTE_LANES = 1.8;
 const NOTE_INSET = TOKEN_R + 4;
 /** Clear space (px) kept between the content of two neighbouring rows. */
 const ROW_CLEAR = 4;
+/** The least clear space (px) between packed rows before an older row is faded out instead. */
+const MIN_ROW_CLEAR = 1;
+/** Room (px) kept under the last row's content for the stop mark (its circle, r 8, sits at least 2 px below). */
+const STOP_ROOM = 18;
 let layerCount = 0;
 
 interface Layout {
@@ -58,6 +67,8 @@ interface Layout {
   ys: number[];
   /** Room (px) the last row's message needs below its line. */
   lastBelow: number;
+  /** Index of the first message drawn; the ones before it are faded out as `old`. */
+  first: number;
 }
 
 /**
@@ -106,12 +117,27 @@ export class SequenceLayer {
   draw(spec: SequenceSpec, box: Rect, ms: number, fontPx: number): void {
     const lay = this.layout(spec, box, fontPx);
     this.xs = lay.xs;
+    this.label(spec);
     this.drawLanes(spec, lay, ms, fontPx);
     this.drawMessages(spec, lay, ms, fontPx);
     this.drawStop(spec, lay, ms);
     this.drawToken(spec, lay, ms, fontPx);
   }
 
+  private label(spec: SequenceSpec): void {
+    const svg = (this.lanesG.node() as Element | null)?.closest('svg');
+    if (!svg || spec.ariaLabel === undefined) return;
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', spec.ariaLabel);
+  }
+
+  /**
+   * Rows sit on an even grid (MAX_ROWS rows tall), pushed down where a row's content (note box, wrapped label)
+   * would touch the one above. The rows must end inside the box, with room for the stop mark under the last one:
+   * if they do not, the grid is first squeezed (down to rows packed by their content), then the clear space between
+   * packed rows shrinks (down to MIN_ROW_CLEAR), and only if that does not fit either, one more older message is
+   * faded out as `old` and the rest move up. The last message always stays.
+   */
   private layout(spec: SequenceSpec, box: Rect, fontPx: number): Layout {
     const n = spec.lanes.length;
     const gap = n > 0 ? box.width / n : box.width;
@@ -120,24 +146,44 @@ export class SequenceLayer {
     const headLines = Math.max(0, ...spec.lanes.map((l) => this.laneLines(l, gap, fontPx).length + (l.sub ? 1 : 0)));
     const headerBottom = box.top + headLines * lh + 2 * PAD;
     const bottom = box.top + box.height;
-    // rows sit on an even grid, pushed down where a row's content (note box, wrapped label) would touch the one above
     const tail = lh + NOTE_H_LINES_PAD / 2;
-    const rowH = Math.max(0, (bottom - headerBottom - tail) / MAX_ROWS);
-    const lay: Layout = { xs, gap, headerBottom, rowH, bottom, left: box.left, right: box.left + box.width, ys: [], lastBelow: 0 };
-    const first = Math.max(0, spec.messages.length - MAX_ROWS);
-    let prevY = 0;
-    let prevBelow = 0;
-    spec.messages.forEach((m, i) => {
-      const row = Math.max(0, i - first);
-      const { above, below } = this.extent(m, lay, fontPx);
-      const grid = headerBottom + rowH * (row + 0.75);
-      const y = i <= first ? Math.max(grid, headerBottom + above + ROW_CLEAR) : Math.max(grid, prevY + prevBelow + above + ROW_CLEAR);
-      lay.ys.push(y);
-      prevY = y;
-      prevBelow = below;
-    });
-    lay.lastBelow = prevBelow;
-    return lay;
+    const gridH = Math.max(0, (bottom - headerBottom - tail) / MAX_ROWS);
+    const base: Layout = { xs, gap, headerBottom, rowH: gridH, bottom, left: box.left, right: box.left + box.width, ys: [], lastBelow: 0, first: 0 };
+    const extents = spec.messages.map((m) => this.extent(m, base, fontPx));
+    const room = spec.stopAt !== undefined ? STOP_ROOM : 0;
+    const place = (first: number, rowH: number, clear = ROW_CLEAR): Layout => {
+      const lay: Layout = { ...base, rowH, ys: [], first };
+      let prevY = 0;
+      let prevBelow = 0;
+      extents.forEach(({ above, below }, i) => {
+        const grid = headerBottom + rowH * (Math.max(0, i - first) + 0.75);
+        const y = i <= first ? Math.max(grid, headerBottom + above + clear) : Math.max(grid, prevY + prevBelow + above + clear);
+        lay.ys.push(y);
+        prevY = y;
+        prevBelow = below;
+      });
+      lay.lastBelow = prevBelow;
+      return lay;
+    };
+    const fits = (lay: Layout): boolean => lay.ys.length === 0 || lay.ys[lay.ys.length - 1] + lay.lastBelow + room <= bottom;
+    /** The largest value in [lo, hi] for which `at(value)` still fits (rows only move down as it grows). */
+    const largest = (lo: number, hi: number, at: (v: number) => Layout): Layout => {
+      for (let k = 0; k < 12; k++) {
+        const mid = (lo + hi) / 2;
+        if (fits(at(mid))) lo = mid;
+        else hi = mid;
+      }
+      return at(lo);
+    };
+    const last = Math.max(0, spec.messages.length - 1);
+    for (let first = Math.max(0, spec.messages.length - MAX_ROWS); ; first++) {
+      const even = place(first, gridH);
+      if (fits(even)) return even;
+      if (fits(place(first, 0))) return largest(0, gridH, (h) => place(first, h));
+      const tight = place(first, 0, MIN_ROW_CLEAR);
+      if (fits(tight)) return largest(MIN_ROW_CLEAR, ROW_CLEAR, (c) => place(first, 0, c));
+      if (first >= last) return tight;
+    }
   }
 
   /**
@@ -146,7 +192,7 @@ export class SequenceLayer {
    * on its corner stay fully visible.
    */
   private noteBox(m: Message, lay: Layout, fontPx: number): { lines: string[]; w: number; h: number; cx: number } {
-    const lines = this.measure.wrap(m.label, Math.min(lay.gap * NOTE_LANES, lay.right - lay.left - 2 * NOTE_INSET) - 2 * PAD, 'seq-msg-label', fontPx);
+    const lines = this.wrap(m.label, Math.min(lay.gap * NOTE_LANES, lay.right - lay.left - 2 * NOTE_INSET) - 2 * PAD, fontPx);
     const w = this.measure.maxWidth(lines, 'seq-msg-label', fontPx) + 2 * PAD;
     const h = lines.length * fontPx * LINE_K + NOTE_H_LINES_PAD;
     const lane = lay.xs.get(m.from) ?? 0;
@@ -154,10 +200,25 @@ export class SequenceLayer {
     return { lines, w, h, cx };
   }
 
-  /** Lines an arrow's label wraps to. */
+  /**
+   * Lines an arrow's label wraps to. A single word wider than the arrow may spill past its ends, as long as the
+   * label (centred on the arrow) stays inside the diagram; only a wider one is broken.
+   */
   private arrowLines(m: Message, lay: Layout, fontPx: number): string[] {
-    const span = Math.abs((lay.xs.get(m.to) ?? 0) - (lay.xs.get(m.from) ?? 0));
-    return this.measure.wrap(m.label, Math.max(lay.gap - 2 * PAD, span - 2 * PAD), 'seq-msg-label', fontPx);
+    const x1 = lay.xs.get(m.from) ?? 0;
+    const x2 = lay.xs.get(m.to) ?? 0;
+    const mid = (x1 + x2) / 2;
+    const edge = 2 * Math.min(mid - lay.left, lay.right - mid) - 2 * PAD;
+    return this.wrap(m.label, Math.max(lay.gap - 2 * PAD, Math.abs(x2 - x1) - 2 * PAD), fontPx, edge);
+  }
+
+  /**
+   * Word wrap of a message label at `room` px; a single word wider than `hard` px (a long call that would leave the
+   * diagram) is broken at camelCase, dot and after-`(` boundaries.
+   */
+  private wrap(text: string, room: number, fontPx: number, hard = room): string[] {
+    const width = (t: string): number => this.measure.width(t, 'seq-msg-label', fontPx);
+    return this.measure.wrap(text, room, 'seq-msg-label', fontPx).flatMap((line) => (width(line) > hard ? breakWord(line, hard, width) : [line]));
   }
 
   /** Room (px) a message needs above and below its line. */
@@ -207,7 +268,6 @@ export class SequenceLayer {
   }
 
   private drawMessages(spec: SequenceSpec, lay: Layout, ms: number, fontPx: number): void {
-    const n = spec.messages.length;
     const index = new Map(spec.messages.map((m, i) => [m.id, i]));
     const y = (m: Message): number => lay.ys[index.get(m.id)!];
     const lh = fontPx * LINE_K;
@@ -232,7 +292,7 @@ export class SequenceLayer {
     enter.attr('transform', (d) => `translate(0,${r1(y(d))})`);
     const all = enter.merge(sel)
       .attr('data-kind', (d) => d.kind)
-      .attr('class', (d, i) => `seq-msg${d.tone === 'alarm' ? ' alarm' : d.tone === 'ok' ? ' ok' : ''}${n - i > MAX_ROWS ? ' old' : ''}`);
+      .attr('class', (d, i) => `seq-msg${d.tone === 'alarm' ? ' alarm' : d.tone === 'ok' ? ' ok' : ''}${i < lay.first ? ' old' : ''}`);
     tr(all, 'seq-msg', ms).attr('transform', (d) => `translate(0,${r1(y(d))})`);
 
     all.each((d, i, nodes) => {
@@ -280,19 +340,28 @@ export class SequenceLayer {
     }
     const last = lay.ys.length > 0 ? lay.ys[lay.ys.length - 1] : lay.headerBottom;
     const y = Math.min(lay.bottom - 8, last + Math.max(lay.rowH / 2, lay.lastBelow + 14));
+    const tone = spec.stopTone === 'ok' ? 'ok' : 'alarm';
     let g = this.stopG.select<SVGGElement>('g.seq-stop');
+    if (!g.empty() && g.attr('data-tone') !== tone) {
+      g.remove();
+      g = this.stopG.select<SVGGElement>('g.seq-stop');
+    }
     if (g.empty()) {
-      g = this.stopG.append('g').attr('class', 'seq-stop').attr('transform', `translate(${r1(x)},${r1(y)})`);
-      g.append('circle').attr('r', 8);
-      g.append('path').attr('d', 'M-4,-4L4,4M4,-4L-4,4');
+      g = this.stopG.append('g').attr('class', tone === 'ok' ? 'seq-stop ok' : 'seq-stop').attr('data-tone', tone).attr('transform', `translate(${r1(x)},${r1(y)})`);
+      if (tone === 'ok') {
+        // a green return mark: the flow came back with its answer
+        g.append('path').attr('class', 'seq-stop-return').attr('d', 'M-8,0H6M-2,-6L-8,0L-2,6M6,-7V0');
+      } else {
+        g.append('circle').attr('r', 8);
+        g.append('path').attr('d', 'M-4,-4L4,4M4,-4L-4,4');
+      }
     }
     tr(g, 'seq-stop', ms).attr('transform', `translate(${r1(x)},${r1(y)})`);
   }
 
   private drawToken(spec: SequenceSpec, lay: Layout, ms: number, fontPx: number): void {
-    const n = spec.messages.length;
     const i = spec.messages.findIndex((m) => m.id === spec.active);
-    if (i < 0 || n - i > MAX_ROWS) {
+    if (i < 0 || i < lay.first) {
       this.tokenG.selectAll('*').interrupt('seq-token').remove();
       return;
     }

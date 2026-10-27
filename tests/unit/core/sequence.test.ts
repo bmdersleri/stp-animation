@@ -102,6 +102,69 @@ describe('SequenceLayer', () => {
     expect(shown.filter((g) => g.classList.contains('old')).map((g) => g.getAttribute('data-id'))).toEqual(['m0', 'm1', 'm2']);
   });
 
+  describe('rows fit the box', () => {
+    const FONT = 18;
+    const rowY = (svg: Element, id: string): number => Number(/translate\(0,([-\d.]+)\)/.exec(svg.querySelector(`g.seq-msg[data-id="${id}"]`)!.getAttribute('transform')!)![1]);
+    const stopY = (svg: Element): number => Number(/translate\([-\d.]+,([-\d.]+)\)/.exec(svg.querySelector('g.seq-stop')!.getAttribute('transform')!)![1]);
+    const eight = Array.from({ length: 8 }, (_, i) => msg(`m${i}`, i % 2 ? 'b' : 'a', i % 2 ? 'a' : 'b', i % 2 ? 'response' : 'request'));
+
+    it('a box that holds the even grid keeps it (no row moves)', () => {
+      const a = setup();
+      const b = setup();
+      a.layer.draw(spec({ messages: eight }), BOX, 0, 14);
+      b.layer.draw(spec({ messages: eight, stopAt: 'a' }), BOX, 0, 14);
+      for (const m of eight) expect(rowY(b.svg, m.id)).toBeCloseTo(rowY(a.svg, m.id), 5);
+    });
+
+    it('a short box squeezes the rows before hiding any, and the stop mark stays inside', () => {
+      const { svg, layer } = setup();
+      const box = { left: 0, top: 0, width: 800, height: 340 };
+      const note = 'Bu uzun bir not metnidir ve birkaç satıra sarılmalıdır';
+      const messages = [msg('n0', 'b', 'b', 'note', { label: note }), ...eight.slice(1, 7), msg('n7', 'c', 'c', 'note', { label: note })];
+      layer.draw(spec({ messages, stopAt: 'c' }), box, 0, 14);
+      expect(svg.querySelectorAll('g.seq-msg.old')).toHaveLength(0);
+      const r = svg.querySelector('g.seq-msg[data-id="n7"] rect')!;
+      const noteBottom = rowY(svg, 'n7') + Number(r.getAttribute('y')) + Number(r.getAttribute('height'));
+      // the stop circle (r 8) sits under the last note, and both stay inside the box
+      expect(stopY(svg) - 8).toBeGreaterThanOrEqual(noteBottom);
+      expect(stopY(svg) + 8).toBeLessThanOrEqual(box.height);
+    });
+
+    it('packed rows that miss by a little close up their clear space instead of hiding a row', () => {
+      const { svg, layer } = setup();
+      const box = { left: 0, top: 0, width: 800, height: 330 };
+      layer.draw(spec({ messages: eight, stopAt: 'a' }), box, 0, FONT);
+      expect(svg.querySelectorAll('g.seq-msg.old')).toHaveLength(0);
+      expect(stopY(svg) + 8).toBeLessThanOrEqual(box.height);
+      // rows still keep at least 1 px between them (label top 6 + font px above the line, token 6 px below)
+      const ys = eight.map((m) => rowY(svg, m.id));
+      for (let i = 1; i < ys.length; i++) expect(ys[i] - ys[i - 1]).toBeGreaterThanOrEqual(6 + 6 + FONT + 1 - 0.1);
+    });
+
+    it('rows that do not fit even packed fade older ones out; the last one is always shown', () => {
+      const { svg, layer } = setup();
+      const box = { left: 0, top: 0, width: 800, height: 280 };
+      layer.draw(spec({ messages: eight, stopAt: 'a', active: 'm7' }), box, 0, FONT);
+      const old = [...svg.querySelectorAll('g.seq-msg.old')].map((g) => g.getAttribute('data-id'));
+      expect(old.length).toBeGreaterThan(0);
+      expect(old).toEqual(eight.slice(0, old.length).map((m) => m.id));
+      expect(svg.querySelector('g.seq-msg[data-id="m7"]')!.classList.contains('old')).toBe(false);
+      expect(rowY(svg, 'm7') + 6).toBeLessThanOrEqual(box.height);
+      expect(stopY(svg) + 9).toBeLessThanOrEqual(box.height + 1);
+      expect(svg.querySelectorAll('circle.seq-token')).toHaveLength(1);
+      // the first shown row starts at the top again
+      const firstShown = eight[old.length].id;
+      expect(rowY(svg, firstShown)).toBeLessThan(box.height / 2);
+    });
+
+    it('a token on a message faded out by the fit rule is not drawn', () => {
+      const { svg, layer } = setup();
+      layer.draw(spec({ messages: eight, stopAt: 'a', active: 'm0' }), { left: 0, top: 0, width: 800, height: 280 }, 0, FONT);
+      expect(svg.querySelector('g.seq-msg[data-id="m0"]')!.classList.contains('old')).toBe(true);
+      expect(svg.querySelectorAll('circle.seq-token')).toHaveLength(0);
+    });
+  });
+
   it('clear removes everything', () => {
     const { svg, layer } = setup();
     layer.draw(spec({ active: 'm1', stopAt: 'b' }), BOX, 0, 14);
@@ -166,6 +229,17 @@ describe('SequenceLayer', () => {
       expect(q.x + q.w).toBeLessThanOrEqual(BOX.width - 10);
     });
 
+    it('a note word wider than the diagram is broken at camelCase and stays inside', () => {
+      const { svg, layer } = setup();
+      const narrow = { left: 0, top: 0, width: 300, height: 500 };
+      layer.draw(spec({ messages: [msg('n', 'b', 'b', 'note', { label: 'new OduncAlmaController(oduncAlmaService)' })] }), narrow, 0, FONT);
+      const r = rectOf(svg.querySelector('g.seq-msg[data-id="n"]')!);
+      expect(r.x).toBeGreaterThanOrEqual(0);
+      expect(r.x + r.w).toBeLessThanOrEqual(narrow.width);
+      const lines = [...svg.querySelectorAll('g.seq-msg[data-id="n"] tspan')].map((t) => t.textContent);
+      expect(lines.join('')).toBe('newOduncAlmaController(oduncAlmaService)');
+    });
+
     it('note width capped', () => {
       const { svg, layer } = setup();
       layer.draw(spec({ messages: [msg('n', 'b', 'b', 'note', { label: longNote.repeat(3) })] }), BOX, 0, FONT);
@@ -184,5 +258,22 @@ describe('SequenceLayer', () => {
       expect(cx).toBeCloseTo(r.x, 0);
       expect(Number(t.getAttribute('cy'))).toBeCloseTo(r.top, 0);
     });
+  });
+
+  it('stopTone ok draws the ok stop mark', () => {
+    const { svg, layer } = setup();
+    layer.draw(spec({ stopAt: 'b', stopTone: 'ok' }), BOX, 0, 14);
+    expect(svg.querySelectorAll('g.seq-stop.ok')).toHaveLength(1);
+    expect(svg.querySelector('g.seq-stop.ok circle')).toBeNull();
+    layer.draw(spec({ stopAt: 'b', stopTone: 'alarm' }), BOX, 0, 14);
+    expect(svg.querySelectorAll('g.seq-stop.ok')).toHaveLength(0);
+    expect(svg.querySelectorAll('g.seq-stop circle')).toHaveLength(1);
+  });
+
+  it('ariaLabel sets role and aria-label on the svg', () => {
+    const { svg, layer } = setup();
+    layer.draw(spec({ ariaLabel: 'Sıra diyagramı' }), BOX, 0, 14);
+    expect(svg.getAttribute('role')).toBe('img');
+    expect(svg.getAttribute('aria-label')).toBe('Sıra diyagramı');
   });
 });

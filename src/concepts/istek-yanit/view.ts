@@ -58,6 +58,8 @@ export function deriveIstekView(p: IstekParams): IstekView {
     messages,
     ...(messages.length > 0 ? { active: messages[messages.length - 1].id } : {}),
     ...(ilkYanit ? { stopAt: tam.durduran } : {}),
+    ...(ilkYanit ? { stopTone: tam.yanit.durumKodu === 200 ? ('ok' as const) : ('alarm' as const) } : {}),
+    ariaLabel: 'İstek-yanıt sıra diyagramı',
     dim: ozet || tamam ? LANES.map((l) => l.id).filter((id) => !dokunulan.has(id)) : [],
   };
 

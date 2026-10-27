@@ -19,3 +19,16 @@ declare module 'node:path' {
   const path: { join(...parts: string[]): string };
   export default path;
 }
+declare module 'node:util' {
+  export function inspect(value: unknown): string;
+}
+
+declare module 'node:child_process' {
+  export function spawnSync(
+    command: string,
+    args: string[],
+    options: { env: Record<string, string | undefined>; encoding: 'utf8' },
+  ): { status: number | null; stdout: string; stderr: string };
+}
+
+declare const process: { execPath: string; env: Record<string, string | undefined> };

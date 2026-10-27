@@ -16,6 +16,8 @@ export interface LoopView {
   bookNote: string | null;
   phases: FlowGraphSpec | null;
   notes: string[];
+  /** Labels of the program's `setTimeout(…, 0)` callbacks: Node.js runs them after at least 1 ms. */
+  zeroDelay: readonly string[];
 }
 
 /** The book sentence a built (not book-listed) program rests on. */
@@ -41,6 +43,7 @@ export function deriveLoopView(p: LoopParams): LoopView {
     code: { title: program.file, lines: program.code, active: frame.line > 0 ? [frame.line] : [] },
     bookNote: !program.bookBased && sentence ? `Kitabın şu cümlesine dayalı örnek: ${sentence}` : null,
     phases: asamalar ? { ...PHASES, current: 'poll' } : null,
+    zeroDelay: program.ops.flatMap((o) => (o.op === 'timeout' && o.ms === 0 ? [o.label] : [])),
     notes: asamalar ? [POLL_NOTE, IMMEDIATE_NOTE] : frame.note !== undefined ? [frame.note] : [],
   };
 }

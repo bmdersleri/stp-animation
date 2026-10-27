@@ -1,0 +1,76 @@
+/* rest-crud page: badge row, diagram + cards (scene), code strip, Lab controls, summary table. */
+.rest-scene { width:100%; height:100%; min-height:0; display:flex; flex-direction:column; gap:6px; font-family:var(--font); color:var(--navy); }
+.rest-scene .rozet-yeri { flex:none; display:flex; justify-content:flex-end; min-height:calc(1.3 * var(--fs-tick) + 4px); }
+.rest-scene .kaynak-rozeti { white-space:normal; text-align:right; border-radius:14px; max-width:100%; }
+.rest-stage { flex:1 1 0; min-height:0; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr) var(--cards-w, 340px); grid-template-rows:minmax(0,1fr); gap:12px; }
+.rest-stage[data-narrow] { grid-template-columns:minmax(0,1fr); grid-template-rows:var(--diagram-h) auto; gap:8px; overflow:auto; }
+/* under the diagram the whole stage scrolls, not the cards column */
+.rest-stage[data-narrow] .rest-cards { overflow:visible; }
+.rest-diagram { position:relative; min-width:0; min-height:0; overflow:hidden; }
+.rest-diagram svg.plot { position:static; display:block; }
+.rest-diagram .probe { visibility:hidden; font-size:var(--fs-tick); }
+
+.rest-cards { min-width:0; min-height:0; display:flex; flex-direction:column; gap:4px; overflow:auto; }
+.rest-cards [hidden] { display:none; }
+/* compact cards: every card and terminal line must fit the column without scrolling at desktop size */
+.rest-cards .istek-karti, .rest-cards .yanit-karti, .rest-cards .terminal { padding:3px 10px; }
+.rest-cards .kart-baslik { margin-bottom:0; }
+.rest-cards .durum-kodu { font-size:var(--fs-body); padding:0 .5em; }
+.rest-cards .yanit-karti .mesaj, .rest-cards pre.govde { margin-top:0; }
+
+.ozet-tablosu { width:100%; border-collapse:collapse; font-size:var(--fs-tick); background:var(--surface); }
+.ozet-tablosu th, .ozet-tablosu td { border:1px solid var(--line); padding:2px 6px; text-align:left; vertical-align:top; }
+.ozet-tablosu th { background:var(--navy-soft); }
+.ozet-tablosu td.katman { font-family:var(--mono, ui-monospace, Consolas, monospace); overflow-wrap:anywhere; }
+
+/* five lines at a tight line height: the diagram above needs every pixel it can get */
+.code-strip { flex:none; height:calc(5 * 1.25 * var(--fs-tick) + var(--fs-axis) + 28px); }
+.code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:6px 12px; gap:4px; }
+.code-strip[data-empty] .code-trace-lines { visibility:hidden; }
+.code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:4px; }
+
+.rest-params { display:grid; gap:8px; }
+.rest-params .ctl { min-width:0; }
+.rest-params .ctl.select, .rest-params .ctl.range { display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
+.rest-params .ctl.check { display:flex; align-items:center; gap:8px; min-height:var(--ctl); }
+.rest-params .ctl-label { font-weight:600; }
+.rest-params select { min-height:var(--ctl); max-width:100%; padding:0 .5em; border:2px solid var(--navy); border-radius:8px; background:var(--surface); font:inherit; }
+.rest-params input[type='checkbox'] { width:1.3em; height:1.3em; }
+.rest-params input[type='range'] { width:100%; min-height:var(--ctl); }
+.rest-params .gonderim-deger { font-variant-numeric:tabular-nums; color:var(--muted); }
+
+/* rest-crud additions */
+.rest-cards .eslem { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.rest-cards .eslem-etiket { font-weight:700; font-size:var(--fs-axis); color:var(--muted); }
+.rest-cards .eslem-rozeti { white-space:normal; border-radius:14px; }
+.rest-cards .tablo-yeri { min-width:0; }
+.rest-cards .http-cards { gap:4px; }
+.uc-noktalari { margin:6px 0 0; padding-left:1.2em; font-size:var(--fs-tick); font-family:var(--mono, ui-monospace, Consolas, monospace); line-height:1.3; overflow-wrap:anywhere; }
+
+/* desktop: two columns of cards (request + response | terminal + table); the summary table spans both */
+.rest-cards { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-auto-rows:min-content; align-items:start; gap:4px 8px; }
+.rest-cards .kol { min-width:0; display:flex; flex-direction:column; gap:4px; }
+.rest-cards .ozet-host, .rest-cards .eslem { grid-column:1 / -1; }
+.rest-cards .kol[hidden] { display:none; }
+.rest-stage[data-narrow] .rest-cards { grid-template-columns:minmax(0,1fr); }
+
+/* diagram and code strip share the left column; the cards column spans both */
+.rest-left { min-width:0; min-height:0; display:flex; flex-direction:column; gap:6px; }
+.rest-left .rest-diagram { flex:1 1 0; }
+.rest-stage[data-narrow] .rest-left { display:block; }
+.rest-stage[data-narrow] .rest-left .rest-diagram { height:var(--diagram-h); }
+.rest-cards .govde-not { margin:2px 0 0; font-size:var(--fs-tick); color:var(--muted); font-style:italic; }
+.rest-cards .data-table th, .rest-cards .data-table td { padding:2px 4px; }
+.rest-cards .data-table td { overflow-wrap:anywhere; }
+
+.rest-cards .istek-satir { overflow-wrap:anywhere; }
+/* medium: request and response beside the diagram, terminal and table in a row under both */
+.rest-stage[data-medium] { grid-template-rows:auto minmax(0,1fr) auto; row-gap:6px; }
+.rest-stage[data-medium] .rest-left { grid-column:1; grid-row:1 / 3; }
+.rest-stage[data-medium] .rest-cards { display:contents; }
+.rest-stage[data-medium] .eslem { grid-column:2; grid-row:1; }
+.rest-stage[data-medium] .kol-a { grid-column:2; grid-row:2; min-height:0; }
+.rest-stage[data-medium] .kol-b { grid-column:1 / -1; grid-row:3; flex-direction:row; align-items:flex-start; gap:8px; }
+.rest-stage[data-medium] .kol-b > * { flex:1 1 0; min-width:0; }
+.rest-stage[data-medium] .ozet-host { grid-column:1 / -1; grid-row:3; }
+.ozet-tablosu td.katman { white-space:nowrap; overflow-wrap:normal; }

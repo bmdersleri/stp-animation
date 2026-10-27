@@ -91,6 +91,83 @@ export function clippedBoxes(page: Page, selector: string, scrollers = ''): Prom
 }
 
 /**
+ * Under the diagram (phone width) the stage scrolls on purpose, so the cards and the lower part of a tall diagram
+ * stick out of its box. For each such box (name returned) its nearest scrollable ancestor must contain it in its
+ * scroll range, and that ancestor must itself sit inside the stage; the names of boxes that pass are `reachable`,
+ * those that do not are `lost`.
+ */
+export function scrollReach(page: Page, sel: string): Promise<{ reachable: string[]; lost: string[] }> {
+  return page.evaluate((sel) => {
+    const out = { reachable: [] as string[], lost: [] as string[] };
+    const stageEl = document.querySelector<HTMLElement>('.stage');
+    if (!stageEl) return { reachable: [], lost: ['no .stage'] };
+    const st = stageEl.getBoundingClientRect();
+    for (const el of document.querySelectorAll<Element>(sel)) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0 || el.closest('[hidden]')) continue;
+      if (r.left >= st.left - 1 && r.right <= st.right + 1 && r.top >= st.top - 1 && r.bottom <= st.bottom + 1) continue;
+      let anc: HTMLElement | null = el.parentElement;
+      while (anc && !(['auto', 'scroll'].includes(getComputedStyle(anc).overflowY) && anc.scrollHeight > anc.clientHeight + 1)) anc = anc.parentElement;
+      const name = el.getAttribute('class') ?? el.tagName;
+      const label = `${name} "${(el.textContent ?? '').trim().slice(0, 40)}"`;
+      if (!anc) { out.lost.push(label); continue; }
+      const a = anc.getBoundingClientRect();
+      const inRange = r.bottom - a.top + anc.scrollTop <= anc.scrollHeight + 1 && r.right - a.left + anc.scrollLeft <= anc.scrollWidth + 1;
+      const ancInside = a.left >= st.left - 1 && a.right <= st.right + 1 && a.top >= st.top - 1 && a.bottom <= st.bottom + 1;
+      (inRange && ancInside ? out.reachable : out.lost).push(name);
+    }
+    return out;
+  }, sel);
+}
+
+/**
+ * Visible containers matching `sel` that scroll internally or are cut by the `stage` box (a page's own scene
+ * stage, e.g. `.rest-stage`). `display: contents` wrappers are skipped, their children are checked instead.
+ */
+export function stageBoxProblems(page: Page, stage: string, sel: string): Promise<string[]> {
+  return page.evaluate(([stage, sel]) => {
+    const st = document.querySelector<HTMLElement>(stage)!.getBoundingClientRect();
+    const out: string[] = [];
+    for (const el of document.querySelectorAll<HTMLElement>(sel)) {
+      const r = el.getBoundingClientRect();
+      const cs = getComputedStyle(el);
+      if (cs.display === 'contents' || el.closest('[hidden]') || cs.display === 'none' || r.width === 0 || r.height === 0) continue;
+      const name = el.className;
+      if (el.scrollHeight - el.clientHeight > 1) out.push(`${name}: scrolls ${el.scrollHeight - el.clientHeight}`);
+      if (r.top < st.top - 1 || r.bottom > st.bottom + 1 || r.left < st.left - 1 || r.right > st.right + 1) out.push(`${name}: outside the stage`);
+    }
+    return out;
+  }, [stage, sel] as const);
+}
+
+/**
+ * Sequence-diagram parts that the diagram's own `<svg>` clips (it has `overflow: hidden`): every visible
+ * (non-`old`) message row — arrow, label, note box — the stop mark, the token and the lane titles must lie inside
+ * the bounding box of the svg that holds them. Checking against `.stage` is not enough, since the stage also covers
+ * the cards and the code strip.
+ */
+export function seqOutsideSvg(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const out: string[] = [];
+    for (const svg of document.querySelectorAll<SVGSVGElement>('svg.plot')) {
+      if (!svg.querySelector('.seq-lane') || svg.closest('[hidden]')) continue;
+      const s = svg.getBoundingClientRect();
+      if (s.width === 0 || s.height === 0) continue;
+      for (const el of svg.querySelectorAll<SVGGraphicsElement>('g.seq-msg:not(.old), g.seq-stop, circle.seq-token, .seq-lane text')) {
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) continue;
+        if (getComputedStyle(el).display === 'none') continue;
+        if (r.left < s.left - 1 || r.right > s.right + 1 || r.top < s.top - 1 || r.bottom > s.bottom + 1) {
+          const id = el.closest('[data-id]')?.getAttribute('data-id') ?? '';
+          out.push(`${el.getAttribute('class') ?? el.tagName}${id ? `[${id}]` : ''} "${(el.textContent ?? '').trim().slice(0, 30)}" ${Math.round(r.top)}-${Math.round(r.bottom)} vs svg ${Math.round(s.top)}-${Math.round(s.bottom)}`);
+        }
+      }
+    }
+    return out;
+  });
+}
+
+/**
  * A pair that stacks on purpose: an `upper` text directly above a `lower` text inside the same `within`
  * ancestor, whose line boxes may touch by at most `maxShare` of the smaller box height. Text on one
  * baseline (the same top) never matches, so a tag drawn over its count still counts as an overlap.

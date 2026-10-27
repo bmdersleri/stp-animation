@@ -15,6 +15,8 @@ interface Entry {
   label: string;
   /** Timers only: ms left on the clock. */
   remaining?: number;
+  /** Timers only: the wait was written as 0, which Node.js turns into 1 ms. */
+  atLeastOne?: boolean;
 }
 
 /** Longest wait (ms) any timer of the program ever has, so the remaining-time bars share one scale. */
@@ -59,7 +61,7 @@ export class LoopBoard {
     box('yigin', 'kutu-yigin', 'Ana çağrı yığını');
     box('zamanlayici', 'kutu-zamanlayici', 'Zamanlayıcılar (libuv)');
     box('mikro', 'kutu-mikro', 'Mikro görev kuyruğu (Promise)');
-    box('makro', 'kutu-makro', 'Makro görev kuyruğu (zamanlayıcı)');
+    box('makro', 'kutu-makro', 'Makro görev kuyruğu (hazır callback’ler)');
     this.terminal = el(doc, 'div', 'terminal');
     this.terminalLines = el(doc, 'div', 'terminal-satirlar');
     this.terminal.append(el(doc, 'div', 'kart-baslik', 'Terminal'), this.terminalLines);
@@ -83,7 +85,7 @@ export class LoopBoard {
     const scale = longestWait(v);
     const entries: Entry[] = [
       ...f.stack.map((label): Entry => ({ box: 'yigin', label })),
-      ...f.timers.map((t): Entry => ({ box: 'zamanlayici', label: t.label, remaining: Math.max(0, t.dueAt - f.clock) })),
+      ...f.timers.map((t): Entry => ({ box: 'zamanlayici', label: t.label, remaining: Math.max(0, t.dueAt - f.clock), atLeastOne: v.zeroDelay.includes(t.label) })),
       ...f.micro.map((label): Entry => ({ box: 'mikro', label })),
       ...f.macro.map((label): Entry => ({ box: 'makro', label })),
     ];
@@ -151,7 +153,7 @@ export class LoopBoard {
     const fill = el(doc, 'i', 'sure-dolu');
     fill.style.width = `${Math.round((e.remaining / scale) * 100)}%`;
     bar.append(fill);
-    item.replaceChildren(el(doc, 'span', 'is-ad', e.label), el(doc, 'span', 'kalan', `kalan ${e.remaining} ms`), bar);
+    item.replaceChildren(el(doc, 'span', 'is-ad', e.label), el(doc, 'span', 'kalan', `kalan ${e.remaining} ms${e.atLeastOne ? ' (en az 1 ms)' : ''}`), bar);
   }
 
   /** Keeps one `<p>` per text, re-using the elements that are already there. */

@@ -1,0 +1,55 @@
+/* katmanli-mimari page: badge row, diagram + cards (scene), code strip, Lab controls, large tables. */
+.katman-scene { width:100%; height:100%; min-height:0; display:flex; flex-direction:column; gap:6px; font-family:var(--font); color:var(--navy); }
+.katman-scene .rozet-yeri { flex:none; display:flex; justify-content:flex-end; min-height:calc(1.3 * var(--fs-tick) + 4px); }
+.katman-scene .kaynak-rozeti { white-space:normal; text-align:right; border-radius:14px; max-width:100%; }
+.katman-stage { flex:1 1 0; min-height:0; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr) var(--cards-w, 340px); grid-template-rows:minmax(0,1fr); gap:12px; }
+.katman-stage[data-narrow] { grid-template-columns:minmax(0,1fr); grid-template-rows:var(--diagram-h) auto; gap:8px; overflow:auto; }
+.katman-diagram { position:relative; min-width:0; min-height:0; overflow:hidden; }
+.katman-diagram svg.plot { position:static; display:block; }
+.katman-diagram .probe { visibility:hidden; font-size:var(--fs-tick); }
+/* life-cycle and summary views: the whole success trace stays behind the table, faded */
+.katman-diagram[data-soluk] svg.plot { opacity:.35; }
+
+.katman-cards { min-width:0; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-auto-rows:min-content; align-items:start; gap:4px 8px; }
+.katman-cards [hidden] { display:none; }
+.katman-cards .kol { min-width:0; display:flex; flex-direction:column; gap:4px; }
+.katman-cards .tablo-buyuk { grid-column:1 / -1; }
+.katman-cards .yanit-karti, .katman-cards .terminal { padding:3px 10px; }
+.katman-cards .kart-baslik { margin-bottom:0; }
+.katman-cards .durum-kodu { font-size:var(--fs-body); padding:0 .5em; }
+.katman-cards .yanit-karti .mesaj, .katman-cards pre.govde { margin-top:0; }
+.katman-cards .tablo-yeri { min-width:0; }
+.katman-cards .data-table th, .katman-cards .data-table td { padding:2px 4px; overflow-wrap:anywhere; }
+.katman-cards .tablo-buyuk .data-table th, .katman-cards .tablo-buyuk .data-table td { padding:1px 6px; line-height:1.2; overflow-wrap:normal; }
+.katman-stage[data-narrow] .katman-cards { grid-template-columns:minmax(0,1fr); overflow:visible; }
+
+/* five lines at a tight line height: the diagram above needs every pixel it can get */
+.code-strip { flex:none; height:calc(5 * 1.25 * var(--fs-tick) + var(--fs-axis) + 28px); }
+.code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:6px 12px; gap:4px; }
+.code-strip[data-empty] .code-trace-lines { visibility:hidden; }
+.code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:4px; }
+
+/* diagram and code strip share the left column; the cards column spans both */
+.katman-left { min-width:0; min-height:0; display:flex; flex-direction:column; gap:6px; }
+.katman-left .katman-diagram { flex:1 1 0; }
+.katman-stage[data-narrow] .katman-left { display:block; }
+.katman-stage[data-narrow] .katman-left .katman-diagram { height:var(--diagram-h); }
+
+/* medium: response and terminal beside the diagram, the two tables in a row under both */
+.katman-stage[data-medium] { grid-template-rows:minmax(0,1fr) auto; row-gap:6px; }
+.katman-stage[data-medium] .katman-left { grid-column:1; grid-row:1; }
+.katman-stage[data-medium] .katman-cards { display:contents; }
+.katman-stage[data-medium] .kol-a { grid-column:2; grid-row:1; min-height:0; }
+.katman-stage[data-medium] .kol-b { grid-column:1 / -1; grid-row:2; flex-direction:row; align-items:flex-start; gap:8px; }
+.katman-stage[data-medium] .kol-b > * { flex:1 1 0; min-width:0; }
+.katman-stage[data-medium] .tablo-buyuk { grid-column:2; grid-row:1 / 3; }
+
+.katman-params { display:grid; gap:8px; }
+.katman-params .ctl { min-width:0; }
+.katman-params .ctl.select, .katman-params .ctl.range { display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
+.katman-params .ctl.check { display:flex; align-items:center; gap:8px; min-height:var(--ctl); }
+.katman-params .ctl-label { font-weight:600; }
+.katman-params select { min-height:var(--ctl); max-width:100%; padding:0 .5em; border:2px solid var(--navy); border-radius:8px; background:var(--surface); font:inherit; }
+.katman-params input[type='checkbox'] { width:1.3em; height:1.3em; }
+.katman-params input[type='range'] { width:100%; min-height:var(--ctl); }
+.katman-params .olay-deger { font-variant-numeric:tabular-nums; color:var(--muted); }

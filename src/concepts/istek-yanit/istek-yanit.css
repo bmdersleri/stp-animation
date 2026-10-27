@@ -8,21 +8,6 @@
 
 .istek-cards { min-width:0; min-height:0; display:flex; flex-direction:column; gap:6px; overflow:auto; }
 .istek-cards [hidden] { display:none; }
-.istek-karti, .yanit-karti, .terminal { border:2px solid var(--line); border-radius:10px; background:var(--surface); padding:5px 12px; }
-.kart-baslik { font-weight:700; font-size:var(--fs-axis); color:var(--muted); margin-bottom:1px; line-height:1.2; }
-.istek-satir { margin:0 0 2px; line-height:1.3; font-size:var(--fs-body); }
-.istek-satir .metot { font-weight:700; color:var(--accent-text); }
-.istek-satir .yol, .alanlar, .terminal-satir { font-family:var(--mono, ui-monospace, Consolas, monospace); }
-.alanlar { display:grid; grid-template-columns:auto 1fr; gap:2px 12px; margin:0; font-size:var(--fs-tick); }
-.alanlar dt { color:var(--muted); }
-.alanlar dd { margin:0; font-weight:700; }
-.durum-kodu { display:inline-block; padding:0 .6em; border-radius:8px; font-weight:700; font-size:var(--fs-title); line-height:1.2; color:#fff; font-variant-numeric:tabular-nums; }
-.durum-kodu.ok { background:#1E7B3A; }
-.durum-kodu.alarm { background:#C0392B; }
-.yanit-karti .mesaj { margin:2px 0 0; line-height:1.25; font-size:var(--fs-body); }
-.terminal { background:#14365c; border-color:#14365c; }
-.terminal .kart-baslik { color:#c9d5e3; }
-.terminal-satir { margin:0; color:#fff; font-size:var(--fs-tick); overflow-wrap:anywhere; }
 
 .ozet-tablosu { width:100%; border-collapse:collapse; font-size:var(--fs-tick); background:var(--surface); }
 .ozet-tablosu th, .ozet-tablosu td { border:1px solid var(--line); padding:4px 8px; text-align:left; vertical-align:top; }
