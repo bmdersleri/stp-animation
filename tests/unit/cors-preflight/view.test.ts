@@ -68,9 +68,20 @@ describe('cors-preflight view', () => {
     expect(v.code.lines[v.code.active[0] - 1]).toContain('if (!izinVerilenKokenler.includes(kaynakKoken))');
   });
 
-  it('step 4 book line is absent without kitapCiktisi', () => {
+  it('lab step-4 params keep computed terminal', () => {
     const v = view(4, false);
-    expect(v.http.terminal).toEqual([]);
+    expect(v.http.terminal.length).toBeGreaterThan(0);
+    expect(v.http.terminal.map((t) => t.metin)).toEqual(calistir(step(4)).terminal);
+    const izinli = deriveCorsView({ ...step(4), koken: 'kutuphane' }, false);
+    expect(izinli.http.terminal.map((t) => t.metin)).toEqual(calistir({ ...step(4), koken: 'kutuphane' }).terminal);
+    expect(deriveCorsView({ ...step(4), koken: 'kutuphane' }, true).http.terminal).toEqual([{ metin: "{ durumKodu: 200, mesaj: 'Giriş başarılı.' }" }]);
+  });
+
+  it('preflight arrows carry the bilgi tone unless the preflight failed', () => {
+    const tonlar = (v: ReturnType<typeof view>) => Object.fromEntries(v.sequence.messages.map((m) => [m.id, m.tone]));
+    expect(tonlar(view(9))).toMatchObject({ 'pre-istek': 'bilgi', 'pre-yanit': 'bilgi', yanit: 'ok' });
+    expect(tonlar(view(7))).toMatchObject({ 'pre-istek': 'bilgi' });
+    expect(tonlar(view(8))).toMatchObject({ 'pre-istek': 'bilgi', 'pre-yanit': 'alarm', sonuc: 'alarm' });
   });
 
   it('curl dims browser lane', () => {

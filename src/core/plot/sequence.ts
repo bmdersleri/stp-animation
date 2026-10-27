@@ -21,7 +21,7 @@ export interface Message {
   to: string;
   label: string;
   kind: MsgKind;
-  tone?: 'ok' | 'alarm';
+  tone?: 'ok' | 'alarm' | 'bilgi';
 }
 export interface SequenceSpec {
   lanes: Lane[];
@@ -89,7 +89,7 @@ export class SequenceLayer {
     private readonly measure: TextMeasure,
   ) {
     const defs = parent.append('defs');
-    for (const k of ['plain', 'alarm', 'ok']) {
+    for (const k of ['plain', 'alarm', 'ok', 'bilgi']) {
       defs.append('marker')
         .attr('id', `${this.prefix}-${k}`)
         .attr('viewBox', '0 0 10 10')
@@ -297,7 +297,7 @@ export class SequenceLayer {
     enter.attr('transform', (d) => `translate(0,${r1(y(d))})`);
     const all = enter.merge(sel)
       .attr('data-kind', (d) => d.kind)
-      .attr('class', (d, i) => `seq-msg${d.tone === 'alarm' ? ' alarm' : d.tone === 'ok' ? ' ok' : ''}${i < lay.first ? ' old' : ''}`);
+      .attr('class', (d, i) => `seq-msg${d.tone === 'alarm' ? ' alarm' : d.tone === 'ok' ? ' ok' : d.tone === 'bilgi' ? ' bilgi' : ''}${i < lay.first ? ' old' : ''}`);
     tr(all, 'seq-msg', ms).attr('transform', (d) => `translate(0,${r1(y(d))})`);
 
     all.each((d, i, nodes) => {

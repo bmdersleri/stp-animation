@@ -89,8 +89,8 @@ function bosGorunum(p: CorsParams): CorsView {
 
 /**
  * Everything the scene draws for one parameter set; no DOM. `kitapCiktisi` true (the scene passes it while the step's own
- * badge shows) prints the lines Kod 11.7 prints (L1207-1208) when the run produces them; otherwise those lines are left
- * out, because the page's own call is not the book's call.
+ * badge shows) prints the lines Kod 11.7 prints (L1207-1208) for the book's two calls; otherwise the terminal shows the
+ * lines the run computed for these params.
  */
 export function deriveCorsView(p: CorsParams, kitapCiktisi = false): CorsView {
   if (p.asama !== 'akis') return bosGorunum(p);
@@ -98,7 +98,10 @@ export function deriveCorsView(p: CorsParams, kitapCiktisi = false): CorsView {
   const iz = calistir(p);
   const curl = p.istemci !== 'tarayici';
   const gorunen = Math.min(Math.max(p.olay, 1), iz.olaylar.length);
-  const olaylar: Message[] = iz.olaylar.slice(0, gorunen);
+  // Preflight arrows get their own (info) tone; a failed preflight response stays alarm.
+  const olaylar: Message[] = iz.olaylar
+    .slice(0, gorunen)
+    .map((m) => (m.id === 'pre-istek' || (m.id === 'pre-yanit' && m.tone !== 'alarm') ? { ...m, tone: 'bilgi' as const } : m));
   const gorunur = (id: string): boolean => olaylar.some((m) => m.id === id);
   const tamami = gorunen === iz.olaylar.length;
 
@@ -114,8 +117,9 @@ export function deriveCorsView(p: CorsParams, kitapCiktisi = false): CorsView {
   if (gorunur('yanit')) denetim = { baslik: 'Tarayıcı denetimi (asıl yanıt)', denetimler: iz.asil!.denetimler };
   else if (gorunur('pre-yanit')) denetim = { baslik: 'Tarayıcı denetimi (preflight)', denetimler: iz.preflight!.denetimler };
 
-  // Book outputs (L1207-1208) print only while the book badge shows.
-  const terminal = yanitlar.length === 0 ? [] : iz.terminal.filter((s) => kitapCiktisi || !KOD7_CIKTILARI.includes(s));
+  // While the book badge shows, Kod 11.7's own printed line (L1207 allowed origin, L1208 refused) replaces the model's line; otherwise the page's computed lines.
+  const kitapSatiri = p.sunucu === 'kitap-11-7' && p.istemci === 'curl-origin' && p.istek === 'post-giris' ? KOD7_CIKTILARI[p.koken === 'kutuphane' ? 0 : p.koken === 'kotu' ? 1 : -1] : undefined;
+  const terminal = yanitlar.length === 0 ? [] : kitapCiktisi && kitapSatiri !== undefined && iz.terminal.length > 0 ? [kitapSatiri] : iz.terminal;
 
   let aciklama: string | null = null;
   if (tamami && !iz.betik.okudu) aciklama = iz.asil ? (iz.sunucuIsledi ? OKUMA_ENGELI : OKUMA_ENGELI_ISLENMEDI) : ASIL_YOK;
