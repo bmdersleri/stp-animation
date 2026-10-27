@@ -20,6 +20,7 @@ export default defineConfig({
         'katmanli-mimari': resolve(root, 'katmanli-mimari/index.html'),
         'salt-hash': resolve(root, 'salt-hash/index.html'),
         'jwt-akisi': resolve(root, 'jwt-akisi/index.html'),
+        'rbac-401-403': resolve(root, 'rbac-401-403/index.html'),
       },
     },
   },

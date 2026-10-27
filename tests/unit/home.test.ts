@@ -24,11 +24,11 @@ describe('home page', () => {
     chapters.forEach((ch, i) => expect(heads[i].startsWith(`Bölüm ${ch} ·`), heads[i]).toBe(true));
   });
 
-  it('eight cards are ready: istek-yanit, event-loop, middleware-zinciri, rest-crud, sql-join, katmanli-mimari, salt-hash and jwt-akisi', () => {
+  it('nine cards are ready: istek-yanit, event-loop, middleware-zinciri, rest-crud, sql-join, katmanli-mimari, salt-hash, jwt-akisi and rbac-401-403', () => {
     const root = render();
     const ready = [...root.querySelectorAll('a.card.hazir')];
-    expect(ready).toHaveLength(8);
-    expect(ready.map((a) => a.getAttribute('href'))).toEqual(['istek-yanit/', 'event-loop/', 'middleware-zinciri/', 'rest-crud/', 'sql-join/', 'katmanli-mimari/', 'salt-hash/', 'jwt-akisi/']);
+    expect(ready).toHaveLength(9);
+    expect(ready.map((a) => a.getAttribute('href'))).toEqual(['istek-yanit/', 'event-loop/', 'middleware-zinciri/', 'rest-crud/', 'sql-join/', 'katmanli-mimari/', 'salt-hash/', 'jwt-akisi/', 'rbac-401-403/']);
   });
 
   it('hazir cards link to href and ders mode', () => {
