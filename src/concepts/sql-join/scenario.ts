@@ -88,7 +88,7 @@ export const sqlScenario: Scenario<SqlParams> = {
       id: 'is-null',
       title: 'Kitapsız yazar: IS NULL',
       term: 'IS NULL',
-      text: 'Kitabı olmayan yazarı bulmak için LEFT JOIN sonrası WHERE k.yazar_id IS NULL yazılır; sonuç Bilge Karasu’dur. Kitabın uyarısı: NULL değerini = ile karşılaştırmak yerine IS NULL kullanmak gerekir, çünkü NULL ile karşılaştırma doğru ya da yanlış değil NULL verir. Alıştırmanın beklenen çıktısı: "Kitabı olmayan yazar: Bilge Karasu".',
+      text: 'Kitabı olmayan yazarı bulmak için LEFT JOIN sonrası WHERE k.yazar_id IS NULL yazılır; sonuç Bilge Karasu’dur. Kitap, NULL değerini = ile karşılaştırmak yerine IS NULL kullanmak gerektiğini söyler. Nedeni bu sayfanın değerlendiricisindedir: NULL ile karşılaştırma doğru ya da yanlış değil NULL verir ve NULL eşleşme sayılmaz. Alıştırmanın beklenen çıktısı: "Kitabı olmayan yazar: Bilge Karasu".',
       labText: 'WHERE koşulu JOIN’den çıkan her satıra uygulanır; koşulu sağlamayanlar üstü çizili görünür. Yalnız kitapsız yazar kalır.',
       params: { sorgu: 'is-null', cift: TUMU, gorunum: 'sorgu' },
     },

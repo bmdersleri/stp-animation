@@ -223,6 +223,7 @@ export function deriveSqlView(p: SqlParams): SqlView {
 /** The source badge of the chosen query: the book's for book queries, the example one otherwise. */
 export function sqlLabRozet(p: SqlParams): Rozet {
   const s = SORGULAR[p.sorgu];
+  // Redundant today (parametreli is always kitaba-dayali); kept explicit so a changed $1 never reads as the book's own output.
   if (p.sorgu === 'parametreli' && p.deger !== 3) return { tur: 'kitaba-dayali', ref: s.ref };
   return { tur: s.kaynak, ...(s.ref ? { ref: s.ref } : {}) };
 }
