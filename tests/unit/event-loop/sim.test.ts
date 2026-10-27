@@ -1,0 +1,143 @@
+import { describe, expect, it } from 'vitest';
+import { FRAME_LIMIT, simulate, type Op } from '../../../src/concepts/event-loop/sim';
+import { PROGRAMS, PROGRAM_IDS, framesOf } from '../../../src/concepts/event-loop/programs';
+
+const lastOutput = (id: Parameters<typeof framesOf>[0]): string[] => {
+  const frames = framesOf(id);
+  return frames[frames.length - 1].output;
+};
+
+// Book output blocks (b04 final.md) as literals.
+const KOD_4_4_OUT = ['1. Sipariş alınmaya başlandı.', '2. Başka sipariş işleniyor.', '3. Zamanlayıcı tamamlandı.'];
+const KOD_4_5_OUT = ['Hazırlık başlatıldı.', 'Mutfak başka siparişleri karşılıyor.', 'Sipariş hazır.'];
+
+describe('event-loop programs', () => {
+  it('kod-4-4 prints the book output', () => {
+    expect(lastOutput('kod-4-4')).toEqual(KOD_4_4_OUT);
+  });
+
+  it('kod-4-4 timer runs at 1000 ms', () => {
+    const frames = framesOf('kod-4-4');
+    const f = frames.find((x) => x.output.length === 3)!;
+    expect(f.clock).toBe(1000);
+  });
+
+  it('bitti-gec prints Bitti then Geç', () => {
+    expect(lastOutput('bitti-gec')).toEqual(['Bitti', 'Geç']);
+  });
+
+  it('kod-4-5 prints the book output', () => {
+    expect(lastOutput('kod-4-5')).toEqual(KOD_4_5_OUT);
+  });
+
+  it('kod-4-5 the continuation runs at 500 ms from the micro queue', () => {
+    const frames = framesOf('kod-4-5');
+    const done = frames.findIndex((f) => f.output.includes('Sipariş hazır.'));
+    const queued = frames.findIndex((f) => f.micro.includes('mutfagiYonet devamı'));
+    expect(queued).toBeGreaterThan(-1);
+    expect(queued).toBeLessThan(done);
+    expect(frames[done].clock).toBe(500);
+    expect(frames.some((f) => f.stack.includes('mutfagiYonet devamı'))).toBe(true);
+  });
+
+  it('kod-4-5 await suspends the function', () => {
+    const f = framesOf('kod-4-5').find((x) => x.note === 'await: fonksiyon askıya alındı')!;
+    expect(f.stack).toEqual(['main']);
+    expect(f.timers).toEqual([{ label: 'siparisHazirla', dueAt: 500 }]);
+  });
+
+  it('mikro-makro prints Senkron, Promise, Zamanlayıcı', () => {
+    expect(lastOutput('mikro-makro')).toEqual(['Senkron', 'Promise', 'Zamanlayıcı']);
+  });
+
+  it('engelleme runs the timer at 2000 ms with 1000 ms delay', () => {
+    const f = framesOf('engelleme').find((x) => x.output.includes('Zamanlayıcı çalıştı.'))!;
+    expect(f.clock).toBe(2000);
+    expect(framesOf('engelleme').some((x) => x.note === 'gecikme: 1000 ms')).toBe(true);
+    expect(lastOutput('engelleme')).toEqual(['Döngü bitti.', 'Zamanlayıcı çalıştı.']);
+  });
+
+  it('micro drains before any macro', () => {
+    for (const id of PROGRAM_IDS) {
+      const frames = framesOf(id);
+      frames.forEach((f, i) => {
+        if (i > 0 && f.macro.length > frames[i - 1].macro.length) expect(frames[i - 1].micro).toEqual([]);
+        if (f.macro.length > 0) expect(f.micro).toEqual([]);
+      });
+    }
+  });
+
+  it('first frame is empty', () => {
+    for (const id of PROGRAM_IDS) {
+      expect(framesOf(id)[0]).toEqual({ clock: 0, line: 0, stack: [], timers: [], micro: [], macro: [], output: [] });
+    }
+  });
+
+  it('ends with everything empty', () => {
+    for (const id of PROGRAM_IDS) {
+      const f = framesOf(id).at(-1)!;
+      expect([f.stack, f.timers, f.micro, f.macro]).toEqual([[], [], [], []]);
+    }
+  });
+
+  it('framesOf is memoised', () => {
+    expect(framesOf('kod-4-4')).toBe(framesOf('kod-4-4'));
+  });
+
+  it('frame limit throws', () => {
+    let ops: Op[] = [{ op: 'log', line: 1, text: 'x' }];
+    for (let i = 0; i < 300; i++) ops = [{ op: 'timeout', line: 1, ms: 1, label: 't', body: ops }];
+    expect(FRAME_LIMIT).toBe(200);
+    expect(() => simulate(ops)).toThrow('simulate: kare sınırı');
+  });
+
+  it('code is verbatim', () => {
+    expect(PROGRAMS['kod-4-4'].code[0]).toBe('// File: eventLoopSirasi.ts');
+    expect(PROGRAMS['kod-4-5'].code).toContain('  const sonucMesaji = await siparisHazirla();');
+    expect(PROGRAMS['bitti-gec'].code).toHaveLength(6);
+    expect(PROGRAMS['bitti-gec'].code[0]).toBe("// Yanlış beklenti: Bu satır callback'ten önce çalışır.");
+    expect(PROGRAMS['kod-4-4'].code).toHaveLength(12);
+    expect(PROGRAMS['kod-4-5'].code).toHaveLength(19);
+  });
+
+  it('program metadata', () => {
+    expect(PROGRAM_IDS).toEqual(['kod-4-4', 'bitti-gec', 'kod-4-5', 'mikro-makro', 'engelleme']);
+    expect(PROGRAMS['bitti-gec'].file).toBe('b04-nodejs-runtime_code_008.ts');
+    expect(PROGRAM_IDS.filter((id) => PROGRAMS[id].bookBased)).toEqual(['kod-4-4', 'bitti-gec', 'kod-4-5']);
+  });
+
+  it('every op line points into its code', () => {
+    const check = (code: readonly string[], ops: readonly Op[]): void => {
+      for (const o of ops) {
+        expect(o.line).toBeGreaterThanOrEqual(1);
+        expect(o.line).toBeLessThanOrEqual(code.length);
+        const text = code[o.line - 1];
+        switch (o.op) {
+          case 'log':
+            expect(text.includes(o.text) || /console\.log\(\w+\)/.test(text)).toBe(true);
+            break;
+          case 'timeout':
+            expect(text).toContain('setTimeout');
+            check(code, o.body);
+            break;
+          case 'then':
+            expect(text).toContain('then');
+            check(code, o.body);
+            break;
+          case 'call':
+            expect(text).toContain(o.name);
+            check(code, o.body);
+            break;
+          case 'await':
+            expect(text).toContain('await');
+            check(code, o.rest);
+            break;
+          case 'busy':
+            expect(text).toContain('while');
+            break;
+        }
+      }
+    };
+    for (const id of PROGRAM_IDS) check(PROGRAMS[id].code, PROGRAMS[id].ops);
+  });
+});
