@@ -54,7 +54,9 @@ export function mountRateScene(
   const scene = el(doc, 'div', 'rate-scene');
   const ust = el(doc, 'div', 'rate-ust');
   const lejant = el(doc, 'div', 'rate-lejant');
-  lejant.append(el(doc, 'span', 'lejant-nokta izin'), 'kabul', el(doc, 'span', 'lejant-nokta red'), '429');
+  const cors = el(doc, 'span', 'lejant-cors');
+  cors.append(el(doc, 'span', 'lejant-nokta cors'), '403 (CORS, sınırlayıcıya ulaşmadı)');
+  lejant.append(el(doc, 'span', 'lejant-nokta izin'), 'kabul', el(doc, 'span', 'lejant-nokta red'), '429', cors);
   const rozetYeri = el(doc, 'div', 'rozet-yeri');
   ust.append(lejant, rozetYeri);
 
@@ -106,6 +108,7 @@ export function mountRateScene(
     stripHost.hidden = mode !== 'ders' || narrow || v.code.active.length === 0;
     strip.update({ ...v.code, window: STRIP_WINDOW });
 
+    cors.hidden = !v.timeline.noktalar.some((n) => n.durum === '403');
     tablo.update(v.tablo);
     denetimYeri.hidden = v.denetim === null;
     if (v.denetim) denetim.update(v.denetim);
@@ -115,17 +118,18 @@ export function mountRateScene(
     for (const t of sagYer.querySelectorAll('.terminal-satir')) kirilmaYumusat(t);
     // desktop: the lower row is capped; the terminal gives up its oldest lines until the row fits
     if (!narrow && hamTerminal.length > 0) {
+      // the book's own printed lines stay verbatim and complete; only later lines (never the newest) are dropped
       const satirlar = [...sagYer.querySelectorAll('.terminal-satir')];
       let gizli = 0;
-      while (alt.scrollHeight > alt.clientHeight + 1 && gizli < satirlar.length - 1) satirlar[gizli++].remove();
+      for (let i = v.kitapSatir; i < satirlar.length - 1 && alt.scrollHeight > alt.clientHeight + 1; i++, gizli++) satirlar[i].remove();
       const baslik = sagYer.querySelector('.kart-baslik');
-      if (baslik && gizli > 0) baslik.textContent = `Terminal · son ${satirlar.length - gizli} / ${satirlar.length} satır`;
+      if (baslik && gizli > 0) baslik.textContent = `Terminal · ${satirlar.length - gizli} / ${satirlar.length} satır`;
     }
 
     // measure the timeline box without the previous drawing inside it
     svg.setAttribute('height', '0');
     const dw = Math.floor(cizelge.getBoundingClientRect().width) || size!.w;
-    const dh = narrow ? NARROW_H : Math.max(120, Math.floor(cizelge.getBoundingClientRect().height) || Math.max(120, size!.h - 60));
+    const dh = narrow ? NARROW_H : Math.max(96, Math.floor(cizelge.getBoundingClientRect().height) || Math.max(96, size!.h - 60));
     svg.setAttribute('width', String(dw));
     svg.setAttribute('height', String(dh));
     svg.setAttribute('viewBox', `0 0 ${dw} ${dh}`);

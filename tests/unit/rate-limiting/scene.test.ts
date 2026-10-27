@@ -19,7 +19,38 @@ describe('rate-limiting scene', () => {
   it('step 7 draws two bands', () => {
     const { el, player } = setup();
     go(player, 'sinirda-patlama');
-    expect(el.querySelectorAll('svg.plot .rate-bant')).toHaveLength(2);
+    const bands = [...el.querySelectorAll('svg.plot .rate-bant')];
+    expect(bands).toHaveLength(2);
+    const fills = bands.map((b) => b.querySelector('rect')!.getAttribute('fill-opacity'));
+    expect(fills[0]).not.toBe(fills[1]);
+    expect(texts(el, 'svg.plot .rate-bant-etiket')).toEqual(['pencere 1', 'pencere 2']);
+  });
+
+  it('step 8 draws the CORS-refused call as a hollow 403 dot and shows its legend entry', () => {
+    const { el, player } = setup();
+    go(player, 'sinir');
+    expect(el.querySelector<HTMLElement>('.lejant-cors')!.hidden).toBe(true);
+    go(player, 'login-sira');
+    const dots = [...el.querySelectorAll('svg.plot .rate-nokta')];
+    expect(dots.map((d) => d.getAttribute('class'))).toEqual(['rate-nokta izin', 'rate-nokta cors']);
+    const kapi = dots[1].querySelector('circle.rate-dot')!;
+    expect(kapi.getAttribute('fill')).toBe('#fff');
+    expect(el.querySelector<HTMLElement>('.lejant-cors')!.hidden).toBe(false);
+  });
+
+  it('dots sit on the centre line of their ip row, stacks spread around it', () => {
+    const { el, player } = setup();
+    go(player, 'sinir');
+    const ys = [...el.querySelectorAll('svg.plot .rate-nokta')].map((d) => Number(/,(-?[\d.]+)\)/.exec(d.getAttribute('transform')!)![1]));
+    const ip = Number(el.querySelector('svg.plot .rate-ip')!.getAttribute('y'));
+    const orta = (Math.min(...ys) + Math.max(...ys)) / 2;
+    expect(Math.abs(orta - (ip - 0.35 * 13))).toBeLessThan(3);
+  });
+
+  it('step 4 keeps all 5 book terminal lines', () => {
+    const { el, player } = setup(1280, 540);
+    go(player, 'sinir');
+    expect(texts(el, '.terminal-satir')).toHaveLength(5);
   });
 
   it('resize twice keeps one axis', () => {

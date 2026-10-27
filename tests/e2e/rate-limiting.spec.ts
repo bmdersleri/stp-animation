@@ -22,7 +22,7 @@ const timelineProblems = (page: Page) =>
     const out: string[] = [];
     const inside = (r: DOMRect): boolean => r.left >= s.left - 0.5 && r.right <= s.right + 0.5 && r.top >= s.top - 0.5 && r.bottom <= s.bottom + 0.5;
     for (const d of svg.querySelectorAll('.rate-dot')) if (!inside(d.getBoundingClientRect())) out.push('dot outside svg');
-    const labels = [...svg.querySelectorAll('text:not(.probe)')].filter((t) => (t.textContent ?? '').trim() !== '');
+    const labels = [...svg.querySelectorAll('text:not(.probe)')].filter((t) => (t.textContent ?? '').trim() !== '' && t.getBoundingClientRect().width > 0);
     for (const t of labels) if (!inside(t.getBoundingClientRect())) out.push(`label "${t.textContent}" outside svg`);
     const hit = (a: DOMRect, b: DOMRect): boolean => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0.5;
     labels.forEach((l, i) => {
@@ -50,6 +50,18 @@ test('ders keyboard walkthrough', async ({ page }) => {
   await page.keyboard.press('ArrowLeft');
   await expect(stepCount(page)).toHaveText(`Adım ${STEPS - 1} / ${STEPS}`);
   await expect(page.locator('.rozet-yeri .kaynak-rozeti')).toHaveCount(1);
+});
+
+test('ders: step 4 shows all 5 book terminal lines and step 8 a 403 mark at 1280x720', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await open(page, PAGE, 'ders', READY);
+  await gotoStep(page, 3, STEPS, 0);
+  await rest(page);
+  await expect(page.locator('.terminal-satir')).toHaveCount(5);
+  await gotoStep(page, 7, STEPS, 0);
+  await rest(page);
+  await expect(page.locator('svg.plot .rate-nokta.cors')).toHaveCount(1);
+  await expect(page.locator('.lejant-cors')).toBeVisible();
 });
 
 test('lab: lowering the limit turns accepted dots orange', async ({ page }) => {

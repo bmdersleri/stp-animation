@@ -4,20 +4,22 @@
 .rate-ust { flex:none; display:flex; justify-content:space-between; align-items:flex-start; gap:6px 10px; min-height:calc(1.3 * var(--fs-tick) + 4px); }
 .rate-ust .rozet-yeri { flex:0 1 auto; display:flex; justify-content:flex-end; min-width:0; }
 .rate-scene .kaynak-rozeti { white-space:normal; text-align:right; border-radius:14px; max-width:100%; }
-.rate-lejant { flex:none; display:flex; align-items:center; gap:6px 10px; font-size:var(--fs-tick); line-height:1.25; white-space:nowrap; }
+.rate-lejant { flex:0 1 auto; min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:2px 10px; font-size:var(--fs-tick); line-height:1.25; }
 .lejant-nokta { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:-4px; }
 .lejant-nokta.izin { background:#0EA5A4; }
 .lejant-nokta.red { background:#F08A00; }
+.lejant-nokta.cors { background:#fff; border:2.5px solid var(--navy); box-sizing:border-box; }
+.lejant-cors { display:inline-flex; align-items:center; gap:6px; margin-left:4px; }
 
 .rate-stage { flex:1 1 0; min-height:0; display:flex; flex-direction:column; gap:6px; overflow:hidden; }
 .rate-stage[data-narrow] { overflow:auto; }
-.rate-cizelge { position:relative; flex:1 1 0; min-height:120px; min-width:0; overflow:hidden; }
+.rate-cizelge { position:relative; flex:1 1 0; min-height:96px; min-width:0; overflow:hidden; }
 .rate-stage[data-narrow] .rate-cizelge { flex:none; height:260px; }
 .rate-cizelge svg.plot { position:static; display:block; }
 .rate-cizelge .probe { visibility:hidden; font-size:var(--fs-tick); }
 
 .rate-alt { flex:0 1 auto; min-height:0; max-height:46%; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:6px 10px; align-items:start; }
-.rate-stage:not([data-narrow]) .rate-alt[data-login] { max-height:68%; grid-template-areas:'t d' 's d'; grid-template-rows:auto auto; }
+.rate-stage:not([data-narrow]) .rate-alt[data-login] { max-height:80%; grid-template-areas:'t d' 's d'; grid-template-rows:auto auto; }
 .rate-stage:not([data-narrow]) .rate-alt[data-login] .tablo-yeri { grid-area:t; }
 .rate-stage:not([data-narrow]) .rate-alt[data-login] .rate-sag { grid-area:s; }
 .rate-stage:not([data-narrow]) .rate-alt[data-login] .denetim-yeri { grid-area:d; }
@@ -46,3 +48,4 @@
 .rate-params .elle-kutu button { min-height:var(--ctl); }
 .rate-params .elle-simdi { flex:1 1 100%; font-weight:600; }
 .rate-stage:not([data-narrow]) .rate-alt .check-list-title { display:none; }
+.rate-stage:not([data-narrow]) .rate-alt[data-login] .terminal .kart-baslik { display:none; }

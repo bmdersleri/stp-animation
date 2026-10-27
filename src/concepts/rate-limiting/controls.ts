@@ -112,6 +112,10 @@ export function mountRateParams(host: HTMLElement, player: StepPlayer<RateParams
   const pencere = select('pencereSn', PENCERELER);
   row('Pencere süresi', pencere);
   const desen = select('desen', DESENLER);
+  const yer = doc.createElement('option');
+  yer.disabled = true;
+  yer.hidden = true;
+  desen.prepend(yer);
   row('İstek deseni', desen);
 
   const elleKutu = doc.createElement('div');
@@ -136,9 +140,12 @@ export function mountRateParams(host: HTMLElement, player: StepPlayer<RateParams
     maks.value = String(p.maksimumIstek);
     maksCikti.textContent = String(p.maksimumIstek);
     pencere.value = String(p.pencereSn);
+    // a Ders-only pattern (pencere, ayri-ip, login) shows as a disabled placeholder option naming it
     const listede = DESENLER.some(([d]) => d === p.desen);
-    desen.value = listede ? p.desen : '';
-    if (!listede) desen.selectedIndex = -1;
+    yer.hidden = listede;
+    yer.value = `ders:${p.desen}`;
+    yer.textContent = `Ders deseni: ${p.desen}`;
+    desen.value = listede ? p.desen : yer.value;
     elleKutu.hidden = p.desen !== 'elle';
     gonderDugme.disabled = p.elle.length >= ELLE_SINIRI;
     simdi.textContent = `Şimdi: ${zaman(player).ms / 1000} s · ${p.elle.length} / ${ELLE_SINIRI} istek`;

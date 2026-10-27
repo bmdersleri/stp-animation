@@ -10,7 +10,9 @@ import { desenIstekleri, loginOynat, oynat, type Istek, type IstekSonucu } from 
 import { DAL_SATIRI, type Dal } from './limiter';
 import { ELLE_SINIRI, type RateParams } from './scenario';
 
-export interface Nokta { t: number; ip: string; izin: boolean; yigin: number; etkin: boolean }
+/** `403`: refused by CORS before the limiter ran (`izin` is false too, but the limiter never saw the call). */
+export type NoktaDurumu = 'kabul' | '429' | '403';
+export interface Nokta { t: number; ip: string; izin: boolean; durum: NoktaDurumu; yigin: number; etkin: boolean }
 export interface Bant { ip: string; bas: number; son: number }
 export interface TimelineSpec { noktalar: readonly Nokta[]; bantlar: readonly Bant[]; xMax: number; ipler: readonly string[] }
 
@@ -18,6 +20,8 @@ export interface RateView {
   timeline: TimelineSpec;
   tablo: DataTableSpec;
   terminal: readonly TerminalSatir[];
+  /** How many of the first terminal lines are the book's own printed lines; the scene never drops those. */
+  kitapSatir: number;
   /** Checks of the last visible login call; null for every other pattern. */
   denetim: CheckListSpec | null;
   code: CodeTraceSpec;
@@ -44,6 +48,7 @@ function bosGorunum(ozet: boolean, kod: CodeTraceSpec = kodSeridi(K5, [])): Rate
     timeline: { noktalar: [], bantlar: [], xMax: 0, ipler: [] },
     tablo: { baslik: TABLO_BASLIK, sutunlar: TABLO_SUTUNLARI, satirlar: [] },
     terminal: [],
+    kitapSatir: 0,
     denetim: null,
     code: kod,
     ozet,
@@ -87,7 +92,8 @@ export function deriveRateView(p: RateParams, kitapCiktisi = false): RateView {
     const anahtar = `${s.ip}|${s.t}`;
     const yigin = sayilar.get(anahtar) ?? 0;
     sayilar.set(anahtar, yigin + 1);
-    return { t: s.t, ip: s.ip, izin: izinli(s), yigin, etkin: i === gorunur.length - 1 };
+    const durum: NoktaDurumu = s.dal === undefined ? '403' : izinli(s) ? 'kabul' : '429';
+    return { t: s.t, ip: s.ip, izin: izinli(s), durum, yigin, etkin: i === gorunur.length - 1 };
   });
 
   // Bands: a window opens at every request that took the new-window branch; CORS-refused calls open none.
@@ -114,9 +120,12 @@ export function deriveRateView(p: RateParams, kitapCiktisi = false): RateView {
   // Terminal: Kod 11.5 format for the Deneme n lines; nodeInspect of the response for each login call.
   const kitapCagrisi = p.desen === 'kitap' && p.maksimumIstek === 3 && p.pencereSn === 60;
   let metinler: string[];
+  let kitapSatir = 0;
   if (login) {
+    kitapSatir = kitapCiktisi ? Math.min(K7_CIKTI.length, gorunur.length) : 0;
     metinler = gorunur.map((s, i) => (kitapCiktisi && i < K7_CIKTI.length ? K7_CIKTI[i] : nodeInspect({ durumKodu: s.durumKodu, mesaj: s.mesaj })));
   } else {
+    kitapSatir = kitapCiktisi && kitapCagrisi ? Math.min(K5_CIKTI.length, gorunur.length) : 0;
     metinler = gorunur.map((s, i) => (kitapCiktisi && kitapCagrisi && i < K5_CIKTI.length ? K5_CIKTI[i] : `Deneme ${i + 1}: ${izinli(s) ? 'kabul edildi' : '429 Too Many Requests'}`));
   }
 
@@ -129,6 +138,7 @@ export function deriveRateView(p: RateParams, kitapCiktisi = false): RateView {
     timeline: { noktalar, bantlar, xMax: Math.max(xMax, pencereMs), ipler },
     tablo: { baslik: TABLO_BASLIK, sutunlar: TABLO_SUTUNLARI, satirlar },
     terminal: metinler.map((metin) => ({ metin })),
+    kitapSatir,
     denetim,
     code,
     ozet: false,

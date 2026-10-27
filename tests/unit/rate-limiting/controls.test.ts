@@ -15,10 +15,20 @@ function choose(input: HTMLSelectElement, value: string): void {
 describe('rate-limiting Lab controls', () => {
   it('selects list the lab values', () => {
     const { host } = setup(1280, 540, 'lab');
-    expect([...sel(host, 'desen').options].map((o) => o.value)).toEqual(['kitap', 'duzenli', 'sinir', 'iki-ip', 'elle']);
+    expect([...sel(host, 'desen').options].map((o) => o.value).filter((v) => !v.startsWith('ders:'))).toEqual(['kitap', 'duzenli', 'sinir', 'iki-ip', 'elle']);
     expect([...sel(host, 'pencereSn').options].map((o) => o.value)).toEqual(['10', '30', '60']);
     const r = host.querySelector<HTMLInputElement>('input[name="maksimumIstek"]')!;
     expect([r.min, r.max]).toEqual(['1', '10']);
+  });
+
+  it('a Ders-only pattern shows as a disabled placeholder, not a blank select', () => {
+    const { host, player } = setup(1280, 540, 'lab');
+    go(player, 'pencere-doldu');
+    const o = sel(host, 'desen').selectedOptions[0];
+    expect(o.textContent).toBe('Ders deseni: pencere');
+    expect(o.disabled).toBe(true);
+    go(player, 'sinir');
+    expect(sel(host, 'desen').value).toBe('kitap');
   });
 
   it('G adds a request at the current time', () => {

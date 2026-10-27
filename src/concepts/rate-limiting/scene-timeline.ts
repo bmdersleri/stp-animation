@@ -4,7 +4,7 @@ import { MARK, NAVY, r1 } from '../../core/plot/marks';
 import type { TextMeasure } from '../../core/plot/text-measure';
 import { tr } from '../../core/plot/transition';
 import type { Rect } from '../../core/plot/viewport';
-import type { Bant, TimelineSpec } from './view';
+import type { Bant, NoktaDurumu, TimelineSpec } from './view';
 
 const NS = 'http://www.w3.org/2000/svg';
 /** Dot radius (px). */
@@ -16,7 +16,9 @@ const TOP = 6;
 /** Shown when there is nothing to draw yet (intro and summary): the axis still spans one default window. */
 const BOS_MS = 60_000;
 
-interface Yerlesim { t: number; ip: string; izin: boolean; etkin: boolean; kat: number; i: number }
+/** `kat` is the level in the row's stack, `sira` the dot's offset from the row's centre line in dot steps. */
+interface Yerlesim { t: number; ip: string; durum: NoktaDurumu; etkin: boolean; sira: number; i: number }
+interface BantCizim extends Bant { no: number }
 
 /**
  * The timeline of the rate-limiting page: seconds on the x axis, one row per ip, a light band for every window and a
@@ -77,13 +79,34 @@ export class TimelineLayer {
     tumSatir.select('line').attr('x1', sol).attr('x2', sag + 2).attr('y1', (d) => r1(satirY(d) + satirH)).attr('y2', (d) => r1(satirY(d) + satirH)).attr('stroke', '#C9D5E3');
     tumSatir.select('text').attr('x', rect.left + 2).attr('y', (d) => r1(satirY(d) + satirH / 2 + tick * 0.35)).text((d) => d);
 
-    // Bands: one per window.
-    const bantlar = this.root.select<SVGGElement>('g.rate-bands').selectAll<SVGRectElement, Bant>('rect.rate-bant').data([...(spec.bantlar as Bant[])], (d) => `${d.ip}|${d.bas}`);
+    // Bands: one per window; windows of one ip alternate in tone and have a clear edge, so adjacent ones stay apart.
+    const sayac = new Map<string, number>();
+    const bantVeri: BantCizim[] = (spec.bantlar as Bant[]).map((d) => {
+      const no = (sayac.get(d.ip) ?? 0) + 1;
+      sayac.set(d.ip, no);
+      return { ...d, no };
+    });
+    const bantlar = this.root.select<SVGGElement>('g.rate-bands').selectAll<SVGGElement, BantCizim>('g.rate-bant').data(bantVeri, (d) => `${d.ip}|${d.bas}`);
     bantlar.exit().remove();
-    const yeniBant = bantlar.enter().append('rect').attr('class', 'rate-bant').attr('fill', MARK[0]).attr('fill-opacity', 0.13).attr('stroke', MARK[0]).attr('stroke-opacity', 0.45).attr('rx', 4);
-    yeniBant.merge(bantlar)
-      .attr('x', (d) => r1(x(d.bas / 1000))).attr('width', (d) => r1(Math.max(0, x(d.son / 1000) - x(d.bas / 1000))))
+    const yeniBant = bantlar.enter().append('g');
+    yeniBant.append('rect').attr('fill', MARK[0]).attr('stroke', MARK[0]).attr('stroke-width', 2).attr('rx', 4);
+    yeniBant.append('text').attr('class', 'tick rate-bant-etiket');
+    const tumBant = yeniBant.merge(bantlar);
+    tumBant.attr('class', (d) => `rate-bant ${d.no % 2 === 1 ? 'tek' : 'cift'}`);
+    const bantX = (d: BantCizim): number => r1(x(d.bas / 1000));
+    const bantW = (d: BantCizim): number => r1(Math.max(0, x(d.son / 1000) - x(d.bas / 1000)));
+    tumBant.select('rect')
+      .attr('fill-opacity', (d) => (d.no % 2 === 1 ? 0.13 : 0.28)).attr('stroke-opacity', 0.7)
+      .attr('x', bantX).attr('width', (d) => Math.max(0, bantW(d) - 1))
       .attr('y', (d) => r1(satirY(d.ip) + ROW_PAD / 2)).attr('height', Math.max(0, r1(satirH - ROW_PAD)));
+    // "pencere n" in the band's top-left corner, only where it fits the band and stays clear of the dot stack
+    const etiketW2 = this.measure.width('pencere 9', 'tick', tick);
+    const yigin = Math.max(1, ...[...this.satirKatlari(spec, x, satirH).values()]);
+    const noktaUst = (satirH - Math.min(yigin, Math.max(1, Math.floor((satirH - ROW_PAD * 2 + GAP) / (2 * R + GAP)))) * (2 * R + GAP)) / 2;
+    const etiketSigar = (d: BantCizim): boolean => bantW(d) >= etiketW2 + 12 && noktaUst >= tick * 1.35 + ROW_PAD + 2;
+    tumBant.select('text')
+      .attr('x', (d) => bantX(d) + 6).attr('y', (d) => r1(satirY(d.ip) + ROW_PAD / 2 + tick * 1.05))
+      .attr('display', (d) => (etiketSigar(d) ? null : 'none')).text((d) => `pencere ${d.no}`);
 
     // Dots.
     const yerlesim = this.yerles(spec, x, satirH);
@@ -91,29 +114,47 @@ export class TimelineLayer {
     noktalar.exit().remove();
     const yeni = noktalar.enter().append('g');
     yeni.append('circle').attr('class', 'rate-halka').attr('r', R + 4).attr('fill', 'none').attr('stroke', NAVY).attr('stroke-width', 2);
-    yeni.append('circle').attr('class', 'rate-dot').attr('r', R).attr('stroke', '#fff').attr('stroke-width', 1.5);
+    yeni.append('circle').attr('class', 'rate-dot').attr('r', R);
     const hepsi = yeni.merge(noktalar);
-    hepsi.attr('class', (d) => `rate-nokta ${d.izin ? 'izin' : 'red'}`)
-      .attr('transform', (d) => `translate(${r1(x(d.t / 1000))},${r1(satirY(d.ip) + satirH - ROW_PAD - R - d.kat * (2 * R + GAP))})`);
-    hepsi.select('circle.rate-dot').attr('fill', (d) => (d.izin ? MARK[0] : MARK[1]));
+    const SINIF = { kabul: 'izin', '429': 'red', '403': 'cors' } as const;
+    hepsi.attr('class', (d) => `rate-nokta ${SINIF[d.durum]}`)
+      .attr('transform', (d) => `translate(${r1(x(d.t / 1000))},${r1(satirY(d.ip) + satirH / 2 + d.sira * (2 * R + GAP))})`);
+    // 403 (CORS, the limiter never saw the call): a hollow dot, so it is not read as a limiter refusal
+    hepsi.select('circle.rate-dot')
+      .attr('fill', (d) => (d.durum === 'kabul' ? MARK[0] : d.durum === '429' ? MARK[1] : '#fff'))
+      .attr('stroke', (d) => (d.durum === '403' ? NAVY : '#fff'))
+      .attr('stroke-width', (d) => (d.durum === '403' ? 2.5 : 1.5));
     hepsi.select('circle.rate-halka').attr('display', (d) => (d.etkin ? null : 'none'));
     if (ms > 0) tr(yeni.style('opacity', 0), 'rate', ms).style('opacity', 1);
   }
 
-  /** Request order is kept; a dot goes to the lowest level of its row whose last dot is at least a dot apart. */
-  private yerles(spec: TimelineSpec, x: (s: number) => number, satirH: number): Yerlesim[] {
+  /** Dot level (stack position) of every request, and the number of levels per ip row. */
+  private katlar(spec: TimelineSpec, x: (s: number) => number, satirH: number): { kat: number[]; sayi: Map<string, number> } {
     const sonX = new Map<string, number[]>();
     const kapasite = Math.max(1, Math.floor((satirH - ROW_PAD * 2 + GAP) / (2 * R + GAP)));
-    return spec.noktalar.map((n, i) => {
+    const kat = spec.noktalar.map((n) => {
       const px = x(n.t / 1000);
       const katlar = sonX.get(n.ip) ?? [];
-      let kat = katlar.findIndex((s) => px - s >= 2 * R + GAP);
-      if (kat < 0) kat = katlar.length;
-      katlar[kat] = px;
+      let k = katlar.findIndex((s) => px - s >= 2 * R + GAP);
+      if (k < 0) k = katlar.length;
+      katlar[k] = px;
       sonX.set(n.ip, katlar);
       // a row too short for the stack lets the topmost dots overlap instead of leaving the row
-      return { t: n.t, ip: n.ip, izin: n.izin, etkin: n.etkin, kat: Math.min(kat, kapasite - 1), i };
+      return Math.min(k, kapasite - 1);
     });
+    const sayi = new Map<string, number>();
+    spec.noktalar.forEach((n, i) => sayi.set(n.ip, Math.max(sayi.get(n.ip) ?? 0, kat[i] + 1)));
+    return { kat, sayi };
+  }
+
+  private satirKatlari(spec: TimelineSpec, x: (s: number) => number, satirH: number): Map<string, number> {
+    return this.katlar(spec, x, satirH).sayi;
+  }
+
+  /** Request order is kept; the stack of a row is centred on the row's centre line, where its ip label sits. */
+  private yerles(spec: TimelineSpec, x: (s: number) => number, satirH: number): Yerlesim[] {
+    const { kat, sayi } = this.katlar(spec, x, satirH);
+    return spec.noktalar.map((n, i) => ({ t: n.t, ip: n.ip, durum: n.durum, etkin: n.etkin, sira: kat[i] - ((sayi.get(n.ip) ?? 1) - 1) / 2, i }));
   }
 
   destroy(): void {

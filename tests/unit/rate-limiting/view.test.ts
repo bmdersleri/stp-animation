@@ -140,4 +140,11 @@ describe('rate-limiting view', () => {
     expect(rateLabRozet(step(4))).toEqual({ tur: 'kitap-kodu' });
     expect(rateLabRozet({ ...step(4), desen: 'login' })).toEqual({ tur: 'kitap-kodu' });
   });
+
+  it('a CORS-refused login call has durum 403 and a limiter refusal has 429', () => {
+    const l = deriveRateView({ ...step(4), desen: 'login', istek: 5 }).timeline.noktalar;
+    expect(l.map((n) => n.durum)).toEqual(['kabul', '403', 'kabul', 'kabul', '429']);
+    expect(l[1].izin).toBe(false);
+    expect(deriveRateView(step(4)).timeline.noktalar.map((n) => n.durum)).toEqual(['kabul', 'kabul', 'kabul', '429', '429']);
+  });
 });
