@@ -30,7 +30,7 @@ export const loopScenario: Scenario<LoopParams> = {
       id: 'senkron',
       title: 'Senkron satır hemen çalışır',
       term: 'ana çağrı yığını',
-      text: 'İlk console.log hemen çalışır ve çıktıya düşer. Senkron kod, ana çağrı yığınında sırayla yürür; hiçbir şey onu beklemez.',
+      text: 'İlk console.log hemen çalışır. Önce senkron satırlar çalışır; JavaScript kodunuz ana yürütme akışında çalışır.',
       labText: 'Yığında main görünür ve çıktıda ilk satır belirir. Başka bir kareye giderek yığının nasıl değiştiğine bakın.',
       params: { kare: findFrame('kod-4-4', (f) => f.output.length === 1) },
     },
@@ -71,7 +71,7 @@ export const loopScenario: Scenario<LoopParams> = {
       title: 'await yalnızca devamı bekletir',
       term: 'async/await',
       text: 'await, yalnızca bu async fonksiyonun devamını bekletir; tüm Node.js programını kilitlemez. Bu nedenle son satırdaki "başka siparişler" mesajı önce görünür.',
-      labText: 'Fonksiyon yığından çıktı, ana akış devam etti ve ikinci satır yazıldı. Askıya alınan işin hangi kuyrukta beklediğine bakın.',
+      labText: 'await mutfagiYonet fonksiyonunu askıya aldı ve yığından çıkardı; yığında yalnızca main kaldı, çıktıda henüz tek satır var. Zamanlayıcıda bekleyen callback’e bakın, sonra kareleri ilerletip ana akışın sürdüğünü görün.',
       params: { program: 'kod-4-5', kare: findFrame('kod-4-5', (f) => f.note === 'await: fonksiyon askıya alındı') },
     },
     {

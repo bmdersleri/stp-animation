@@ -51,5 +51,20 @@ describe('event-loop scenario', () => {
     expect(at(11)).toMatchObject({ program: 'engelleme', gorunum: 'tahta', kare: framesOf('engelleme').length - 1 });
   });
 
+  it('step 7 lab text matches its await frame: one output line, only main on the stack', () => {
+    const p = at(7);
+    const f = framesOf(p.program)[p.kare];
+    expect(f.output).toHaveLength(1);
+    expect(f.stack).toEqual(['main']);
+    const lab = sc.steps[6].labText!;
+    expect(lab).toContain('tek satır');
+    expect(lab).toContain('yalnızca main');
+    expect(lab).not.toMatch(/ikinci satır (yazıldı|belirdi)/);
+  });
+
+  it('step 2 uses the book wording', () => {
+    expect(sc.steps[1].text).toBe('İlk console.log hemen çalışır. Önce senkron satırlar çalışır; JavaScript kodunuz ana yürütme akışında çalışır.');
+  });
+
   labTextTests(sc.steps, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 });
