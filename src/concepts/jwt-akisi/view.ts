@@ -83,7 +83,8 @@ function kodSeridi(p: JwtParams, satir: number): CodeTraceSpec {
   return { title: KOD.title, lines: KOD.lines, active };
 }
 
-export function deriveJwtView(p: JwtParams): JwtView {
+/** `kitapCiktisi` true (the scene passes it while a book step's own badge shows) prints the book's accumulated L512-515 output; otherwise only the line of the call that ran. */
+export function deriveJwtView(p: JwtParams, kitapCiktisi = false): JwtView {
   const bos: Omit<JwtView, 'code'> = { token: null, imzalar: [], header: null, payload: null, denetim: null, terminal: [], sequence: null };
 
   if (p.asama === 'okunur') {
@@ -123,7 +124,7 @@ export function deriveJwtView(p: JwtParams): JwtView {
   view.denetim = { baslik: 'Doğrulama denetimleri', denetimler: iz.denetimler };
 
   const kitapSatiri = KITAP_CIKTI[p.bozulma];
-  if (p.kullanici === 'elif' && p.dakika === 0 && kitapSatiri !== undefined) {
+  if (kitapCiktisi && p.kullanici === 'elif' && p.dakika === 0 && kitapSatiri !== undefined) {
     view.terminal = KOD_CIKTI.lines.slice(0, kitapSatiri).map((metin) => ({ metin }));
   } else if ('payload' in iz.sonuc) {
     view.terminal = [{ metin: nodeInspect(iz.sonuc.payload) }];

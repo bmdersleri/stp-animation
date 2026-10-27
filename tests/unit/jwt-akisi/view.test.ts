@@ -5,7 +5,7 @@ import { deriveJwtView, jwtLabRozet } from '../../../src/concepts/jwt-akisi/view
 import { lineOf, listing } from '../../../src/core/listing';
 
 const step = (n: number): JwtParams => sc.steps[n - 1].params as JwtParams;
-const view = (n: number) => deriveJwtView(step(n));
+const view = (n: number, kitapCiktisi = true) => deriveJwtView(step(n), kitapCiktisi);
 const kitapCikti = listing(LISTINGS, 'kod-10-3-cikti').lines;
 const KOD = listing(LISTINGS, 'kod-10-3');
 
@@ -42,6 +42,11 @@ describe('jwt-akisi view', () => {
     expect(view(10).terminal.map((t) => t.metin)).toEqual(kitapCikti);
     expect(view(7).terminal).toHaveLength(2);
     expect(view(9).terminal).toHaveLength(3);
+  });
+
+  it('lab state book params prints only own call', () => {
+    for (const n of [7, 9, 10]) expect(deriveJwtView(step(n)).terminal, `step ${n}`).toHaveLength(1);
+    expect(deriveJwtView(step(7)).terminal).toEqual([{ metin: '401: Token imzası geçersiz.' }]);
   });
 
   it('step 8 terminal is only its own call', () => {
