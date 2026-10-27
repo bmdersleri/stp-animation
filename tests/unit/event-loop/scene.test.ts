@@ -130,4 +130,14 @@ describe('event-loop scene', () => {
     player.goto(3);
     expect(performance.getEntriesByName('loop-render', 'measure').length).toBeGreaterThanOrEqual(2);
   });
+
+  it('loop-render measures stay bounded', () => {
+    performance.clearMeasures('loop-render');
+    const { player } = setup();
+    for (let i = 0; i < 400; i++) player.setParam('kare', i % 2);
+    const n = performance.getEntriesByName('loop-render', 'measure').length;
+    expect(n).toBeGreaterThan(0);
+    expect(n).toBeLessThanOrEqual(300);
+    expect(performance.getEntriesByName('loop-render-start', 'mark')).toHaveLength(0);
+  });
 });

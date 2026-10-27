@@ -18,8 +18,15 @@ interface Entry {
 }
 
 /** Longest wait (ms) any timer of the program ever has, so the remaining-time bars share one scale. */
-const longestWait = (view: LoopView): number =>
-  Math.max(1, ...framesOf(view.program.id).flatMap((f) => f.timers.map((t) => t.dueAt - f.clock)));
+const waits = new Map<string, number>();
+const longestWait = (view: LoopView): number => {
+  let w = waits.get(view.program.id);
+  if (w === undefined) {
+    w = Math.max(1, ...framesOf(view.program.id).flatMap((f) => f.timers.map((t) => t.dueAt - f.clock)));
+    waits.set(view.program.id, w);
+  }
+  return w;
+};
 
 /**
  * The HTML board of the event-loop page: clock, call stack, libuv timers, micro and macro queues, terminal and
@@ -82,7 +89,11 @@ export class LoopBoard {
     ];
 
     const before = new Map<string, DOMRect>();
-    if (flipMs > 0) for (const [k, e] of this.items) before.set(k, e.getBoundingClientRect());
+    if (flipMs > 0) {
+      for (const [k, e] of this.items) before.set(k, e.getBoundingClientRect());
+      // a slide still running is measured where it is, then stopped: the next one starts from there
+      for (const e of this.items.values()) e.getAnimations?.().forEach((an) => an.cancel());
+    }
 
     const seen = new Map<string, number>();
     const keep = new Set<string>();

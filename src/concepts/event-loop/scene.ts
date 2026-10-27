@@ -40,6 +40,9 @@ const RING_MIN_H = 300;
 const NOTE_EM = 0.55;
 const NOTE_LINE = 1.45;
 
+/** Most `loop-render` measures kept in the performance buffer. */
+const MEASURE_CAP = 300;
+
 const raf = (cb: () => void): number =>
   typeof requestAnimationFrame === 'function' ? requestAnimationFrame(cb) : (setTimeout(cb, 16) as unknown as number);
 const cancelRaf = (id: number): void => {
@@ -193,12 +196,14 @@ export function mountLoopScene(
     const phases = v.phases !== null;
     // the phases step has no code line to follow: the whole height goes to the ring
     const stripShown = mode === 'ders' && !phases;
+    // visibility first: the stage is measured with what it will really hold
+    board.root.hidden = phases;
+    asamalar.hidden = !phases;
+    stripHost.hidden = !stripShown;
     const a = area(stripShown);
     const tick = measure.fonts(mode).tick;
     const narrow = a.w < NARROW;
     stage.toggleAttribute('data-narrow', narrow);
-    board.root.hidden = phases;
-    asamalar.hidden = !phases;
     if (v.phases) {
       drawPhases(v.phases, v.notes, a, tick, ms, narrow);
     } else {
@@ -207,7 +212,6 @@ export function mountLoopScene(
       noteHost.replaceChildren();
       board.update(v, ms);
     }
-    stripHost.hidden = !stripShown;
     const window = narrow ? STRIP_WINDOW_NARROW : STRIP_WINDOW;
     stripHost.style.setProperty('--strip-lines', String(window * 2 + 1));
     stripHost.toggleAttribute('data-empty', v.code.active.length === 0);
@@ -220,10 +224,15 @@ export function mountLoopScene(
     if (!size) return;
     const canMeasure = typeof performance !== 'undefined' && typeof performance.measure === 'function';
     if (canMeasure) performance.mark('loop-render-start');
-    draw(state, cause, instant);
-    if (canMeasure) {
-      performance.measure('loop-render', 'loop-render-start');
-      performance.clearMarks('loop-render-start');
+    try {
+      draw(state, cause, instant);
+    } finally {
+      if (canMeasure) {
+        performance.measure('loop-render', 'loop-render-start');
+        performance.clearMarks('loop-render-start');
+        // a drag renders ~60 times a second: keep the buffer bounded (Task 9 reads the last <= MEASURE_CAP)
+        if (performance.getEntriesByName('loop-render', 'measure').length > MEASURE_CAP) performance.clearMeasures('loop-render');
+      }
     }
   }
 
