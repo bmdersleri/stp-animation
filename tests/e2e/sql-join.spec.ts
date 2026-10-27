@@ -118,6 +118,22 @@ test('ders: the code strip shows the deciding line', async ({ page }) => {
   await expect(page.locator('.code-strip li.active')).toContainText('WHERE');
 });
 
+test('ders 1280x720: the strip shows the whole query, SELECT included', async ({ page }) => {
+  await open(page, PAGE, 'ders', READY);
+  for (let n = 3; n <= 9; n++) {
+    await gotoStep(page, n - 1, STEPS, 0);
+    await sql(page);
+    const first = page.locator('.code-strip li').first();
+    await expect(first, `step ${n}`).toContainText('SELECT');
+    const fit = await page.evaluate(() => {
+      const list = document.querySelector('.code-strip .code-trace-lines')!.getBoundingClientRect();
+      const li = document.querySelector('.code-strip li')!.getBoundingClientRect();
+      return li.top >= list.top - 1 && li.bottom <= list.bottom + 1;
+    });
+    expect(fit, `step ${n} first line inside the strip`).toBe(true);
+  }
+});
+
 test('ders font floors at 1280x720', async ({ page }, info) => {
   await open(page, PAGE, 'ders', READY);
   const measured: Record<string, number | null> = {};

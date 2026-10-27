@@ -87,10 +87,6 @@ export function mountSqlParams(host: HTMLElement, player: StepPlayer<SqlParams>)
     cift.max = String(n);
     cift.value = String(gosterilen(p));
     out.textContent = `${cift.value} / ${n}`;
-    const off = p.gorunum === 'ozet';
-    sorgu.disabled = off;
-    cift.disabled = off;
-    if (off) deger.disabled = true;
   };
   sync();
   player.subscribe(sync);

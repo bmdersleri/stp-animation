@@ -15,6 +15,8 @@ const NARROW = 700;
 const WIDE = 1000;
 /** Lines of code the Ders strip shows around the active one. */
 const STRIP_WINDOW = 3;
+/** The strip holds this many lines; a shorter listing is shown whole. */
+const STRIP_LINES = 7;
 const ILISKI = 'yazarlar ||--o{ kitaplar';
 const OZET_BASLIK = ['JOIN türü', 'Dönen kayıtlar', 'Kullanım örneği', 'Risk'] as const;
 
@@ -149,7 +151,8 @@ export function mountSqlScene(
     const r = state.params;
     const rozet = labRozeti ? sqlLabRozet(r) : (SQL_ROZET[state.step.id] ?? { tur: 'kitap' as const });
     rozetYeri.replaceChildren(sourceBadge(doc, rozet.tur, rozet.ref));
-    strip.update({ ...v.code, window: STRIP_WINDOW });
+    // a query fits the strip whole; only the long book listing (veri step) is windowed around its active line
+    strip.update(v.code.lines.length > STRIP_LINES ? { ...v.code, window: STRIP_WINDOW } : v.code);
   }
 
   function render(state: PlayerState<SqlParams>): void {
