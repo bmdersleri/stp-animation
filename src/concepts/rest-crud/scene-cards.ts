@@ -1,3 +1,4 @@
+import { balanceColumns } from '../../core/plot/columns';
 import { DataTable } from '../../core/plot/data-table';
 import { HttpCards, type HttpYanit } from '../../core/plot/http-cards';
 import { sourceBadge } from '../../core/plot/source-badge';
@@ -89,27 +90,8 @@ export class RestCards {
     this.kolB.append(this.bloklar[2], this.bloklar[3]);
   }
 
-  /**
-   * Puts each block into one of the two columns (reading order kept inside a column) so that the taller column is as
-   * short as possible; where layout is unavailable the first two blocks go left, the rest right.
-   */
   private bol(): void {
-    this.kolA.append(...this.bloklar);
-    const h = this.bloklar.map((b) => (b.hidden ? 0 : b.getBoundingClientRect().height));
-    let enMaske = 0b0011;
-    let enIyi = Infinity;
-    // the request card always stays in the first column: the response never sits left of it
-    for (let mask = 1; mask < 1 << h.length; mask += 2) {
-      let a = 0;
-      let b = 0;
-      h.forEach((x, i) => ((mask >> i) & 1 ? (a += x) : (b += x)));
-      if (Math.max(a, b) < enIyi - 0.5) {
-        enIyi = Math.max(a, b);
-        enMaske = mask;
-      }
-    }
-    if (h.every((x) => x === 0)) enMaske = 0b0011;
-    this.kolB.append(...this.bloklar.filter((_, i) => !((enMaske >> i) & 1)));
+    balanceColumns(this.bloklar, this.kolA, this.kolB);
   }
 
   /**
