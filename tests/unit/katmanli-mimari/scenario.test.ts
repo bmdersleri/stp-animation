@@ -33,7 +33,7 @@ describe('katmanli-mimari scenario', () => {
     expect(KATMAN_ROZET['yanit-201'].ref).toBe('L1052-1055');
     expect(KATMAN_ROZET['eksik-alan'].ref).toBe('L1297');
     expect(KATMAN_ROZET['yasam-dongusu'].ref).toBe('L1072-1086');
-    expect(KATMAN_ROZET['ozet'].ref).toBe('L76-79, L1089');
+    expect(KATMAN_ROZET['ozet'].ref).toBe('L76-80, L95, L1089');
   });
 
   it('olay values come from the trace', () => {

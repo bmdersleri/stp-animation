@@ -81,7 +81,8 @@ export function mountSqlScene(
   const siraNotu = el(doc, 'p', 'sira-notu');
   const parametre = el(doc, 'div', 'parametre-karti');
   const ozetHost = el(doc, 'div', 'ozet-host');
-  sag.append(sonucSlot.host, ikinciSlot.host, siraNotu, parametre, ozetHost);
+  const kitapCiktisi = el(doc, 'div', 'kitap-ciktisi');
+  sag.append(sonucSlot.host, ikinciSlot.host, siraNotu, parametre, kitapCiktisi, ozetHost);
   stage.append(sol, sag);
   scene.append(rozetYeri, stage);
   host.append(scene);
@@ -120,6 +121,19 @@ export function mountSqlScene(
     ozetHost.replaceChildren(t, sayilar);
   }
 
+  /** The book's printed output beside a result on this page's data: a caption, its `kitap` badge and the lines. */
+  function kitapCiktisiOlustur(v: SqlView): void {
+    kitapCiktisi.hidden = v.kitapCiktisi === null;
+    if (!v.kitapCiktisi) {
+      kitapCiktisi.replaceChildren();
+      return;
+    }
+    const { baslik, satirlar, rozet } = v.kitapCiktisi;
+    const ust = el(doc, 'div', 'kitap-ciktisi-ust');
+    ust.append(el(doc, 'span', 'kitap-ciktisi-baslik', baslik), sourceBadge(doc, rozet.tur, rozet.ref));
+    kitapCiktisi.replaceChildren(ust, el(doc, 'pre', 'kitap-ciktisi-satirlar', satirlar.join('\n')));
+  }
+
   function draw(state: PlayerState<SqlParams>): void {
     const v = deriveSqlView(state.params);
     const w = width();
@@ -134,6 +148,7 @@ export function mountSqlScene(
     sonucSlot.set(v.sonuc);
     ikinciSlot.set(v.ikinci);
     ozetOlustur(v);
+    kitapCiktisiOlustur(v);
 
     const bos = v.sonuc === null && v.ozet === null;
     orta.hidden = false;

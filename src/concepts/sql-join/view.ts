@@ -36,7 +36,22 @@ export interface SqlView {
   parametreler: readonly Deger[] | null;
   siraNotu: string | null;
   ozet: { satirlar: readonly (readonly string[])[]; sayilar: readonly [string, number][] } | null;
+  /** The book's own printed output of the same query on its 1×1 data (the full cartesian result only). */
+  kitapCiktisi: KitapCiktisi | null;
 }
+
+export interface KitapCiktisi {
+  baslik: string;
+  satirlar: readonly string[];
+  rozet: Rozet;
+}
+
+/** code_015's output (L887-890): one author and one book in the book's data give one row. */
+const KARTEZYEN_KITAP_CIKTISI: KitapCiktisi = {
+  baslik: 'Kitabın 1×1 verisiyle aynı sorgu',
+  satirlar: listing(LISTINGS, 'code-015-cikti').lines,
+  rozet: { tur: 'kitap', ref: 'L887-890' },
+};
 
 const SIRA_NOTU = 'ORDER BY yoksa satır sırası garanti değildir';
 const VERI_NOTU = 'Kaynak: Kod 7.5 (Yaşar Kemal, İnce Memed), Kod 7.6 (Adalet Ağaoğlu, Ölmeye Yatmak), alıştırma L1938 (Bilge Karasu)';
@@ -109,7 +124,7 @@ function codeOf(s: Sorgu, active: 'on' | 'where' | 'yok'): CodeTraceSpec {
 /** Everything the scene draws for one parameter set; no DOM. */
 export function deriveSqlView(p: SqlParams): SqlView {
   const bos: Omit<SqlView, 'yazarlar' | 'kitaplar' | 'code'> = {
-    sonuc: null, ikinci: null, kosul: null, parametreler: null, siraNotu: null, ozet: null,
+    sonuc: null, ikinci: null, kosul: null, parametreler: null, siraNotu: null, ozet: null, kitapCiktisi: null,
   };
 
   if (p.gorunum === 'tanitim') {
@@ -217,13 +232,17 @@ export function deriveSqlView(p: SqlParams): SqlView {
     parametreler,
     siraNotu: sonuc.sirasiz ? SIRA_NOTU : null,
     ozet: null,
+    kitapCiktisi: tam && p.sorgu === 'kartezyen' ? KARTEZYEN_KITAP_CIKTISI : null,
   };
 }
 
-/** The source badge of the chosen query: the book's for book queries, the example one otherwise. */
+/**
+ * The source badge of the chosen query: a book query runs here on this page's data set, so it is the book's code
+ * with a new input (`kitap-kodu`); an example query keeps its own badge.
+ */
 export function sqlLabRozet(p: SqlParams): Rozet {
   const s = SORGULAR[p.sorgu];
   // Redundant today (parametreli is always kitaba-dayali); kept explicit so a changed $1 never reads as the book's own output.
   if (p.sorgu === 'parametreli' && p.deger !== 3) return { tur: 'kitaba-dayali', ref: s.ref };
-  return { tur: s.kaynak, ...(s.ref ? { ref: s.ref } : {}) };
+  return { tur: s.kaynak === 'kitap' ? 'kitap-kodu' : s.kaynak, ...(s.ref ? { ref: s.ref } : {}) };
 }

@@ -18,18 +18,22 @@ export const TUMU = 999;
 
 const VARSAYILAN: SqlParams = { sorgu: 'kartezyen', deger: 3, cift: TUMU, gorunum: 'tanitim' };
 
-/** Source badge of every step, keyed by step id. */
+/**
+ * Source badge of every step, keyed by step id. The book prints its JOIN outputs for its own 1×1 data only
+ * (L793-801, L887-890), so the results on this page's data set (Kod 7.6's row and the exercise's Bilge Karasu
+ * included) carry `kitap-kodu`: the book's query, this page's input.
+ */
 export const SQL_ROZET: Readonly<Record<string, Rozet>> = {
   tanitim: { tur: 'kitap', ref: 'L536, L744' },
   veri: { tur: 'kitaba-dayali', ref: 'L1936-1938' },
-  kartezyen: { tur: 'kitap', ref: 'L879, L887-890' },
-  'on-kosulu': { tur: 'kitap', ref: 'L748' },
-  'inner-sonuc': { tur: 'kitap', ref: 'L804' },
-  left: { tur: 'kitap', ref: 'L741, L804' },
+  kartezyen: { tur: 'kitap-kodu', ref: 'L879, L887-890' },
+  'on-kosulu': { tur: 'kitap-kodu', ref: 'L748' },
+  'inner-sonuc': { tur: 'kitap-kodu', ref: 'L804' },
+  left: { tur: 'kitap-kodu', ref: 'L741, L804' },
   'is-null': { tur: 'kitaba-dayali', ref: 'L920' },
   'where-tuzagi': { tur: 'kitaba-dayali', ref: 'L920' },
   parametreli: { tur: 'kitaba-dayali', ref: 'L454, L1456' },
-  ozet: { tur: 'kitap', ref: 'L860-865' },
+  ozet: { tur: 'kitap-kodu', ref: 'L860-865' },
 };
 
 /** The step scenario of the sql-join page (Ders steps 1-10). */

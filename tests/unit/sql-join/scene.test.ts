@@ -62,6 +62,19 @@ describe('sql-join scene', () => {
     expect(lab.extra.querySelectorAll('li').length).toBe(full);
   });
 
+  it("step 3 shows the book's 1×1 output in its own box with a book badge; the step badge says new input", () => {
+    const { el, player } = setup();
+    go(player, 'kartezyen');
+    const kutu = el.querySelector<HTMLElement>('.kitap-ciktisi')!;
+    expect(kutu.hidden).toBe(false);
+    expect(kutu.querySelector('.kitap-ciktisi-satirlar')!.textContent).toBe(['ad_soyad   | kitap_adi', '-------------+------------', ' Yaşar Kemal | İnce Memed', '(1 row)'].join('\n'));
+    expect(kutu.querySelector('.kaynak-rozeti')!.textContent).toBe('Kitabın çıktısı · L887-890');
+    expect(el.querySelector('.rozet-yeri .kaynak-rozeti')!.textContent).toBe('Kitabın kodu, yeni girdi · L879, L887-890');
+    go(player, 'on-kosulu');
+    expect(el.querySelector<HTMLElement>('.kitap-ciktisi')!.hidden).toBe(true);
+    expect(el.querySelectorAll('.kaynak-rozeti').length).toBe(1);
+  });
+
   it('badge follows a lab change and returns on step change', () => {
     const { el, player } = setup(1280, 540, 'lab');
     go(player, 'inner-sonuc');

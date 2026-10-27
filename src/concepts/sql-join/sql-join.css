@@ -37,6 +37,10 @@
 .ozet-tablosu th, .ozet-tablosu td { border:1px solid var(--line); padding:2px 6px; text-align:left; vertical-align:top; }
 .ozet-tablosu th { background:var(--navy-soft); }
 .ozet-tablosu td.tur { font-family:var(--mono, ui-monospace, Consolas, monospace); }
+.kitap-ciktisi { align-self:flex-start; max-width:100%; padding:4px 10px; border:2px dashed var(--line); border-radius:8px; background:var(--surface); }
+.kitap-ciktisi-ust { display:flex; flex-wrap:wrap; align-items:center; gap:2px 8px; font-size:var(--fs-tick); }
+.kitap-ciktisi-baslik { font-weight:600; }
+.kitap-ciktisi-satirlar { margin:2px 0 0; font-family:var(--mono, ui-monospace, Consolas, monospace); font-size:var(--fs-tick); line-height:1.25; white-space:pre-wrap; overflow-wrap:anywhere; }
 .ozet-sayilar { margin:4px 0 0; padding-left:1.2em; font-size:var(--fs-tick); line-height:1.3; }
 
 /* seven lines at a tight line height */

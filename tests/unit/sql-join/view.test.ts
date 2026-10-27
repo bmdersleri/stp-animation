@@ -133,11 +133,26 @@ describe('sql-join view', () => {
     expect(deriveSqlView(adim('left')).ozet).toBeNull();
   });
 
-  it('lab badge follows the query source', () => {
+  it('lab badge: a book query on this data set is the book code with a new input; examples keep their badge', () => {
     for (const id of SORGU_IDS) {
-      expect(sqlLabRozet({ ...adim('left'), sorgu: id })).toEqual({ tur: SORGULAR[id].kaynak, ref: SORGULAR[id].ref });
+      const tur = SORGULAR[id].kaynak === 'kitap' ? 'kitap-kodu' : SORGULAR[id].kaynak;
+      expect(sqlLabRozet({ ...adim('left'), sorgu: id }), id).toEqual({ tur, ref: SORGULAR[id].ref });
     }
-    expect(sqlLabRozet({ ...adim('left') }).tur).toBe('kitap');
+    for (const id of ['kartezyen', 'inner', 'left'] as const) expect(sqlLabRozet({ ...adim('left'), sorgu: id }).tur).toBe('kitap-kodu');
+    // no Lab result on this page's data is badged as the book's printed output
+    for (const id of SORGU_IDS) expect(sqlLabRozet({ ...adim('left'), sorgu: id }).tur).not.toBe('kitap');
     expect(sqlLabRozet({ ...adim('parametreli'), deger: 1 }).tur).toBe('kitaba-dayali');
+  });
+
+  it("step 3 shows the book's 1×1 output beside the six rows, badged as the book's output", () => {
+    const v = deriveSqlView(adim('kartezyen'));
+    expect(v.kitapCiktisi).toEqual({
+      baslik: 'Kitabın 1×1 verisiyle aynı sorgu',
+      satirlar: ['ad_soyad   | kitap_adi', '-------------+------------', ' Yaşar Kemal | İnce Memed', '(1 row)'],
+      rozet: { tur: 'kitap', ref: 'L887-890' },
+    });
+    // only on the whole cartesian result: not mid-walk, not on other queries
+    expect(deriveSqlView({ ...adim('kartezyen'), cift: 2 }).kitapCiktisi).toBeNull();
+    for (const id of ['on-kosulu', 'inner-sonuc', 'left', 'is-null', 'ozet', 'veri']) expect(deriveSqlView(adim(id)).kitapCiktisi, id).toBeNull();
   });
 });

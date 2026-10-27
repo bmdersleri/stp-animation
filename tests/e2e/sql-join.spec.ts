@@ -5,14 +5,14 @@ const PAGE = '/sql-join/';
 const READY = '.sql-scene .data-table';
 const STEPS = 10;
 /** Scene boxes that must show all their content. */
-const BOXES = '.data-table, .ozet-tablosu, .kosul-rozeti, .iliski, .sira-notu, .parametre-karti, .code-strip';
+const BOXES = '.data-table, .ozet-tablosu, .kosul-rozeti, .iliski, .sira-notu, .parametre-karti, .kitap-ciktisi, .code-strip';
 
 test.use({ reducedMotion: 'reduce' });
 
 const sql = (page: Page) => settled(() => page.locator('.sql-scene').innerHTML());
 
 /** Containers and tables checked against the `.sql-stage` box at desktop widths. */
-const STAGE_BOXES = '.sql-stage, .sql-sol, .sql-sag, .sql-kaynaklar, .sql-orta, .tablo-yeri, .ozet-host, .data-table, .ozet-tablosu, .kosul-rozeti, .code-strip, .code-strip .code-trace';
+const STAGE_BOXES = '.sql-stage, .sql-sol, .sql-sag, .sql-kaynaklar, .sql-orta, .tablo-yeri, .ozet-host, .data-table, .ozet-tablosu, .kosul-rozeti, .kitap-ciktisi, .code-strip, .code-strip .code-trace';
 
 test('ders keyboard walkthrough', async ({ page }) => {
   await open(page, PAGE, 'ders', READY);
@@ -56,7 +56,8 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         expect(reach.lost, at).toEqual([]);
         const clipped = (await clippedBoxes(page, BOXES)).filter((c) => !(c.endsWith(': outside the stage') && reach.reachable.includes(c.split(':')[0])));
         expect(clipped, at).toEqual([]);
-        await expect(page.locator('.sql-scene .kaynak-rozeti'), at).toHaveCount(1);
+        // one step badge; step 3 adds the book output's own badge inside its box
+        await expect(page.locator('.sql-scene .rozet-yeri .kaynak-rozeti'), at).toHaveCount(1);
         // at desktop widths no table or container may scroll internally or stick out of the scene stage
         if (w === 1280) expect(await stageBoxProblems(page, '.sql-stage', STAGE_BOXES), `${at} boxes`).toEqual([]);
         // the code strip sits under the tables, so the whole Ders page must fit the viewport height

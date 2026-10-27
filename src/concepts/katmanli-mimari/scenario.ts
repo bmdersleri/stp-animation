@@ -60,7 +60,7 @@ export const KATMAN_ROZET: Readonly<Record<string, Rozet>> = {
   'ikinci-istek': { tur: 'kitap-kodu' },
   'eksik-alan': { tur: 'kitap', ref: 'L1297' },
   'yasam-dongusu': { tur: 'kitap', ref: 'L1072-1086' },
-  ozet: { tur: 'kitap', ref: 'L76-79, L1089' },
+  ozet: { tur: 'kitap', ref: 'L76-80, L95, L1089' },
 };
 
 /** The step scenario of the katmanli-mimari page (Ders steps 1-11). */

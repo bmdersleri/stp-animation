@@ -4,7 +4,8 @@ import { SQL_ROZET, TUMU, sqlScenario as sc } from '../../../src/concepts/sql-jo
 import { labTextTests } from '../lab-text';
 
 const IDS = ['tanitim', 'veri', 'kartezyen', 'on-kosulu', 'inner-sonuc', 'left', 'is-null', 'where-tuzagi', 'parametreli', 'ozet'];
-const TURLER = ['kitap', 'kitaba-dayali', 'kitap', 'kitap', 'kitap', 'kitap', 'kitaba-dayali', 'kitaba-dayali', 'kitaba-dayali', 'kitap'];
+// steps 3-6 and 10 show results on this page's data set: the book's query with a new input, not the book's output
+const TURLER = ['kitap', 'kitaba-dayali', 'kitap-kodu', 'kitap-kodu', 'kitap-kodu', 'kitap-kodu', 'kitaba-dayali', 'kitaba-dayali', 'kitaba-dayali', 'kitap-kodu'];
 const REFLER = ['L536, L744', 'L1936-1938', 'L879, L887-890', 'L748', 'L804', 'L741, L804', 'L920', 'L920', 'L454, L1456', 'L860-865'];
 
 describe('sql-join scenario', () => {
