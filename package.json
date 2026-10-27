@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --port 5181 --strictPort",
     "yeni-kavram": "node scripts/yeni-kavram.mjs",
+    "kitap-dogrula": "node --disable-warning=ExperimentalWarning scripts/kitap-dogrula.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run --exclude \"**/*.perf.test.ts\" && vitest run --no-file-parallelism --passWithNoTests .perf.test.ts",

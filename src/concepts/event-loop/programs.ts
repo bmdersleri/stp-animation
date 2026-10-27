@@ -1,3 +1,4 @@
+import { BITTI_GEC, KOD_4_4, KOD_4_5 } from './code-text';
 import { simulate, type Frame, type Op } from './sim';
 
 export type ProgramId = 'kod-4-4' | 'bitti-gec' | 'kod-4-5' | 'mikro-makro' | 'engelleme';
@@ -20,20 +21,7 @@ export const PROGRAMS: Record<ProgramId, Program> = {
     file: 'eventLoopSirasi.ts',
     title: 'Kod 4.4',
     bookBased: true,
-    code: [
-      '// File: eventLoopSirasi.ts',
-      '// Önce senkron satırlar çalışır.',
-      "// setTimeout callback'i daha sonra kuyruğa gelir.",
-      '// Çıktı: Başlangıç, Bitiş, ardından Zamanlayıcı tamamlandı.',
-      '',
-      'console.log("1. Sipariş alınmaya başlandı.");',
-      '',
-      'setTimeout(() => {',
-      '  console.log("3. Zamanlayıcı tamamlandı.");',
-      '}, 1000);',
-      '',
-      'console.log("2. Başka sipariş işleniyor.");',
-    ],
+    code: KOD_4_4.lines,
     ops: [
       log(6, '1. Sipariş alınmaya başlandı.'),
       { op: 'timeout', line: 8, ms: 1000, label: 'setTimeout callback', body: [log(9, '3. Zamanlayıcı tamamlandı.')] },
@@ -45,14 +33,7 @@ export const PROGRAMS: Record<ProgramId, Program> = {
     file: 'b04-nodejs-runtime_code_008.ts',
     title: 'Yaygın hata: setTimeout(…, 0)',
     bookBased: true,
-    code: [
-      "// Yanlış beklenti: Bu satır callback'ten önce çalışır.",
-      '// setTimeout işlemi kodu durdurmaz.',
-      '// Çıktı: Önce "Bitti", sonra "Geç".',
-      '',
-      'setTimeout(() => console.log("Geç"), 0);',
-      'console.log("Bitti");',
-    ],
+    code: BITTI_GEC.lines,
     ops: [
       { op: 'timeout', line: 5, ms: 0, label: 'setTimeout callback', body: [log(5, 'Geç')] },
       log(6, 'Bitti'),
@@ -63,27 +44,7 @@ export const PROGRAMS: Record<ProgramId, Program> = {
     file: 'asenkronMesaj.ts',
     title: 'Kod 4.5',
     bookBased: true,
-    code: [
-      '// File: asenkronMesaj.ts',
-      '// Promise bekleyen bir işlemi temsil eder.',
-      '// await, yalnızca bu async fonksiyonun devamını bekletir.',
-      '// Çıktı: Hazırlık, diğer iş, sonra tamamlanma mesajı.',
-      '',
-      'function siparisHazirla(): Promise<string> {',
-      '  return new Promise((coz) => {',
-      '    setTimeout(() => coz("Sipariş hazır."), 500);',
-      '  });',
-      '}',
-      '',
-      'async function mutfagiYonet(): Promise<void> {',
-      '  console.log("Hazırlık başlatıldı.");',
-      '  const sonucMesaji = await siparisHazirla();',
-      '  console.log(sonucMesaji);',
-      '}',
-      '',
-      'void mutfagiYonet();',
-      'console.log("Mutfak başka siparişleri karşılıyor.");',
-    ],
+    code: KOD_4_5.lines,
     ops: [
       {
         op: 'call',

@@ -1,3 +1,5 @@
+import type { Listing } from '../../core/listing';
+
 /** Kod 1.5 of the book (b01, lines 1145-1237 of final.md), verbatim, one string per line. */
 export const MINI_APP_FILE = 'ChapterMiniApp.ts';
 
@@ -95,6 +97,23 @@ export const MINI_APP: readonly string[] = [
   "// Çıktı: [200] 2026001 numaralı öğrencinin notu: 88",
   "// Çıktı: [401] Kimlik doğrulaması gerekli.",
   "// Çıktı: [404] Öğrenci kaydı bulunamadı.",
+];
+
+const B01 = 'b01-modern-backend-web-mimarisi';
+
+export const LISTINGS: readonly Listing[] = [
+  { id: 'kod-1-5', title: 'Kod 1.5 · ChapterMiniApp.ts', bolum: B01, satirlar: [1145, 1237], lines: MINI_APP },
+  {
+    id: 'kod-1-5-cikti',
+    title: 'Kod 1.5 çıktısı',
+    bolum: B01,
+    satirlar: [1242, 1244],
+    lines: [
+      '[200] 2026001 numaralı öğrencinin notu: 88',
+      '[401] Kimlik doğrulaması gerekli.',
+      '[404] Öğrenci kaydı bulunamadı.',
+    ],
+  },
 ];
 
 /** 1-based number of the first listing line containing `fragment`; throws when none does. */
