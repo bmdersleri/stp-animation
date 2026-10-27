@@ -153,7 +153,7 @@ describe('middleware-zinciri view', () => {
 
   it('lab badge priority', () => {
     expect(mwLabRozet({ ...base, yol: '/hata-ornegi', kontrolGenel: true })).toEqual({ tur: 'kitaba-dayali', ref: 'L1814-1818' });
-    expect(mwLabRozet({ ...base, yol: '/baska', kontrolGenel: true })).toEqual({ tur: 'kitaba-dayali', ref: 'L558' });
+    expect(mwLabRozet({ ...base, yol: '/baska', kontrolGenel: true })).toEqual({ tur: 'kitaba-dayali', ref: 'L558, L674' });
     expect(mwLabRozet({ ...base, kontrolGenel: true, gunlukNext: false })).toEqual({ tur: 'kitaba-dayali', ref: 'L674' });
     expect(mwLabRozet({ ...base, gunlukNext: false, anahtar: 'yok' })).toEqual({ tur: 'kitaba-dayali', ref: 'L1189' });
     expect(mwLabRozet({ ...base, anahtar: 'yanlis' })).toEqual({ tur: 'kitap', ref: 'L668' });

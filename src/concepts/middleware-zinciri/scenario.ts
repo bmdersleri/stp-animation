@@ -54,7 +54,7 @@ export const MW_ROZET: Readonly<Record<string, Rozet>> = {
   anahtar: { tur: 'kitap-kodu' },
   isleyici: { tur: 'kitap-kodu' },
   yetkisiz: { tur: 'kitap', ref: 'L668' },
-  eslesmeyen: { tur: 'kitaba-dayali', ref: 'L558' },
+  eslesmeyen: { tur: 'kitaba-dayali', ref: 'L558, L674' },
   'next-unutma': { tur: 'kitap', ref: 'L727-728' },
   'cift-yanit': { tur: 'kitap-kodu' },
   hata: { tur: 'kitaba-dayali', ref: 'L682, L1814-1818' },

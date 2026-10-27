@@ -151,6 +151,8 @@ export function dispatch(app: readonly Katman[], istek: Istek): Iz {
     }
 
     if (firlatilan) {
+      // A throw (like next(err) below) leaves the rest of this layer's route functions unrun without 'atla' events:
+      // no page shows a multi-function route that throws, so only whole skipped layers are drawn as skipped.
       olayEkle({ tur: 'hata', katman: fn.ad, satir: satir(), metin: firlatilan.message });
       hata = firlatilan;
       li++;

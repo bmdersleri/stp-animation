@@ -15,7 +15,7 @@ describe('middleware-zinciri scenario', () => {
 
   it('MW_ROZET covers every step with the table kind', () => {
     IDS.forEach((id, i) => expect(MW_ROZET[id]?.tur, id).toBe(TURLER[i]));
-    expect(MW_ROZET['eslesmeyen'].ref).toBe('L558');
+    expect(MW_ROZET['eslesmeyen'].ref).toBe('L558, L674');
     expect(MW_ROZET['hata'].ref).toBe('L682, L1814-1818');
   });
 

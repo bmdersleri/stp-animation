@@ -13,7 +13,7 @@ const METIN: Record<KaynakTuru, string> = {
 };
 const ACIKLAMA: Record<KaynakTuru, string> = {
   kitap: 'Bu çıktı kitapta aynen yazılıdır.',
-  'kitap-kodu': 'Kod kitaptan; girdiyi bu sayfa seçti, çıktı o kodun çalışmasından gelir.',
+  'kitap-kodu': 'Kod kitaptan; ekrandaki sonuç o kodun bu sayfada çalışmasından gelir: girdi yeni ya da kitabın yazdırmadığı bir ara adımdır.',
   'kitaba-dayali': 'Kitap bu durumu cümleyle anlatır; örneğin kendisi bu sayfaya aittir.',
 };
 

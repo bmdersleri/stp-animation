@@ -200,7 +200,7 @@ export function deriveMwView(params: MwParams): MwView {
 /** The source badge a Lab-changed parameter set earns (the first matching rule wins). */
 export function mwLabRozet(p: MwParams): Rozet {
   if (p.yol === '/hata-ornegi') return { tur: 'kitaba-dayali', ref: 'L1814-1818' };
-  if (p.yol === '/baska') return { tur: 'kitaba-dayali', ref: 'L558' };
+  if (p.yol === '/baska') return { tur: 'kitaba-dayali', ref: 'L558, L674' };
   if (p.kontrolGenel) return { tur: 'kitaba-dayali', ref: 'L674' };
   if (!p.gunlukNext) return { tur: 'kitaba-dayali', ref: 'L1189' };
   if (p.anahtar !== 'gecerli') return { tur: 'kitap', ref: 'L668' };
