@@ -16,6 +16,7 @@ export default defineConfig({
         'event-loop': resolve(root, 'event-loop/index.html'),
         'middleware-zinciri': resolve(root, 'middleware-zinciri/index.html'),
         'rest-crud': resolve(root, 'rest-crud/index.html'),
+        'sql-join': resolve(root, 'sql-join/index.html'),
       },
     },
   },

@@ -24,11 +24,11 @@ describe('home page', () => {
     chapters.forEach((ch, i) => expect(heads[i].startsWith(`Bölüm ${ch} ·`), heads[i]).toBe(true));
   });
 
-  it('four cards are ready: istek-yanit, event-loop, middleware-zinciri and rest-crud', () => {
+  it('five cards are ready: istek-yanit, event-loop, middleware-zinciri, rest-crud and sql-join', () => {
     const root = render();
     const ready = [...root.querySelectorAll('a.card.hazir')];
-    expect(ready).toHaveLength(4);
-    expect(ready.map((a) => a.getAttribute('href'))).toEqual(['istek-yanit/', 'event-loop/', 'middleware-zinciri/', 'rest-crud/']);
+    expect(ready).toHaveLength(5);
+    expect(ready.map((a) => a.getAttribute('href'))).toEqual(['istek-yanit/', 'event-loop/', 'middleware-zinciri/', 'rest-crud/', 'sql-join/']);
   });
 
   it('hazir cards link to href and ders mode', () => {
