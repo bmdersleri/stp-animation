@@ -110,4 +110,21 @@ describe('rest-crud scene', () => {
       expect(badges(el).filter((b) => !b.classList.contains('eslem-rozeti'))).toHaveLength(1);
     }
   });
+
+  it('ders strip windows around the line that decides the send, not the definition', () => {
+    const { el, player } = setup();
+    const aktif = (): string => [...el.querySelectorAll('.code-strip li.active')].map((l) => l.textContent ?? '').join(' | ');
+    const satirlar = (): string => [...el.querySelectorAll('.code-strip li')].map((l) => l.textContent ?? '').join(' | ');
+    const beklenen: [string, RegExp][] = [
+      ['olustur', /durumKodu: 201/],
+      ['bulunamadi', /durumKodu: 404|EKIPMAN_BULUNAMADI/],
+      ['sil', /404/],
+      ['idempotency-key', /422|ANAHTAR_FARKLI_GOVDE/],
+    ];
+    for (const [id, re] of beklenen) {
+      go(player, id);
+      expect(aktif(), id).toMatch(re);
+      expect(satirlar(), id).toMatch(re);
+    }
+  });
 });

@@ -44,6 +44,24 @@ async function scrollReach(page: Page, sel: string): Promise<{ reachable: string
   }, sel);
 }
 
+/** Visible card containers (and the cards in them) that scroll internally or are cut by the `.rest-stage` box. */
+async function cardBoxProblems(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const st = document.querySelector<HTMLElement>('.rest-stage')!.getBoundingClientRect();
+    const out: string[] = [];
+    const sel = '.rest-cards, .kol-a, .kol-b, .ozet-host, .eslem, .istek-karti, .yanit-karti, .terminal, .data-table, .ozet-tablosu, .uc-noktalari';
+    for (const el of document.querySelectorAll<HTMLElement>(sel)) {
+      const r = el.getBoundingClientRect();
+      const cs = getComputedStyle(el);
+      if (cs.display === 'contents' || el.closest('[hidden]') || cs.display === 'none' || r.width === 0 || r.height === 0) continue;
+      const name = el.className;
+      if (el.scrollHeight - el.clientHeight > 1) out.push(`${name}: scrolls ${el.scrollHeight - el.clientHeight}`);
+      if (r.top < st.top - 1 || r.bottom > st.bottom + 1 || r.left < st.left - 1 || r.right > st.right + 1) out.push(`${name}: outside the stage`);
+    }
+    return out;
+  });
+}
+
 const rest = (page: Page) => settled(() => page.locator('.rest-scene').innerHTML());
 
 test('ders keyboard walkthrough', async ({ page }) => {
@@ -126,10 +144,11 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         expect(reach.lost, at).toEqual([]);
         const clipped = (await clippedBoxes(page, BOXES, '.rest-cards')).filter((c) => !(c.endsWith(': outside the stage') && reach.reachable.includes(c.split(':')[0])));
         expect(clipped, at).toEqual([]);
-        // at desktop widths no card may hide behind the cards column's own scrollbar
+        // at desktop widths the boxes holding cards, table and summary must neither scroll nor stick out of the scene stage
+        // (`.rest-cards` is `display: contents` in the Lab layout, so the real containers are checked)
         if (w === 1280) {
-          const hidden = await page.locator('.rest-cards').evaluate((el) => el.scrollHeight - el.clientHeight);
-          expect(hidden, `${at} .rest-cards scrolls`).toBeLessThanOrEqual(1);
+          const bad = await cardBoxProblems(page);
+          expect(bad, `${at} card boxes`).toEqual([]);
         }
         // the code strip sits under the stage, so the whole Ders page must fit the viewport height
         if (mode === 'ders' && w === 1280) expect((await pageOverflow(page)).y, at).toBeLessThanOrEqual(0);

@@ -147,7 +147,8 @@ export function mountRestScene(
     rozet(state);
     stripHost.toggleAttribute('data-empty', v.code.active.length === 0);
     // before the first event no line runs: the strip keeps its height but lists nothing
-    strip.update({ ...v.code, lines: v.code.active.length === 0 ? [] : v.code.lines, window: STRIP_WINDOW });
+    // the strip windows around the line that decides the send, not around the first line the trace touches (the definition)
+    strip.update({ ...v.code, active: v.karar !== null ? [v.karar] : v.code.active, lines: v.code.active.length === 0 ? [] : v.code.lines, window: STRIP_WINDOW });
     rendered = true;
   }
 

@@ -25,6 +25,11 @@ export interface RestView {
   /** Summary tables of the book (step 10); null elsewhere. */
   ozet: { metotlar: readonly (readonly string[])[]; basarilar: readonly string[] } | null;
   sira: readonly IstekId[];
+  /**
+   * The listing line that decides the shown send (the service's last event: the line that returns the status code, or the
+   * last line a send without response touches); null on the intro and summary views. The Ders code strip windows around it.
+   */
+  karar: number | null;
 }
 
 /** The four lanes of the book's Sekil 6.5 (the service lane's subtitle names the lab program, see `seritler`). */
@@ -58,6 +63,12 @@ function belgeSatirlari(): string[] {
   const bas = lines.findIndex((s) => s.startsWith('const belgeSatirlari'));
   const son = lines.findIndex((s, i) => i > bas && s.startsWith(']'));
   return lines.slice(bas + 1, son).map((s) => s.trim().replace(/^"/, '').replace(/",?$/, ''));
+}
+
+/** Listing line of the last event that starts at the service lane (the one that returns the status code or ends the call). */
+function kararSatiri(gon: Gonderim): number | null {
+  for (let i = gon.olaylar.length - 1; i >= 0; i--) if (gon.olaylar[i].from === 'servis') return gon.satirlar[i];
+  return gon.satirlar.length > 0 ? gon.satirlar[gon.satirlar.length - 1] : null;
 }
 
 const ikiYuz = (kod: number): boolean => kod >= 200 && kod < 300;
@@ -135,6 +146,7 @@ export function deriveRestView(p: RestParams): RestView {
       code: { title: lst.title, lines: lst.lines, active: [] },
       ozet: null,
       sira,
+      karar: null,
     };
   }
 
@@ -147,6 +159,7 @@ export function deriveRestView(p: RestParams): RestView {
       code: { title: lst.title, lines: lst.lines, active: [] },
       ozet: { metotlar: METOTLAR, basarilar: belgeSatirlari() },
       sira,
+      karar: null,
     };
   }
 
@@ -184,6 +197,7 @@ export function deriveRestView(p: RestParams): RestView {
     code: { title: lst.title, lines: lst.lines, active: gon.satirlar },
     ozet: null,
     sira,
+    karar: kararSatiri(gon),
   };
 }
 

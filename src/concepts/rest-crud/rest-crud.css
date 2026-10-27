@@ -10,10 +10,9 @@
 .rest-diagram svg.plot { position:static; display:block; }
 .rest-diagram .probe { visibility:hidden; font-size:var(--fs-tick); }
 
-.rest-cards { min-width:0; min-height:0; display:flex; flex-direction:column; gap:6px; overflow:auto; }
+.rest-cards { min-width:0; min-height:0; display:flex; flex-direction:column; gap:4px; overflow:auto; }
 .rest-cards [hidden] { display:none; }
 /* compact cards: every card and terminal line must fit the column without scrolling at desktop size */
-.rest-cards { gap:4px; }
 .rest-cards .istek-karti, .rest-cards .yanit-karti, .rest-cards .terminal { padding:3px 10px; }
 .rest-cards .kart-baslik { margin-bottom:0; }
 .rest-cards .durum-kodu { font-size:var(--fs-body); padding:0 .5em; }
@@ -47,7 +46,6 @@
 .rest-cards .tablo-yeri { min-width:0; }
 .rest-cards .http-cards { gap:4px; }
 .uc-noktalari { margin:6px 0 0; padding-left:1.2em; font-size:var(--fs-tick); font-family:var(--mono, ui-monospace, Consolas, monospace); line-height:1.3; overflow-wrap:anywhere; }
-.rest-params .gonderim-deger { font-variant-numeric:tabular-nums; color:var(--muted); }
 
 /* desktop: two columns of cards (request + response | terminal + table); the summary table spans both */
 .rest-cards { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-auto-rows:min-content; align-items:start; gap:4px 8px; }
