@@ -91,7 +91,14 @@ export const PROGRAMS: Record<ProgramId, Program> = {
         name: 'mutfagiYonet',
         body: [
           log(13, 'Hazırlık başlatıldı.'),
-          { op: 'await', line: 14, ms: 500, label: 'siparisHazirla', rest: [log(15, 'Sipariş hazır.')] },
+          {
+            op: 'await',
+            line: 14,
+            ms: 500,
+            label: '() => coz("Sipariş hazır.")',
+            rest: [log(15, 'Sipariş hazır.')],
+            callee: { name: 'siparisHazirla', promiseLine: 7, timerLine: 8 },
+          },
         ],
       },
       log(19, 'Mutfak başka siparişleri karşılıyor.'),

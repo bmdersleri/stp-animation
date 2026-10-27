@@ -56,6 +56,24 @@ describe('event-loop view', () => {
     expect(deriveLoopView(base).notes).toEqual([]);
   });
 
+  it('kod-4-5: the t = 500 callback highlights line 8, the continuation lines 14 and 15', () => {
+    const frames = framesOf('kod-4-5');
+    const cb = '() => coz("Sipariş hazır.")';
+    const i = frames.findIndex((f) => f.clock === 500 && f.stack.includes(cb));
+    const v = deriveLoopView({ program: 'kod-4-5', kare: i, gorunum: 'tahta' });
+    expect(v.code.active).toEqual([8]);
+    expect(v.code.lines[7]).toContain(cb);
+    expect(v.frame.stack).toEqual([cb]);
+    const lines = frames.filter((f) => f.stack.includes('mutfagiYonet devamı')).map((f) => f.line);
+    expect(lines).toEqual([14, 15]);
+    const p = new StepPlayer(loopScenario);
+    p.goto(6);
+    const w = deriveLoopView(p.state.params);
+    expect(w.code.active).toEqual([14]);
+    expect(w.notes).toEqual(['await: fonksiyon askıya alındı']);
+    expect(w.frame.timers).toEqual([{ label: cb, dueAt: 500 }]);
+  });
+
   it('code highlights the frame line', () => {
     expect(deriveLoopView(base).code.active).toEqual([]);
     const i = framesOf('kod-4-4').findIndex((f) => f.line === 8);

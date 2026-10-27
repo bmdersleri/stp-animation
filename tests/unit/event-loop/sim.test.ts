@@ -10,6 +10,7 @@ const lastOutput = (id: Parameters<typeof framesOf>[0]): string[] => {
 // Book output blocks (b04 final.md) as literals.
 const KOD_4_4_OUT = ['1. Sipariş alınmaya başlandı.', '2. Başka sipariş işleniyor.', '3. Zamanlayıcı tamamlandı.'];
 const KOD_4_5_OUT = ['Hazırlık başlatıldı.', 'Mutfak başka siparişleri karşılıyor.', 'Sipariş hazır.'];
+const CALLBACK = '() => coz("Sipariş hazır.")';
 
 describe('event-loop programs', () => {
   it('kod-4-4 prints the book output', () => {
@@ -43,7 +44,59 @@ describe('event-loop programs', () => {
   it('kod-4-5 await suspends the function', () => {
     const f = framesOf('kod-4-5').find((x) => x.note === 'await: fonksiyon askıya alındı')!;
     expect(f.stack).toEqual(['main']);
-    expect(f.timers).toEqual([{ label: 'siparisHazirla', dueAt: 500 }]);
+    expect(f.line).toBe(14);
+    expect(f.output).toEqual(['Hazırlık başlatıldı.']);
+    expect(f.timers).toEqual([{ label: CALLBACK, dueAt: 500 }]);
+  });
+
+  it('kod-4-5 follows the Node.js runtime model frame by frame', () => {
+    const seq = framesOf('kod-4-5').map((f) => [f.clock, f.line, f.stack.join(' › ')]);
+    expect(seq).toEqual([
+      [0, 0, ''],
+      [0, 18, 'main › mutfagiYonet'], // void mutfagiYonet();
+      [0, 13, 'main › mutfagiYonet'], // console.log("Hazırlık başlatıldı.");
+      [0, 14, 'main › mutfagiYonet › siparisHazirla'], // await siparisHazirla() calls it
+      [0, 7, 'main › mutfagiYonet › siparisHazirla'], // return new Promise((coz) => {
+      [0, 8, 'main › mutfagiYonet › siparisHazirla'], // setTimeout(() => coz("Sipariş hazır."), 500);
+      [0, 14, 'main › mutfagiYonet'], // siparisHazirla returned the pending promise
+      [0, 14, 'main'], // await suspended mutfagiYonet
+      [0, 18, 'main'], // the main script goes on after the call
+      [0, 19, 'main'], // console.log("Mutfak başka siparişleri karşılıyor.");
+      [0, 19, ''],
+      [500, 8, ''], // timer due: the callback waits in the macro queue
+      [500, 8, CALLBACK], // the callback runs line 8
+      [500, 8, CALLBACK], // coz(...) resolves the promise, the continuation goes to micro
+      [500, 8, ''],
+      [500, 14, 'mutfagiYonet devamı'], // resumes at the await
+      [500, 15, 'mutfagiYonet devamı'], // console.log(sonucMesaji);
+      [500, 15, ''],
+    ]);
+    const frames = framesOf('kod-4-5');
+    expect(frames[5].timers).toEqual([{ label: CALLBACK, dueAt: 500 }]);
+    expect(frames[11].macro).toEqual([CALLBACK]);
+    expect(frames[13].micro).toEqual(['mutfagiYonet devamı']);
+    expect(frames[16].output.at(-1)).toBe('Sipariş hazır.');
+  });
+
+  it('kod-4-5 siparisHazirla is on the stack only at t = 0, never at t = 500', () => {
+    const frames = framesOf('kod-4-5');
+    const at500 = frames.filter((f) => f.clock === 500);
+    expect(at500.length).toBeGreaterThan(0);
+    for (const f of at500) {
+      expect(f.stack).not.toContain('siparisHazirla');
+      expect([...f.timers.map((t) => t.label), ...f.macro, ...f.micro]).not.toContain('siparisHazirla');
+    }
+    expect(frames.filter((f) => f.stack.includes('siparisHazirla')).map((f) => f.line)).toEqual([14, 7, 8]);
+    expect(frames.filter((f) => f.stack.includes(CALLBACK)).every((f) => f.clock === 500 && f.line === 8)).toBe(true);
+  });
+
+  it('await without a callee registers its timer on the await line', () => {
+    const frames = simulate([
+      { op: 'call', line: 1, name: 'f', body: [{ op: 'await', line: 2, ms: 10, label: 'cb', rest: [{ op: 'log', line: 3, text: 'x' }] }] },
+    ]);
+    expect(frames.some((f) => f.stack.length > 2)).toBe(false);
+    expect(frames.find((f) => f.macro.includes('cb'))!.line).toBe(2);
+    expect(frames.at(-1)!.output).toEqual(['x']);
   });
 
   it('mikro-makro prints Senkron, Promise, Zamanlayıcı', () => {
@@ -142,6 +195,12 @@ describe('event-loop programs', () => {
             break;
           case 'await':
             expect(text).toContain('await');
+            if (o.callee) {
+              expect(text).toContain(o.callee.name);
+              expect(code[o.callee.promiseLine - 1]).toContain('new Promise');
+              expect(code[o.callee.timerLine - 1]).toContain('setTimeout');
+              expect(code[o.callee.timerLine - 1]).toContain(o.label);
+            }
             check(code, o.rest);
             break;
           case 'busy':

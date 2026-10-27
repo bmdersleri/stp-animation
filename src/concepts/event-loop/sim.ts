@@ -3,8 +3,24 @@ export type Op =
   | { op: 'timeout'; line: number; ms: number; label: string; body: Op[] }
   | { op: 'then'; line: number; label: string; body: Op[] } // Promise.resolve().then(...)
   | { op: 'call'; line: number; name: string; body: Op[] } // push frame, run body, pop
-  | { op: 'await'; line: number; ms: number; label: string; rest: Op[] } // await a promise a timer resolves after ms
+  | AwaitOp
   | { op: 'busy'; line: number; ms: number; label: string }; // synchronous loop holding the stack
+
+/**
+ * `await` on a promise that a timer resolves after `ms`; `label` names the timer callback (the job that resolves the
+ * promise), `rest` is the continuation queued on micro when it does. With `callee`, the awaited promise comes from a
+ * call on `line`: the callee goes on the stack, runs `new Promise` on `promiseLine`, registers the timer on
+ * `timerLine`, returns the pending promise and comes off the stack before the enclosing call is suspended.
+ * Without `callee` the timer is registered on `line`.
+ */
+export interface AwaitOp {
+  op: 'await';
+  line: number;
+  ms: number;
+  label: string;
+  rest: Op[];
+  callee?: { name: string; promiseLine: number; timerLine: number };
+}
 
 export interface Frame {
   clock: number;
@@ -73,27 +89,37 @@ export function simulate(ops: readonly Op[]): Frame[] {
           micro.push({ label: o.label, line: o.line, body: o.body });
           emit(o.line);
           break;
-        case 'call':
+        case 'call': {
           stack.push(o.name);
           emit(o.line);
           callDepth++;
           const suspended = run(o.body);
           callDepth--;
-          if (!suspended) {
-            stack.pop();
-            emit(o.line);
-          }
+          if (!suspended) stack.pop(); // a suspended call already left the stack at its await
+          emit(o.line); // the caller goes on from the call site
           break;
+        }
         case 'await': {
           if (callDepth === 0) throw new Error('simulate: await yalnız call içinde');
           const callName = stack[stack.length - 1] ?? 'main';
+          const timerLine = o.callee?.timerLine ?? o.line;
+          if (o.callee) {
+            stack.push(o.callee.name);
+            emit(o.line);
+            emit(o.callee.promiseLine);
+          }
           timers.push({
             label: o.label,
-            line: o.line,
+            line: timerLine,
             body: [],
             dueAt: clock + o.ms,
             resolves: { label: `${callName} devamı`, line: o.line, rest: o.rest },
           });
+          if (o.callee) {
+            emit(timerLine);
+            stack.pop(); // the callee returns the pending promise
+            emit(o.line);
+          }
           stack.pop();
           emit(o.line, 'await: fonksiyon askıya alındı');
           return true;
@@ -119,8 +145,9 @@ export function simulate(ops: readonly Op[]): Frame[] {
     run(job.body);
     callDepth = outerDepth;
     if (job.resolves) {
+      // the timer callback resolves the promise on its own line; the continuation resumes at the await
       micro.push({ label: job.resolves.label, line: job.resolves.line, body: job.resolves.rest });
-      emit(job.resolves.line);
+      emit(job.line);
     }
     stack.pop();
     emit(line); // keep the line of the last op that ran in the job
