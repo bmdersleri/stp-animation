@@ -14,6 +14,7 @@ export default defineConfig({
         main: resolve(root, 'index.html'),
         'istek-yanit': resolve(root, 'istek-yanit/index.html'),
         'event-loop': resolve(root, 'event-loop/index.html'),
+        'middleware-zinciri': resolve(root, 'middleware-zinciri/index.html'),
       },
     },
   },

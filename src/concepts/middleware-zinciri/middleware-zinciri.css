@@ -1,0 +1,37 @@
+/* middleware-zinciri page: badge row, diagram + cards (scene), code strip, Lab controls, summary table. */
+.mw-scene { width:100%; height:100%; min-height:0; display:flex; flex-direction:column; gap:6px; font-family:var(--font); color:var(--navy); }
+.mw-scene .rozet-yeri { flex:none; display:flex; justify-content:flex-end; min-height:calc(1.3 * var(--fs-tick) + 4px); }
+.mw-scene .kaynak-rozeti { white-space:normal; text-align:right; border-radius:14px; max-width:100%; }
+.mw-stage { flex:1 1 0; min-height:0; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr) var(--cards-w, 340px); grid-template-rows:minmax(0,1fr); gap:12px; }
+.mw-stage[data-narrow] { grid-template-columns:minmax(0,1fr); grid-template-rows:var(--diagram-h) auto; gap:8px; overflow:auto; }
+/* under the diagram the whole stage scrolls, not the cards column */
+.mw-stage[data-narrow] .mw-cards { overflow:visible; }
+.mw-diagram { position:relative; min-width:0; min-height:0; overflow:hidden; }
+.mw-diagram svg.plot { position:static; display:block; }
+.mw-diagram .probe { visibility:hidden; font-size:var(--fs-tick); }
+
+.mw-cards { min-width:0; min-height:0; display:flex; flex-direction:column; gap:6px; overflow:auto; }
+.mw-cards [hidden] { display:none; }
+.karsilastirma { border:2px solid var(--line); border-radius:10px; background:var(--surface); padding:5px 12px; }
+.karsilastirma .terminal-satir { color:var(--navy); }
+
+.ozet-tablosu { width:100%; border-collapse:collapse; font-size:var(--fs-tick); background:var(--surface); }
+.ozet-tablosu th, .ozet-tablosu td { border:1px solid var(--line); padding:4px 8px; text-align:left; vertical-align:top; }
+.ozet-tablosu th { background:var(--navy-soft); }
+.ozet-tablosu td.katman { font-family:var(--mono, ui-monospace, Consolas, monospace); overflow-wrap:anywhere; }
+
+/* five lines at a tight line height: the diagram above needs every pixel it can get */
+.code-strip { flex:none; height:calc(5 * 1.25 * var(--fs-tick) + var(--fs-axis) + 28px); }
+.code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:6px 12px; gap:4px; }
+.code-strip[data-empty] .code-trace-lines { visibility:hidden; }
+.code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:4px; }
+
+.mw-params { display:grid; gap:8px; }
+.mw-params .ctl { min-width:0; }
+.mw-params .ctl.select, .mw-params .ctl.range { display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
+.mw-params .ctl.check { display:flex; align-items:center; gap:8px; min-height:var(--ctl); }
+.mw-params .ctl-label { font-weight:600; }
+.mw-params select { min-height:var(--ctl); max-width:100%; padding:0 .5em; border:2px solid var(--navy); border-radius:8px; background:var(--surface); font:inherit; }
+.mw-params input[type='checkbox'] { width:1.3em; height:1.3em; }
+.mw-params input[type='range'] { width:100%; min-height:var(--ctl); }
+.mw-params .olay-deger { font-variant-numeric:tabular-nums; color:var(--muted); }
