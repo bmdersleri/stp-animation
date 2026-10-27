@@ -67,6 +67,12 @@ describe('rbac-401-403 view', () => {
     }
   });
 
+  it('step 2 table carries the page note on the fixed salt (R17)', () => {
+    expect(view(2).tablo!.not).toBe('Sayfa kitabın rastgele salt’ı yerine sabit bir salt kullanır; hash’in yalnızca ilk on altı karakteri gösterilir.');
+    expect(step(2).asama).toBe('kayit');
+    expect(sc.steps[1].text).toContain(view(2).tablo!.not!);
+  });
+
   it('step 3 shows two cut tokens and the roles in the note', () => {
     const v = view(3);
     expect(v.http.terminal.map((t) => t.metin)).toEqual(['yasemin: eyJhbGci…', 'elif: eyJhbGci…']);

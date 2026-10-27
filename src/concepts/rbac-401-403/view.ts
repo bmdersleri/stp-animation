@@ -78,6 +78,9 @@ const kodSeridi = (l: { title: string; lines: readonly string[] }, active: reado
 
 const rolAdi = (r: 'ogrenci' | 'kutuphaneci'): string => r;
 
+/** The page's own note under the repository table (R17): the step 2 sentence, not attributed to the book. */
+export const SABIT_SALT_NOTU = 'Sayfa kitabın rastgele salt’ı yerine sabit bir salt kullanır; hash’in yalnızca ilk on altı karakteri gösterilir.';
+
 /** Register view: the repository after the two kayitOl calls (hash cut to 16 characters). */
 function kayitGorunumu(): RbacView {
   const k = kayitlar();
@@ -96,6 +99,7 @@ function kayitGorunumu(): RbacView {
       baslik: 'KullaniciRepository',
       sutunlar: [{ ad: 'kullaniciAdi', anahtar: 'PK' }, { ad: 'salt' }, { ad: 'parolaHash' }, { ad: 'rol' }],
       satirlar: k.map((x) => ({ key: x.kullaniciAdi, cells: [x.kullaniciAdi, x.salt, `${x.parolaHash.slice(0, 16)}…`, x.rol], state: 'yeni' as const })),
+      not: SABIT_SALT_NOTU,
     },
     denetim: null,
     code: kodSeridi(K7, [SATIR.kayitEkle]),
