@@ -1,12 +1,12 @@
 /**
- * A lane title (or a call in a message label) that is wider than its room, broken at camelCase, dot, space, hyphen and
- * after-`(` boundaries into the fewest lines that fit ("apiAnahtariKontrolu" -> "apiAnahtari", "Kontrolu"); a title
- * that fits, or has no boundary, stays whole.
+ * A lane title (or a call in a message label) that is wider than its room, broken at camelCase, dot, space, hyphen
+ * and call-paren (`f(`) boundaries into the fewest lines that fit ("apiAnahtariKontrolu" -> "apiAnahtari",
+ * "Kontrolu"); a title that fits, or has no boundary, stays whole.
  */
 export function breakWord(text: string, room: number, width: (t: string) => number): string[] {
   if (width(text) <= room) return [text];
   const out: string[] = [];
-  for (const piece of text.split(/(?=[A-Z])|(?=\.)|(?<=[ (-])/)) {
+  for (const piece of text.split(/(?=[A-Z])|(?=\.)|(?<=[ -])|(?<=\w\()(?!\))/)) {
     const last = out.length - 1;
     if (last >= 0 && width(out[last] + piece) <= room) out[last] += piece;
     else out.push(piece);

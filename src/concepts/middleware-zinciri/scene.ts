@@ -115,13 +115,12 @@ export function mountMwScene(
     svg.setAttribute('width', String(dw));
     svg.setAttribute('height', String(dh));
     svg.setAttribute('viewBox', `0 0 ${dw} ${dh}`);
-    // sub-titles under the lane titles go when one of them is wider than its lane (phone width)
+    // a sub-title under a lane title goes when it is wider than its lane (Lab and phone width)
     const lane = dw / v.sequence.lanes.length - LANE_PAD;
-    const subFits = v.sequence.lanes.every((l) => measure.width(l.sub ?? '', 'seq-lane-sub', tick) <= lane);
     const lanes = v.sequence.lanes.map((l) => ({
       id: l.id,
       label: l.label.flatMap((t) => breakWord(t, lane, (x) => measure.width(x, 'seq-lane-label', tick))),
-      ...(subFits && l.sub ? { sub: l.sub } : {}),
+      ...(l.sub && measure.width(l.sub, 'seq-lane-sub', tick) <= lane ? { sub: l.sub } : {}),
     }));
     const sequence = { ...v.sequence, lanes };
     layer.draw(sequence, { left: 0, top: 0, width: dw, height: dh }, ms, tick);

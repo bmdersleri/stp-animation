@@ -62,9 +62,30 @@ describe('middleware-zinciri view', () => {
     expect(v.http.terminal.map((t) => t.metin)).toEqual(['GET /baska']);
     expect(v.http.yanitlar[0]).toMatchObject({ durumKodu: 404, durumMetni: 'Not Found', govde: 'Cannot GET /baska' });
     expect(v.sequence.dim).toEqual(['anahtar', 'isleyici']);
-    const m = son(v.sequence.messages);
-    expect([m.from, m.to]).toEqual(['gunluk', 'istemci']);
     expect(v.code.active).toEqual([]);
+  });
+
+  it('step 7: the default 404 comes from Express, after istekGunlugu hands it next()', () => {
+    const v = deriveMwView(tam({ yol: '/baska', anahtar: 'yok' }));
+    expect(v.sequence.lanes.map((l) => l.id)).toEqual(['istemci', 'json', 'gunluk', 'anahtar', 'isleyici', 'varsayilan']);
+    expect(son(v.sequence.lanes)).toMatchObject({ label: ['Express'], sub: 'varsayılan' });
+    const [gecis, yanit] = v.sequence.messages.slice(-2);
+    expect(gecis).toMatchObject({ from: 'gunluk', to: 'varsayilan', label: 'next()', kind: 'request' });
+    expect(yanit).toMatchObject({ from: 'varsayilan', to: 'istemci', label: '404 Not Found', kind: 'response' });
+    // no message of the default handler starts on a middleware lane
+    expect(v.sequence.messages.filter((m) => m.kind === 'response').map((m) => m.from)).toEqual(['varsayilan']);
+    expect(v.sequence.stopAt).toBe('varsayilan');
+    expect(v.sequence.stopTone).toBe('alarm');
+    expect(v.sequence.dim).not.toContain('varsayilan');
+  });
+
+  it('the Express lane is there only when the trace reaches the final handler', () => {
+    expect(deriveMwView(tam({})).sequence.lanes.map((l) => l.id)).not.toContain('varsayilan');
+    expect(deriveMwView(tam({ anahtar: 'yok' })).sequence.lanes.map((l) => l.id)).not.toContain('varsayilan');
+    expect(deriveMwView(tam({ yol: '/hata-ornegi' })).sequence.lanes.map((l) => l.id)).not.toContain('varsayilan');
+    expect(deriveMwView(tam({ program: 'next-unutma' })).sequence.lanes.map((l) => l.id)).not.toContain('varsayilan');
+    // the lane is drawn from the first event on, so lanes do not shift while the trace plays
+    expect(deriveMwView({ ...base, yol: '/baska', olay: 1 }).sequence.lanes.map((l) => l.id)).toContain('varsayilan');
   });
 
   it('step 8 hangs with the book output', () => {
@@ -86,6 +107,12 @@ describe('middleware-zinciri view', () => {
     expect(son(v.http.terminal)).toEqual({ metin: HEADERS_SENT, akis: 'stderr' });
     expect(v.http.istek?.yol).toBe('/kitaplar/99');
     expect(v.sequence.stopAt).toBe('isleyici');
+    // the second json() throws inside the route; Express's final handler writes the error to stderr
+    expect(v.sequence.lanes.map((l) => l.id)).toEqual(['istemci', 'isleyici', 'varsayilan']);
+    const [gecis, not] = v.sequence.messages.slice(-2);
+    expect(gecis).toMatchObject({ from: 'isleyici', to: 'varsayilan', label: 'next(err)' });
+    expect(not).toMatchObject({ from: 'varsayilan', to: 'varsayilan', kind: 'note', label: HEADERS_SENT, tone: 'alarm' });
+    expect(v.sequence.messages.find((m) => m.kind === 'response')).toMatchObject({ from: 'isleyici', label: '404 Not Found' });
   });
 
   it('step 10 skips to the error layer', () => {
@@ -101,9 +128,12 @@ describe('middleware-zinciri view', () => {
     expect(v.sequence.dim).toEqual([]);
   });
 
-  it('final 500 without error layer is drawn on the lane that ran last', () => {
+  it('lab: the default 500 without an error layer comes from Express, after the throw', () => {
     const v = deriveMwView(tam({ yol: '/hata-ornegi', hataKatmani: false }));
-    expect(son(v.sequence.messages)).toMatchObject({ from: 'hataRoute', to: 'istemci' });
+    const [gecis, yanit] = v.sequence.messages.slice(-2);
+    expect(gecis).toMatchObject({ from: 'hataRoute', to: 'varsayilan', label: 'next(err)' });
+    expect(yanit).toMatchObject({ from: 'varsayilan', to: 'istemci', label: '500 Internal Server Error' });
+    expect(v.sequence.stopAt).toBe('varsayilan');
     expect(v.sequence.dim).toEqual(['hataMw']);
   });
 

@@ -21,6 +21,8 @@ export interface MwView {
 
 const ANAHTAR_DEGERI = { gecerli: 'kitap-api-2026', yanlis: 'yanlis-anahtar' } as const;
 const ISTEMCI = 'istemci';
+/** Lane of Express's own final handler (default 404 / 500, the headers-sent log): it belongs to no middleware. */
+const EXPRESS: Lane = { id: VARSAYILAN, label: ['Express'], sub: 'varsayılan' };
 
 /** The summary table of the book's layers (step 11). */
 const OZET: readonly OzetSatiri[] = [
@@ -99,20 +101,11 @@ export function deriveMwView(params: MwParams): MwView {
   const tamam = olay === toplam;
   const gorunen = iz.olaylar.slice(0, olay);
 
-  const lanes = seritler(p);
+  // Express's final handler gets a lane of its own, at the end, only when the trace reaches it.
+  const sonIsleyici = iz.olaylar.some((o) => o.katman === VARSAYILAN);
+  const lanes = sonIsleyici ? [...seritler(p), EXPRESS] : seritler(p);
   const gorunur = new Set(lanes.map((l) => l.id));
   const req = istek(p);
-
-  // The final handler has no lane of its own: it is drawn on the lane that ran last.
-  const serit = (i: number): string => {
-    const o = iz.olaylar[i];
-    if (o.katman !== VARSAYILAN) return o.katman;
-    for (let j = i - 1; j >= 0; j--) {
-      const e = iz.olaylar[j];
-      if (e.tur !== 'atla' && e.katman !== VARSAYILAN && gorunur.has(e.katman)) return e.katman;
-    }
-    return lanes[1].id;
-  };
   const stderr = (i: number): boolean => iz.terminal.some((t) => t.olay === i && t.akis === 'stderr');
 
   const messages: Message[] = [];
@@ -122,9 +115,15 @@ export function deriveMwView(params: MwParams): MwView {
   let yanitKodu: number | undefined;
   let askidaSerit: string | undefined;
   gorunen.forEach((o, i) => {
-    const id = serit(i);
+    const id = o.katman;
     if (!gorunur.has(id)) return;
     const mid = `m${i}`;
+    // the stack ran out: the last layer's next() (or the error) is handed to Express's final handler
+    if (id === VARSAYILAN && onceki !== VARSAYILAN) {
+      messages.push({ id: `${mid}-son`, from: onceki, to: VARSAYILAN, label: hataSonrasi ? 'next(err)' : 'next()', kind: 'request' });
+      onceki = VARSAYILAN;
+      hataSonrasi = false;
+    }
     if (o.tur === 'gir') {
       messages.push({
         id: mid,
@@ -153,7 +152,7 @@ export function deriveMwView(params: MwParams): MwView {
   });
 
   // A sent response ends dispatch, so lanes that never got a 'gir' event stay faded once the trace is complete.
-  const girenler = new Set(iz.olaylar.filter((o) => o.tur === 'gir').map((o) => o.katman));
+  const girenler = new Set(iz.olaylar.filter((o) => o.tur === 'gir' || o.katman === VARSAYILAN).map((o) => o.katman));
   const dim = tamam ? lanes.filter((l) => l.id !== ISTEMCI && !girenler.has(l.id)).map((l) => l.id) : [];
   const durak = yanitSerit ?? askidaSerit;
   const sequence: SequenceSpec = {
