@@ -1,0 +1,66 @@
+/* salt-hash page: badge row, user table, hash line, strips, counters, terminal, code strip, Lab controls. */
+.salt-scene { width:100%; height:100%; min-height:0; display:flex; flex-direction:column; gap:6px; font-family:var(--font); color:var(--navy); }
+.salt-scene [hidden] { display:none; }
+.salt-scene .rozet-yeri { flex:none; display:flex; justify-content:flex-end; min-height:calc(1.3 * var(--fs-tick) + 4px); }
+.salt-scene .kaynak-rozeti { white-space:normal; text-align:right; border-radius:14px; max-width:100%; }
+.salt-stage { flex:1 1 0; min-height:0; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr); gap:12px; align-content:start; }
+.salt-stage[data-terminal] { grid-template-columns:minmax(0,1fr) minmax(150px, 14vw); }
+.salt-stage[data-narrow] { grid-template-columns:minmax(0,1fr); overflow:auto; align-content:start; }
+.salt-main { min-width:0; display:flex; flex-direction:column; gap:8px; }
+.salt-yan { min-width:0; align-self:start; }
+.salt-yan .http-cards { display:block; }
+.salt-yan .terminal { padding:3px 10px; }
+.salt-yan [hidden] { display:none; }
+
+.salt-scene .tablo-yeri { min-width:0; }
+/* the column heads name the table; its title line would cost a row of the stage */
+.salt-scene .tablo-yeri .data-table-title { display:none; }
+.salt-scene .data-table th, .salt-scene .data-table td { padding:2px 6px; overflow-wrap:anywhere; }
+.salt-scene .data-table td { font-family:var(--mono, ui-monospace, Consolas, monospace); }
+
+/* the hash line: HTML boxes joined by arrows */
+.hat { display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; }
+.hat-kutu { min-width:0; max-width:100%; display:flex; align-items:baseline; gap:0 8px; padding:1px 10px; border:2px solid var(--line); border-radius:10px; background:var(--surface); line-height:1.2; transition:background-color var(--salt-ms), border-color var(--salt-ms); }
+.hat-kutu.etkin { background:var(--accent-soft); border-color:var(--accent); }
+.hat-baslik { font-size:var(--fs-tick); font-weight:700; color:var(--muted); }
+.hat-deger { font-family:var(--mono, ui-monospace, Consolas, monospace); font-size:var(--fs-tick); overflow-wrap:anywhere; }
+.hat-ok { font-weight:700; font-size:var(--fs-body); color:var(--muted); }
+
+.seritler { display:flex; flex-direction:column; gap:6px; min-width:0; }
+/* label and text of a segment share a line; the strip's own padding is tight, the stage has little height */
+.seritler .segment-strip { padding:3px 10px; }
+.seritler .parca-etiket { flex:none; }
+.seritler .ayirici { display:none; }
+.seritler .parca { flex-direction:row; align-items:baseline; gap:0 6px; padding:0 6px; }
+/* a lone segment (the hash of a comparison) needs no label of its own: the strip's title says it */
+.seritler .parca:only-child .parca-etiket { display:none; }
+/* wide stage: the title sits left of the segments, which saves a line per strip */
+.salt-stage:not([data-narrow]) .seritler .segment-strip { display:grid; grid-template-columns:minmax(5em, 9em) minmax(0,1fr); gap:0 10px; align-items:baseline; }
+.salt-stage:not([data-narrow]) .seritler .segment-strip-title { margin:0; }
+.sayaclar { display:flex; flex-wrap:wrap; gap:0 24px; }
+.sayac { margin:0; font-family:var(--mono, ui-monospace, Consolas, monospace); font-size:var(--fs-tick); overflow-wrap:anywhere; }
+.sonuc-satir, .olcum { margin:0; font-size:var(--fs-tick); font-family:var(--mono, ui-monospace, Consolas, monospace); overflow-wrap:anywhere; }
+.olcum { color:var(--muted); }
+
+/* book-only views */
+.kitap-blok { min-width:0; font-size:var(--fs-body); line-height:1.35; }
+.kitap-blok p { margin:0 0 6px; }
+.kitap-blok .ipucu { color:var(--muted); }
+.ozet-liste { margin:0 0 6px; padding-left:1.4em; }
+.ozet-liste li { margin-bottom:2px; }
+.ozet-son { font-weight:600; }
+.yavas-tablo { min-width:0; }
+.yavas-tablo .data-table td { font-family:var(--font); }
+
+.salt-scene .code-strip { flex:none; height:calc(3 * 1.25 * var(--fs-tick) + var(--fs-axis) + 28px); }
+.salt-scene .code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:6px 12px; gap:4px; }
+.salt-scene .code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:4px; }
+
+.salt-params { display:grid; gap:8px; }
+.salt-params .ctl { min-width:0; }
+.salt-params .ctl.select, .salt-params .ctl.text { display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
+.salt-params .ctl.check { display:flex; align-items:center; gap:8px; min-height:var(--ctl); }
+.salt-params .ctl-label { font-weight:600; }
+.salt-params select, .salt-params input[type='text'] { min-height:var(--ctl); max-width:100%; box-sizing:border-box; padding:0 .5em; border:2px solid var(--navy); border-radius:8px; background:var(--surface); font:inherit; }
+.salt-params input[type='checkbox'] { width:1.3em; height:1.3em; }
+.salt-params .yeni-salt { min-height:var(--ctl); border:2px solid var(--navy); border-radius:8px; background:var(--surface); font:inherit; font-weight:600; cursor:pointer; }
