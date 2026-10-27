@@ -21,6 +21,17 @@ describe('istek-yanit scenario', () => {
     expect(olay('yanit-404')).toBe(notSorgula('/api/notlar/2026999', true).olaylar.length);
   });
 
+  it('steps 3-6 stop after the expected events', () => {
+    const o = notSorgula('/api/notlar/2026001', true).olaylar;
+    const through = (pred: (e: (typeof o)[number]) => boolean) => o.findIndex(pred) + 1;
+    const olay = (id: string) => sc.steps[stepIndex(sc, id)].params?.olay;
+    expect(olay('kimlik')).toBe(through((e) => e.kind === 'note' && e.label === 'Kimlik denetimi'));
+    expect(olay('yol')).toBe(through((e) => e.kind === 'request' && e.to === 'notApi'));
+    expect(olay('ayristir')).toBe(through((e) => e.kind === 'note' && e.from === 'notApi'));
+    expect(olay('veri')).toBe(through((e) => e.kind === 'note' && e.from === 'backend'));
+    expect([olay('kimlik'), olay('yol'), olay('ayristir'), olay('veri')]).toEqual([2, 4, 5, 7]);
+  });
+
   it('step 10 ends with the book sentence', () => {
     expect(sc.steps[9].text.endsWith('Hata kodu, isteği durduran katmanda üretilir.')).toBe(true);
   });

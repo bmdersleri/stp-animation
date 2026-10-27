@@ -69,6 +69,15 @@ describe('istek-yanit view', () => {
     expect(deriveIstekView(base).ozet).toBeNull();
   });
 
+  it('ozet card shows 200 request', () => {
+    const v = deriveIstekView({ ...base, yol: '/api/notlar/2026999', yetkiliMi: false, gorunum: 'ozet' });
+    expect(v.istekKarti).toEqual({ yol: '/api/notlar/2026001', kullaniciAdi: 'ayse', yetkiliMi: true });
+  });
+
+  it('NaN olay counts as 0', () => {
+    expect(deriveIstekView({ ...base, olay: NaN })).toEqual(deriveIstekView({ ...base, olay: 0 }));
+  });
+
   it('code highlights the active event line', () => {
     const v = deriveIstekView({ ...base, olay: 1 });
     expect(v.code.active).toEqual([lineOf('this.tersVekil.yonlendir(istek)')]);

@@ -33,7 +33,7 @@ const KITAP_CAGRILARI: readonly { no: string; yetkiliMi: boolean }[] = [
 export function deriveIstekView(p: IstekParams): IstekView {
   const iz = notSorgula(p.yol, p.yetkiliMi);
   const toplam = iz.olaylar.length;
-  const olay = Math.max(0, Math.min(toplam, Math.trunc(p.olay)));
+  const olay = Math.max(0, Math.min(toplam, Math.trunc(p.olay) || 0));
   const gorunen = iz.olaylar.slice(0, olay);
   const tamam = olay === toplam;
 
@@ -63,7 +63,7 @@ export function deriveIstekView(p: IstekParams): IstekView {
 
   return {
     sequence,
-    istekKarti: ozet || olay > 0 ? iz.istek : null,
+    istekKarti: ozet ? tam.istek : olay > 0 ? iz.istek : null,
     yanit: ozet || tamam ? tam.yanit : null,
     code: { title: MINI_APP_FILE, lines: MINI_APP, active: sonOlay ? [sonOlay.line] : [] },
     terminal: ozet ? ozetIzler.map((z) => z.cikti) : tamam ? [iz.cikti] : [],
