@@ -59,7 +59,7 @@ export const istekScenario: Scenario<IstekParams> = {
       id: 'ayristir',
       title: 'API yolu ayrıştırır',
       term: 'uç nokta',
-      text: 'NotApi, yolu / karakterine göre parçalar ve öğrenci numarasını dördüncü parçadan okur. Numara boşsa istek geçersizdir ve 400 döner. Bu uç nokta, yolun son parçasını girdi olarak alır.',
+      text: 'NotApi yoldan öğrenci numarasını ayrıştırıp NotBackendServisi\'ne devreder. Yolu / karakterine göre parçalar ve öğrenci numarasını dördüncü parçadan okur. Numara boşsa istek geçersizdir ve 400 döner.',
       labText: 'Yol sonundaki numarayı silerseniz API numarayı boş bulur ve akış API katmanında durur.',
       params: { olay: kadar((o) => o.kind === 'note' && o.from === 'notApi') },
     },

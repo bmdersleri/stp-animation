@@ -36,6 +36,11 @@ describe('istek-yanit scenario', () => {
     expect(sc.steps[9].text.endsWith('Hata kodu, isteği durduran katmanda üretilir.')).toBe(true);
   });
 
+  it('step 5 opens with the book sentence (b01 Kod 1.5, kritik satır 2), not an own "uç nokta" claim', () => {
+    expect(sc.steps[4].text.startsWith("NotApi yoldan öğrenci numarasını ayrıştırıp NotBackendServisi'ne devreder.")).toBe(true);
+    expect(sc.steps[4].text).not.toContain('son parçasını');
+  });
+
   it('step 8 sets yetkiliMi false; back from 10 to 9 restores the flow view', () => {
     const p = new StepPlayer(sc);
     p.goto(7);
