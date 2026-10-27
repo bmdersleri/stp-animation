@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.superpowers/
+test-results/
+playwright-report/
+.codegraph/
+.remember/
+.worktrees/
+.serena/
+__pycache__/
