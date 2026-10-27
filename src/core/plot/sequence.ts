@@ -39,6 +39,9 @@ const PAD = 6;
 const TOKEN_R = 6;
 const RESPONSE_DASH = '7 5';
 const NOTE_H_LINES_PAD = 8;
+/** Widest a note may wrap, in lane gaps, and the space (px) kept between a note and the diagram edge. */
+const NOTE_LANES = 1.8;
+const NOTE_INSET = TOKEN_R + 4;
 /** Clear space (px) kept between the content of two neighbouring rows. */
 const ROW_CLEAR = 4;
 let layerCount = 0;
@@ -137,9 +140,18 @@ export class SequenceLayer {
     return lay;
   }
 
-  /** Lines a note's text wraps to; a note may span a couple of lanes, so a short check stays on one line even on a phone. */
-  private noteLines(label: string, lay: Layout, fontPx: number): string[] {
-    return this.measure.wrap(label, Math.min(lay.gap * 2.4, lay.right - lay.left) - 2 * PAD, 'seq-msg-label', fontPx);
+  /**
+   * Box of a note on its lane: text wraps at no more than NOTE_LANES lane gaps, and the box is centred on its lane
+   * unless that would push it out of the diagram; then it is shifted in by NOTE_INSET so its border and the token
+   * on its corner stay fully visible.
+   */
+  private noteBox(m: Message, lay: Layout, fontPx: number): { lines: string[]; w: number; h: number; cx: number } {
+    const lines = this.measure.wrap(m.label, Math.min(lay.gap * NOTE_LANES, lay.right - lay.left - 2 * NOTE_INSET) - 2 * PAD, 'seq-msg-label', fontPx);
+    const w = this.measure.maxWidth(lines, 'seq-msg-label', fontPx) + 2 * PAD;
+    const h = lines.length * fontPx * LINE_K + NOTE_H_LINES_PAD;
+    const lane = lay.xs.get(m.from) ?? 0;
+    const cx = Math.max(lay.left + NOTE_INSET + w / 2, Math.min(lay.right - NOTE_INSET - w / 2, lane));
+    return { lines, w, h, cx };
   }
 
   /** Lines an arrow's label wraps to. */
@@ -152,7 +164,7 @@ export class SequenceLayer {
   private extent(m: Message, lay: Layout, fontPx: number): { above: number; below: number } {
     const lh = fontPx * LINE_K;
     if (m.kind === 'note') {
-      const half = (this.noteLines(m.label, lay, fontPx).length * lh + NOTE_H_LINES_PAD) / 2;
+      const half = this.noteBox(m, lay, fontPx).h / 2;
       return { above: half, below: half };
     }
     return { above: 6 + (this.arrowLines(m, lay, fontPx).length - 1) * lh + fontPx, below: TOKEN_R };
@@ -240,12 +252,8 @@ export class SequenceLayer {
         });
       };
       if (d.kind === 'note') {
-        const lines = this.noteLines(d.label, lay, fontPx);
-        const w = this.measure.maxWidth(lines, 'seq-msg-label', fontPx) + 2 * PAD;
-        const h = lines.length * lh + NOTE_H_LINES_PAD;
+        const { lines, w, h, cx } = this.noteBox(d, lay, fontPx);
         const r = g.querySelector('rect')!;
-        // a note on an outer lane stays inside the diagram
-        const cx = Math.max(lay.left + 2 + w / 2, Math.min(lay.right - 2 - w / 2, x1));
         r.setAttribute('x', String(r1(cx - w / 2)));
         r.setAttribute('y', String(r1(-h / 2)));
         r.setAttribute('width', String(r1(w)));
@@ -295,11 +303,9 @@ export class SequenceLayer {
     let cy = y;
     if (m.kind === 'note') {
       // the token marks a note on its top-left corner, off the text
-      const lines = this.noteLines(m.label, lay, fontPx);
-      const w = this.measure.maxWidth(lines, 'seq-msg-label', fontPx) + 2 * PAD;
-      const cx = Math.max(lay.left + 2 + w / 2, Math.min(lay.right - 2 - w / 2, x1));
-      x1 = x2 = Math.max(lay.left + TOKEN_R + 1, cx - w / 2);
-      cy = y - (lines.length * fontPx * LINE_K + NOTE_H_LINES_PAD) / 2;
+      const box = this.noteBox(m, lay, fontPx);
+      x1 = x2 = box.cx - box.w / 2;
+      cy = y - box.h / 2;
     }
     let c = this.tokenG.select<SVGCircleElement>('circle.seq-token');
     const fresh = c.empty();

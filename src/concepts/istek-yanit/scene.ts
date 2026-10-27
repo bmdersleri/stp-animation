@@ -104,7 +104,7 @@ export function mountIstekScene(
     // class names under the lane titles go when one of them is wider than its lane (phone width)
     const lane = dw / v.sequence.lanes.length - LANE_PAD;
     const subFits = v.sequence.lanes.every((l) => measure.width(l.sub ?? '', 'seq-lane-sub', tick) <= lane);
-    const sequence = subFits ? v.sequence : { ...v.sequence, lanes: v.sequence.lanes.map(({ sub: _sub, ...l }) => l) };
+    const sequence = subFits ? v.sequence : { ...v.sequence, lanes: v.sequence.lanes.map((l) => ({ id: l.id, label: l.label })) };
     layer.draw(sequence, { left: 0, top: 0, width: dw, height: dh }, ms, tick);
     cards.update(v);
     // a phone has no room for the strip next to the diagram and the cards

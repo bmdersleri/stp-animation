@@ -16,18 +16,28 @@ const STACKS = [{ upper: '.seq-lane-label', lower: '.seq-lane-sub', within: '.se
 
 /**
  * Under the diagram (phone width) the cards scroll inside the stage on purpose, so below the stage box they stick
- * out of it: they must then be reachable by scrolling it (the stage scrolls and its scroll height covers them).
+ * out of it. For each such box (class names returned) its nearest scrollable ancestor must contain it in its scroll
+ * range, and that ancestor must itself sit inside the stage; the names of boxes that pass are `reachable`, those
+ * that do not are `lost`.
  */
-async function cardsReachable(page: Page): Promise<string[]> {
+async function scrollReach(page: Page): Promise<{ reachable: string[]; lost: string[] }> {
   return page.evaluate((sel) => {
-    const out: string[] = [];
-    const cards = document.querySelector<HTMLElement>('.istek-cards');
-    const area = document.querySelector<HTMLElement>('.istek-stage[data-narrow]');
-    if (!cards || !area) return out;
+    const out = { reachable: [] as string[], lost: [] as string[] };
+    const stageEl = document.querySelector<HTMLElement>('.stage');
+    if (!stageEl) return { reachable: [], lost: ['no .stage'] };
+    const st = stageEl.getBoundingClientRect();
     for (const el of document.querySelectorAll<HTMLElement>(sel)) {
-      if (el.getBoundingClientRect().width === 0) continue;
-      const host = [cards, area, document.querySelector<HTMLElement>('.stage')!].find((h) => h.scrollHeight > h.clientHeight + 1 && ['auto', 'scroll'].includes(getComputedStyle(h).overflowY));
-      if (!host && el.getBoundingClientRect().bottom > document.querySelector('.stage')!.getBoundingClientRect().bottom + 1) out.push(`${el.className} unreachable`);
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0 || el.closest('[hidden]')) continue;
+      if (r.left >= st.left - 1 && r.right <= st.right + 1 && r.top >= st.top - 1 && r.bottom <= st.bottom + 1) continue;
+      let anc: HTMLElement | null = el.parentElement;
+      while (anc && !(['auto', 'scroll'].includes(getComputedStyle(anc).overflowY) && anc.scrollHeight > anc.clientHeight + 1)) anc = anc.parentElement;
+      const name = el.className;
+      if (!anc) { out.lost.push(name); continue; }
+      const a = anc.getBoundingClientRect();
+      const inRange = r.bottom - a.top + anc.scrollTop <= anc.scrollHeight + 1 && r.right - a.left + anc.scrollLeft <= anc.scrollWidth + 1;
+      const ancInside = a.left >= st.left - 1 && a.right <= st.right + 1 && a.top >= st.top - 1 && a.bottom <= st.bottom + 1;
+      (inRange && ancInside ? out.reachable : out.lost).push(name);
     }
     return out;
   }, BOXES);
@@ -66,10 +76,10 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         expect((await pageOverflow(page)).x, at).toBeLessThanOrEqual(0);
         expect(await overlaps(page, LABELS, STACKS), at).toEqual([]);
         expect(await outsideStage(page, LABELS), at).toEqual([]);
-        const narrow = w < 700;
-        const clipped = (await clippedBoxes(page, BOXES, '.istek-cards')).filter((c) => !(narrow && c.endsWith(': outside the stage')));
+        const reach = await scrollReach(page);
+        expect(reach.lost, at).toEqual([]);
+        const clipped = (await clippedBoxes(page, BOXES, '.istek-cards')).filter((c) => !(c.endsWith(': outside the stage') && reach.reachable.includes(c.split(':')[0])));
         expect(clipped, at).toEqual([]);
-        if (narrow) expect(await cardsReachable(page), at).toEqual([]);
         // the code strip sits under the stage, so the whole Ders page must fit the viewport height
         if (mode === 'ders' && w === 1280) expect((await pageOverflow(page)).y, at).toBeLessThanOrEqual(0);
       }
@@ -90,6 +100,7 @@ test('ders font floors at 1280x720', async ({ page }, info) => {
       axis: await fontSizes(page, '.kart-baslik'),
     };
     expect(m.title.length, 'step title shown').toBeGreaterThan(0);
+    expect(m.tick.length, 'diagram text shown').toBeGreaterThan(0);
     for (const fs of m.title) expect(fs).toBeGreaterThanOrEqual(32);
     for (const fs of m.body) expect(fs).toBeGreaterThanOrEqual(22);
     for (const fs of [...m.tick, ...m.axis]) expect(fs).toBeGreaterThanOrEqual(18);

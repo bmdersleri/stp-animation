@@ -82,7 +82,7 @@ export const istekScenario: Scenario<IstekParams> = {
     {
       id: 'yanit-401',
       title: 'Yetkisiz istek: 401',
-      term: '401',
+      term: 'ters vekil',
       text: 'Aynı yol, ama yetkisiz kullanıcı: ters vekil isteği ilk denetimde reddeder ve 401 döner. NotApi ile backend hiç çalışmaz; soluk görünmeleri bu yüzdendir.',
       labText: 'Yetkisiz akışta durdurma işareti ters vekilde görünür ve arkadaki iki katman soluk kalır.',
       params: { yetkiliMi: false, olay: TUMU(VARSAYILAN.yol, false) },
@@ -90,7 +90,7 @@ export const istekScenario: Scenario<IstekParams> = {
     {
       id: 'yanit-404',
       title: 'Kayıt yok: 404',
-      term: '404',
+      term: 'backend servisi',
       text: 'Yetkili istek, ama numara tabloda yok: istek backend\'e kadar gider, backend kaydı bulamaz ve 404 üretir. Hata kodunu, isteği durduran katman üretir; aynı 404 ters vekilden de backend servisinden de gelebilir, bu yüzden kod tek başına katmanı söylemez.',
       labText: 'Bu akış tüm katmanları dolaşır ve en arkada durur; durdurma işareti backend servisinde görünür.',
       params: { yetkiliMi: true, yol: '/api/notlar/2026999', olay: TUMU('/api/notlar/2026999', true) },

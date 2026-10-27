@@ -126,4 +126,63 @@ describe('SequenceLayer', () => {
     layer.draw(spec({ messages, active: 'm0' }), BOX, 0, 14);
     expect(svg.querySelectorAll('circle.seq-token')).toHaveLength(0);
   });
+
+  describe('notes and rows', () => {
+    const FONT = 14;
+    const y = (g: Element): number => Number(/translate\(0,([-\d.]+)\)/.exec(g.getAttribute('transform')!)![1]);
+    const rectOf = (g: Element): { x: number; w: number; top: number; bottom: number } => {
+      const r = g.querySelector('rect')!;
+      const top = y(g) + Number(r.getAttribute('y'));
+      return { x: Number(r.getAttribute('x')), w: Number(r.getAttribute('width')), top, bottom: top + Number(r.getAttribute('height')) };
+    };
+    const longNote = 'Bu uzun bir not metnidir ve birkaç satýra sarýlmalýdýr';
+
+    it('rows push down two-line notes', () => {
+      const { svg, layer } = setup();
+      const messages = [
+        msg('m0', 'a', 'b'),
+        msg('n1', 'b', 'b', 'note', { label: longNote }),
+        msg('m2', 'b', 'c'),
+        msg('n3', 'c', 'c', 'note', { label: longNote }),
+        msg('m4', 'c', 'd'),
+        msg('m5', 'd', 'c', 'response'),
+      ];
+      layer.draw(spec({ messages }), { left: 0, top: 0, width: 800, height: 420 }, 0, FONT);
+      const extents = [...svg.querySelectorAll('g.seq-msg')].map((g) => {
+        if (g.getAttribute('data-kind') === 'note') { const r = rectOf(g); return [r.top, r.bottom]; }
+        return [y(g) - 6 - FONT, y(g)];
+      });
+      for (let i = 1; i < extents.length; i++) expect(extents[i][0], `row ${i}`).toBeGreaterThanOrEqual(extents[i - 1][1]);
+    });
+
+    it('note clamped inside box', () => {
+      const { svg, layer } = setup();
+      layer.draw(spec({ messages: [msg('n', 'a', 'a', 'note', { label: longNote })] }), BOX, 0, FONT);
+      const r = rectOf(svg.querySelector('g.seq-msg[data-id="n"]')!);
+      expect(r.x).toBeGreaterThanOrEqual(10);
+      expect(r.x + r.w).toBeLessThanOrEqual(BOX.width - 10);
+      layer.draw(spec({ messages: [msg('n', 'd', 'd', 'note', { label: longNote })] }), BOX, 0, FONT);
+      const q = rectOf(svg.querySelector('g.seq-msg[data-id="n"]')!);
+      expect(q.x + q.w).toBeLessThanOrEqual(BOX.width - 10);
+    });
+
+    it('note width capped', () => {
+      const { svg, layer } = setup();
+      layer.draw(spec({ messages: [msg('n', 'b', 'b', 'note', { label: longNote.repeat(3) })] }), BOX, 0, FONT);
+      const r = rectOf(svg.querySelector('g.seq-msg[data-id="n"]')!);
+      expect(r.w).toBeLessThanOrEqual((BOX.width / 4) * 1.8);
+      expect(svg.querySelectorAll('g.seq-msg[data-id="n"] tspan').length).toBeGreaterThan(1);
+    });
+
+    it('token on note stays inside box', () => {
+      const { svg, layer } = setup();
+      layer.draw(spec({ messages: [msg('n', 'a', 'a', 'note', { label: longNote })], active: 'n' }), BOX, 0, FONT);
+      const t = svg.querySelector('circle.seq-token')!;
+      const cx = Number(t.getAttribute('cx'));
+      const r = rectOf(svg.querySelector('g.seq-msg[data-id="n"]')!);
+      expect(cx - 6).toBeGreaterThanOrEqual(0);
+      expect(cx).toBeCloseTo(r.x, 0);
+      expect(Number(t.getAttribute('cy'))).toBeCloseTo(r.top, 0);
+    });
+  });
 });
