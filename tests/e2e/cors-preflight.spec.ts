@@ -5,11 +5,11 @@ const PAGE = '/cors-preflight/';
 const READY = '.cors-scene .cors-stage';
 const STEPS = 10;
 /** Scene boxes that must show all their content; the stage scrolls on purpose only at phone width. */
-const BOXES = '.istek-karti, .yanit-karti, .terminal, .check-list, .cors-aciklama, .koken-etiketi';
+const BOXES = '.istek-karti, .yanit-karti, .terminal, .check-list, .cors-aciklama, .koken-etiketi, .kitap-blok, .data-table';
 /** Boxes checked against the `.cors-stage` box at desktop widths: neither scrolling nor cut by it. */
-const STAGE_BOXES = '.cors-main, .cors-yan, .http-cards, .istek-karti, .yanit-karti, .terminal, .check-list, .cors-diyagram';
+const STAGE_BOXES = '.cors-main, .cors-yan, .http-cards, .istek-karti, .yanit-karti, .terminal, .check-list, .cors-diyagram, .kitap-blok, .data-table';
 /** Texts that must stay apart. */
-const TEXTS = '.denetim, .terminal-satir, .istek-satir, .cors-aciklama, .koken-etiketi';
+const TEXTS = '.denetim, .terminal-satir, .istek-satir, .cors-aciklama, .koken-etiketi, .tanim-metin, .kitap-not, .data-table-title';
 
 test.use({ reducedMotion: 'reduce' });
 
@@ -101,9 +101,9 @@ test('ders font floors at 1280x720', async ({ page }, info) => {
     await rest(page);
     const m: Record<string, number[]> = {
       title: await fontSizes(page, '.step-title'),
-      body: await fontSizes(page, '.step-text'),
-      tick: await fontSizes(page, '.denetim, .terminal-satir, .cors-aciklama, .koken-etiketi, .code-trace-lines *, .kaynak-rozeti, svg.plot text:not(.probe)'),
-      axis: await fontSizes(page, '.kart-baslik, .check-list-title'),
+      body: await fontSizes(page, '.step-text, .kitap-blok'),
+      tick: await fontSizes(page, '.denetim, .terminal-satir, .cors-aciklama, .koken-etiketi, .code-trace-lines *, .kaynak-rozeti, svg.plot text:not(.probe), .data-table td, .data-table th'),
+      axis: await fontSizes(page, '.kart-baslik, .check-list-title, .data-table-title'),
     };
     expect(m.title.length, 'step title shown').toBeGreaterThan(0);
     for (const fs of m.title) expect(fs).toBeGreaterThanOrEqual(32);
@@ -112,6 +112,37 @@ test('ders font floors at 1280x720', async ({ page }, info) => {
     for (const [k, xs] of Object.entries(m)) measured[`${n}.${k}`] = xs.length ? Math.min(...xs) : null;
   }
   info.annotations.push({ type: 'min font-size px', description: JSON.stringify(measured) });
+});
+
+test('ders: steps 1 and 10 show the book block at 1280x720', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await open(page, PAGE, 'ders', READY);
+  const blok = page.locator('.kitap-blok');
+  await expect(blok).toBeVisible();
+  await expect(page.locator('.cors-diyagram')).toBeHidden();
+  await expect(blok.locator('.tanim-metin')).toContainText('Tanım. CORS, bir web sayfasının çalıştığı kökenden');
+  await expect(blok.locator('.kitap-not')).toHaveText(/^İpucu: CORS bir sunucu güvenlik duvarı değildir;/);
+  await expect(page.locator('.koken-etiketi')).toHaveCount(2);
+  expect((await pageOverflow(page)).x, 'step 1').toBeLessThanOrEqual(0);
+  expect((await pageOverflow(page)).y, 'step 1').toBeLessThanOrEqual(0);
+  expect(await stageBoxProblems(page, '.cors-stage', '.kitap-blok, .tanim-metin, .kitap-not'), 'step 1').toEqual([]);
+  await gotoStep(page, STEPS - 1, STEPS, 0);
+  await rest(page);
+  await expect(blok.locator('.data-table-title')).toHaveText(["CORS ile CSRF'i karıştırmayınız.", 'Alternatifler']);
+  await expect(blok.locator('tbody tr')).toHaveCount(7);
+  await expect(blok.locator('.data-table').nth(1).locator('tbody tr').last()).toContainText('Reverse proxy ile aynı kökene taşıma');
+  expect((await pageOverflow(page)).x, 'step 10').toBeLessThanOrEqual(0);
+  expect((await pageOverflow(page)).y, 'step 10').toBeLessThanOrEqual(0);
+  expect(await stageBoxProblems(page, '.cors-stage', '.kitap-blok, .data-table, .data-table tbody tr'), 'step 10').toEqual([]);
+});
+
+test('lab: the Kod 11.7 server answering an allowed origin carries the R24 note', async ({ page }) => {
+  await open(page, PAGE, 'lab', READY);
+  await gotoStep(page, 3, STEPS, 0);
+  await expect(page.locator('.cors-aciklama')).not.toContainText('Kod 11.7 başlık eklemez');
+  await page.locator('select[name="koken"]').selectOption('kutuphane');
+  await rest(page);
+  await expect(page.locator('.cors-aciklama')).toContainText('Kod 11.7 başlık eklemez; bu sayfa Kod 11.4’ün başlıklarını ekler.');
 });
 
 test('ders: the request card shows on steps 3, 8 and 9 at 1280x720', async ({ page }) => {

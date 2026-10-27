@@ -3,6 +3,7 @@ import type { Mode } from '../../core/mode';
 import type { PlayerState, StepPlayer } from '../../core/player';
 import { CheckList } from '../../core/plot/check-list';
 import { CodeTrace } from '../../core/plot/code-trace';
+import { DataTable } from '../../core/plot/data-table';
 import { HttpCards } from '../../core/plot/http-cards';
 import { breakWord } from '../../core/plot/lane-words';
 import { SequenceLayer } from '../../core/plot/sequence';
@@ -10,7 +11,7 @@ import { sourceBadge, type Rozet } from '../../core/plot/source-badge';
 import { TextMeasure } from '../../core/plot/text-measure';
 import type { SceneHandle } from '../../core/shell';
 import { CORS_ROZET, type CorsParams } from './scenario';
-import { corsLabRozet, deriveCorsView } from './view';
+import { corsLabRozet, deriveCorsView, type CorsKitapBlok } from './view';
 import './cors-preflight.css';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -64,6 +65,7 @@ function kokenYaz(e: HTMLElement, metin: string): void {
 /**
  * Scene of the cors-preflight page: the two origin tags (page / API) and the badge on top, the sequence diagram with
  * beside it the check list and the request, response and terminal cards, the explanation line, and in Ders the code strip.
+ * The intro and summary steps replace the diagram with the book's definition and tables.
  */
 export function mountCorsScene(
   host: HTMLElement,
@@ -94,7 +96,9 @@ export function mountCorsScene(
   diyagram.append(svg);
 
   const aciklama = el(doc, 'p', 'cors-aciklama');
-  main.append(diyagram, aciklama);
+  const kitapBlok = el(doc, 'div', 'kitap-blok');
+  const kitapTablolari: DataTable[] = [];
+  main.append(kitapBlok, diyagram, aciklama);
 
   const denetimYeri = el(doc, 'div', 'denetim-yeri');
   const denetim = new CheckList(denetimYeri);
@@ -119,6 +123,28 @@ export function mountCorsScene(
   function rozet(state: PlayerState<CorsParams>): void {
     const r: Rozet = labRozeti ? corsLabRozet(state.params) : (CORS_ROZET[state.step.id] ?? { tur: 'kitap' });
     rozetYeri.replaceChildren(sourceBadge(doc, r.tur, r.ref));
+  }
+
+  /** Empties the book block (a flow step keeps no hidden book table). */
+  function kitapTemizle(): void {
+    kitapTablolari.splice(0).forEach((t) => t.destroy());
+    kitapBlok.replaceChildren();
+  }
+
+  /** The book's own text: the bold "Tanım." paragraph, the tables, then the muted sentences. */
+  function kitapYaz(b: CorsKitapBlok): void {
+    kitapTemizle();
+    if (b.tanim) {
+      const para = el(doc, 'p', 'tanim-metin');
+      para.append(el(doc, 'strong', '', 'Tanım. '), b.tanim);
+      kitapBlok.append(para);
+    }
+    for (const spec of b.tablolar) {
+      const t = new DataTable(kitapBlok);
+      t.update(spec);
+      kitapTablolari.push(t);
+    }
+    for (const n of b.notlar) kitapBlok.append(el(doc, 'p', 'kitap-not', n));
   }
 
   function draw(state: PlayerState<CorsParams>): void {
@@ -153,6 +179,18 @@ export function mountCorsScene(
 
     aciklama.hidden = v.aciklama === null;
     aciklama.textContent = v.aciklama ?? '';
+
+    // intro and summary: the book's text takes the diagram's place
+    kitapBlok.hidden = v.kitap === null;
+    diyagram.hidden = v.kitap !== null;
+    if (v.kitap) {
+      kitapYaz(v.kitap);
+      layer.clear();
+      drawnH = 0;
+      rozet(state);
+      return;
+    }
+    kitapTemizle();
 
     // measure the diagram box without the previous drawing inside it
     svg.setAttribute('height', '0');
@@ -203,6 +241,7 @@ export function mountCorsScene(
       unsubscribe();
       boxWatch?.disconnect();
       layer.clear();
+      kitapTemizle();
       denetim.destroy();
       kartlar.destroy();
       strip.destroy();

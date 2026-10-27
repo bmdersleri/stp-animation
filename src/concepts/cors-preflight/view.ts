@@ -1,6 +1,7 @@
 import { lineOf, listing } from '../../core/listing';
 import type { CheckListSpec } from '../../core/plot/check-list';
 import type { CodeTraceSpec } from '../../core/plot/code-trace';
+import type { DataTableSpec } from '../../core/plot/data-table';
 import type { HttpCardsSpec, HttpIstek, HttpYanit } from '../../core/plot/http-cards';
 import type { Lane, Message, SequenceSpec } from '../../core/plot/sequence';
 import type { Rozet } from '../../core/plot/source-badge';
@@ -8,6 +9,15 @@ import { LISTINGS } from './code-text';
 import type { CorsParams } from './scenario';
 import { API_KOKENI } from './sunucu';
 import { calistir, KOKEN_URL } from './tarayici';
+
+/** The book's own text on the intro and summary steps, verbatim without code ticks and bold marks. */
+export interface CorsKitapBlok {
+  /** The definition paragraph, shown after a bold "Tanım. " (the book's own label). */
+  tanim?: string;
+  tablolar: readonly DataTableSpec[];
+  /** Further book sentences, shown muted under the rest. */
+  notlar: readonly string[];
+}
 
 export interface CorsView {
   sequence: SequenceSpec;
@@ -19,7 +29,40 @@ export interface CorsView {
   kokenler: { sayfa: string; api: string };
   aciklama: string | null;
   ozet: boolean;
+  /** The book block of the intro and summary steps (they draw no diagram); null on every flow step. */
+  kitap: CorsKitapBlok | null;
 }
+
+/** The book's definition (L540) and hint (L528), as the intro step shows them. */
+const TANIM =
+  'CORS, bir web sayfasının çalıştığı kökenden (origin — protokol + alan adı + port) farklı bir kökene tarayıcı üzerinden istek göndermesini denetleyen bir mekanizmadır. Sunucu, hangi kökenlerden gelen isteklere izin verdiğini Access-Control-Allow-Origin başlığıyla bildirir; tarayıcı bu başlığa göre yanıtı sayfanın betiğine (script) verip vermeyeceğine karar verir.';
+const IPUCU = 'İpucu: CORS bir sunucu güvenlik duvarı değildir; tarayıcının, farklı bir kökenden çalışan sayfa adına yapılan isteği ne zaman engelleyeceğini belirleyen bir tarayıcı politikasıdır.';
+
+/** The book's CORS / CSRF table (L550-554) under its own warning title (L548). */
+const CSRF_TABLO: DataTableSpec = {
+  baslik: "CORS ile CSRF'i karıştırmayınız.",
+  sutunlar: [{ ad: '' }, { ad: 'CORS / Same-Origin Policy' }, { ad: 'CSRF koruması' }],
+  satirlar: [
+    { key: 'engel', cells: ['Engellediği şey', 'Yabancı kökenin yanıtı okuması', 'Yabancı kökenin istek göndertmesi'] },
+    { key: 'tehdit', cells: ['Tehdit', 'Veri sızdırma', 'İstemsiz durum değiştirme (para transferi, kayıt silme)'] },
+    { key: 'arac', cells: ['Aracı', 'Access-Control-Allow-Origin başlığı', 'CSRF token, SameSite çerez niteliği'] },
+  ],
+};
+
+/** The book's alternatives table (L640 title, L642 header, L644-647 rows). */
+const ALTERNATIF_TABLO: DataTableSpec = {
+  baslik: 'Alternatifler',
+  sutunlar: [{ ad: 'Yaklaşım' }, { ad: 'Avantajı' }, { ad: 'Dezavantajı' }, { ad: 'Uygun kullanım' }],
+  satirlar: [
+    { key: 'allowlist', cells: ['Allowlist ile belirli kökenlere izin (bu bölümde örneklenen)', 'Güvenlidir, hangi kökenlerin güvenildiği açıktır', 'Yeni bir frontend eklendiğinde listeyi güncellemek gerekir', 'Bilinen, sınırlı sayıda frontend'] },
+    { key: 'wildcard', cells: ['Access-Control-Allow-Origin: *', 'Kurulumu çok basittir', 'Credentials ile birlikte kullanılamaz, herkese açıktır', 'Yalnızca tamamen herkese açık, kimlik gerektirmeyen API’ler'] },
+    { key: 'cors', cells: ['cors npm paketi', 'Test edilmiş, ön uçuş (preflight) isteklerini otomatik yönetir', 'Ek bağımlılık ekler', 'Üretim ortamı'] },
+    { key: 'proxy', cells: ['Reverse proxy ile aynı kökene taşıma', 'CORS ihtiyacını tamamen ortadan kaldırır', 'Altyapı karmaşıklığı ekler', 'Frontend ve backend’in birlikte konuşlandırıldığı sistemler'] },
+  ],
+};
+
+const TANITIM_BLOK: CorsKitapBlok = { tanim: TANIM, tablolar: [], notlar: [IPUCU] };
+const OZET_BLOK: CorsKitapBlok = { tablolar: [CSRF_TABLO, ALTERNATIF_TABLO], notlar: [] };
 
 /** The three lanes of a CORS call (R18: the order of the calls). */
 export const CORS_LANES: Lane[] = [
@@ -43,6 +86,8 @@ const CURL_NOTU = 'Kitap bu çağrıyı doğrudan fonksiyonla yapar (L1201-1206)
 const OKUMA_ENGELI = 'Tarayıcı yanıtı betiğe vermedi; sunucu isteği işledi.';
 const OKUMA_ENGELI_ISLENMEDI = 'Tarayıcı yanıtı betiğe vermedi.';
 const ASIL_YOK = 'Asıl istek hiç gönderilmedi.';
+/** R24: the kitap-11-7 server merges two book listings; the page says so wherever it adds the headers. */
+export const R24_NOTU = 'Kod 11.7 başlık eklemez; bu sayfa Kod 11.4’ün başlıklarını ekler.';
 const COR_NOTU = 'preflight’ı `cors` paketi yanıtlar (L646)';
 
 const kodSeridi = (l: { title: string; lines: readonly string[] }, active: readonly number[], notes?: Readonly<Record<number, string>>): CodeTraceSpec => ({
@@ -73,7 +118,7 @@ function seritler(curl: boolean): Lane[] {
 
 const bosHttp: HttpCardsSpec = { yanitlar: [], terminal: [] };
 
-/** Intro and summary views: the lanes and nothing computed. */
+/** Intro and summary views: the book's text in place of the diagram, and nothing computed. */
 function bosGorunum(p: CorsParams): CorsView {
   const ozet = p.asama === 'ozet';
   return {
@@ -84,6 +129,7 @@ function bosGorunum(p: CorsParams): CorsView {
     kokenler: ozet ? { sayfa: '', api: '' } : { sayfa: KOKEN_URL[p.koken], api: API_KOKENI },
     aciklama: null,
     ozet,
+    kitap: ozet ? OZET_BLOK : TANITIM_BLOK,
   };
 }
 
@@ -124,6 +170,9 @@ export function deriveCorsView(p: CorsParams, kitapCiktisi = false): CorsView {
   let aciklama: string | null = null;
   if (tamami && !iz.betik.okudu) aciklama = iz.asil ? (iz.sunucuIsledi ? OKUMA_ENGELI : OKUMA_ENGELI_ISLENMEDI) : ASIL_YOK;
   else if (p.istemci === 'curl-origin' && p.sunucu === 'kitap-11-7') aciklama = CURL_NOTU;
+  // R24: a kitap-11-7 response that carries Allow-Origin got it from this page (Kod 11.4's headers), not from Kod 11.7
+  const sayfaBasligi = p.sunucu === 'kitap-11-7' && yanitlar.some((y) => y.basliklar?.some(([ad]) => ad === 'Access-Control-Allow-Origin'));
+  if (sayfaBasligi) aciklama = aciklama ? `${aciklama} ${R24_NOTU}` : R24_NOTU;
 
   const sonuc = olaylar.find((m) => m.id === 'sonuc');
   const sequence: SequenceSpec = {
@@ -143,6 +192,7 @@ export function deriveCorsView(p: CorsParams, kitapCiktisi = false): CorsView {
     kokenler: { sayfa: KOKEN_URL[p.koken], api: API_KOKENI },
     aciklama,
     ozet: false,
+    kitap: null,
   };
 }
 

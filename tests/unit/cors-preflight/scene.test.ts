@@ -30,12 +30,35 @@ describe('cors-preflight scene', () => {
     expect(texts(el, '.koken-deger')).toEqual(['https://kotu-niyetli-site.com', 'https://api.kutuphane.mehmetakif.edu.tr']);
   });
 
+  it('intro and summary show the book block in place of the diagram', () => {
+    const { el, player } = setup();
+    go(player, 'tanitim');
+    const blok = el.querySelector<HTMLElement>('.kitap-blok')!;
+    expect(blok.hidden).toBe(false);
+    expect(el.querySelector<HTMLElement>('.cors-diyagram')!.hidden).toBe(true);
+    expect(blok.querySelector('.tanim-metin strong')!.textContent).toBe('Tanım. ');
+    expect(blok.querySelector('.tanim-metin')!.textContent).toContain('CORS, bir web sayfasının çalıştığı kökenden');
+    expect(texts(blok, '.kitap-not')[0]).toMatch(/^İpucu: CORS bir sunucu güvenlik duvarı değildir;/);
+    expect(el.querySelectorAll('.koken-etiketi')).toHaveLength(2);
+    go(player, 'ozet');
+    expect(texts(blok, '.data-table-title')).toEqual(["CORS ile CSRF'i karıştırmayınız.", 'Alternatifler']);
+    expect(blok.querySelectorAll('tbody tr')).toHaveLength(7);
+    expect(el.querySelector<HTMLElement>('.koken-serit')!.hidden).toBe(true);
+    go(player, 'izinli');
+    expect(blok.hidden).toBe(true);
+    expect(el.querySelector<HTMLElement>('.cors-diyagram')!.hidden).toBe(false);
+    expect(el.querySelectorAll('svg.plot .seq-lane')).toHaveLength(3);
+  });
+
   it('rapid step jumps leave no duplicates', () => {
     const { el, player } = setup();
     for (const i of [7, 0, 9, 2, 5, 1, 8, 3]) player.goto(i);
     expect(el.querySelectorAll('.check-list')).toHaveLength(1);
     expect(el.querySelectorAll('.http-cards')).toHaveLength(1);
     expect(el.querySelectorAll('svg.plot')).toHaveLength(1);
+    player.goto(9);
+    player.goto(9);
+    expect(el.querySelectorAll('.kitap-blok .data-table')).toHaveLength(2);
   });
 
   it('badge follows lab change and returns on step change', () => {

@@ -46,7 +46,8 @@ describe('cors-preflight scenario', () => {
     expect(kitap.map((s) => s.id)).toEqual(['ozet']);
     for (const s of kitap) {
       const v = deriveCorsView(s.params as CorsParams, true);
-      const metin = JSON.stringify({ ...v, code: undefined });
+      // the book block is the book's own printed text (its tables name Access-Control-Allow-Origin); everything else must be empty
+      const metin = JSON.stringify({ ...v, code: undefined, kitap: undefined });
       expect(v.sequence.messages, s.id).toEqual([]);
       expect(v.http, s.id).toEqual({ yanitlar: [], terminal: [] });
       expect(v.denetim, s.id).toBeNull();

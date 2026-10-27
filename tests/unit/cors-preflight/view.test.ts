@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LISTINGS } from '../../../src/concepts/cors-preflight/code-text';
 import { corsScenario as sc, TUMU, type CorsParams } from '../../../src/concepts/cors-preflight/scenario';
-import { CORS_LANES, corsLabRozet, deriveCorsView } from '../../../src/concepts/cors-preflight/view';
+import { CORS_LANES, corsLabRozet, deriveCorsView, R24_NOTU } from '../../../src/concepts/cors-preflight/view';
 import { calistir } from '../../../src/concepts/cors-preflight/tarayici';
 import { listing } from '../../../src/core/listing';
 
@@ -113,6 +113,49 @@ describe('cors-preflight view', () => {
     expect(v.denetim).toBeNull();
     expect(v.ozet).toBe(false);
     expect(view(10).ozet).toBe(true);
+  });
+
+  it('step 1 shows the book definition L540 and hint L528', () => {
+    const k = view(1).kitap!;
+    expect(k.tanim).toBe(
+      'CORS, bir web sayfasının çalıştığı kökenden (origin — protokol + alan adı + port) farklı bir kökene tarayıcı üzerinden istek göndermesini denetleyen bir mekanizmadır. Sunucu, hangi kökenlerden gelen isteklere izin verdiğini Access-Control-Allow-Origin başlığıyla bildirir; tarayıcı bu başlığa göre yanıtı sayfanın betiğine (script) verip vermeyeceğine karar verir.',
+    );
+    expect(k.notlar).toEqual(['İpucu: CORS bir sunucu güvenlik duvarı değildir; tarayıcının, farklı bir kökenden çalışan sayfa adına yapılan isteği ne zaman engelleyeceğini belirleyen bir tarayıcı politikasıdır.']);
+    expect(k.tablolar).toEqual([]);
+    expect(view(1).kokenler.sayfa).toBe('https://kutuphane.mehmetakif.edu.tr');
+  });
+
+  it('step 10 shows the book tables L550-554 and L642-647', () => {
+    const [csrf, alt] = view(10).kitap!.tablolar;
+    expect(csrf.baslik).toBe("CORS ile CSRF'i karıştırmayınız.");
+    expect(csrf.sutunlar.map((s) => s.ad)).toEqual(['', 'CORS / Same-Origin Policy', 'CSRF koruması']);
+    expect(csrf.satirlar.map((r) => r.cells)).toEqual([
+      ['Engellediği şey', 'Yabancı kökenin yanıtı okuması', 'Yabancı kökenin istek göndertmesi'],
+      ['Tehdit', 'Veri sızdırma', 'İstemsiz durum değiştirme (para transferi, kayıt silme)'],
+      ['Aracı', 'Access-Control-Allow-Origin başlığı', 'CSRF token, SameSite çerez niteliği'],
+    ]);
+    expect(alt.baslik).toBe('Alternatifler');
+    expect(alt.sutunlar.map((s) => s.ad)).toEqual(['Yaklaşım', 'Avantajı', 'Dezavantajı', 'Uygun kullanım']);
+    expect(alt.satirlar.map((r) => r.cells[0])).toEqual(['Allowlist ile belirli kökenlere izin (bu bölümde örneklenen)', 'Access-Control-Allow-Origin: *', 'cors npm paketi', 'Reverse proxy ile aynı kökene taşıma']);
+    expect(alt.satirlar[1].cells).toEqual(['Access-Control-Allow-Origin: *', 'Kurulumu çok basittir', 'Credentials ile birlikte kullanılamaz, herkese açıktır', 'Yalnızca tamamen herkese açık, kimlik gerektirmeyen API’ler']);
+    expect(view(10).kitap!.tanim).toBeUndefined();
+  });
+
+  it('flow steps carry no book block', () => {
+    for (let n = 2; n <= 9; n++) expect(view(n).kitap, `step ${n}`).toBeNull();
+  });
+
+  it('R24 note when the kitap-11-7 server answers an allowed origin', () => {
+    const lab = { ...step(4), koken: 'kutuphane' as const };
+    const v = deriveCorsView(lab);
+    expect(v.http.yanitlar[0].basliklar?.map(([ad]) => ad)).toContain('Access-Control-Allow-Origin');
+    expect(v.aciklama).toContain(R24_NOTU);
+    expect(R24_NOTU).toBe('Kod 11.7 başlık eklemez; bu sayfa Kod 11.4’ün başlıklarını ekler.');
+    // a browser GET from the allowed origin reads the response: the note is the only explanation
+    expect(deriveCorsView({ ...step(2), sunucu: 'kitap-11-7' }).aciklama).toBe(R24_NOTU);
+    // refused origin: Kod 11.7 answers 403 itself, no header is added, no note
+    expect(view(4).aciklama).not.toContain(R24_NOTU);
+    expect(deriveCorsView({ ...step(2), sunucu: 'kitap-karari' }).aciklama).toBeNull();
   });
 
   it('lab badge standart only when preflight ran', () => {

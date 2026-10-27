@@ -3,7 +3,7 @@
 .cors-scene [hidden] { display:none !important; }
 /* tags and badge share one row; the badge shrinks and wraps, the tags do not break inside a word */
 .cors-ust { flex:none; display:flex; justify-content:space-between; align-items:flex-start; gap:6px 10px; min-height:calc(1.3 * var(--fs-tick) + 4px); }
-.cors-ust .rozet-yeri { flex:0 1 auto; display:flex; justify-content:flex-end; min-width:0; }
+.cors-ust .rozet-yeri { flex:0 1 auto; margin-left:auto; display:flex; justify-content:flex-end; min-width:0; }
 .cors-scene .kaynak-rozeti { white-space:normal; text-align:right; border-radius:14px; max-width:100%; }
 .koken-serit { flex:none; min-width:0; display:flex; flex-wrap:wrap; gap:4px 6px; }
 .koken-etiketi { min-width:0; display:flex; gap:6px; align-items:baseline; padding:1px 10px; border:2px solid var(--line); border-radius:10px; font-size:var(--fs-tick); line-height:1.25; background:var(--surface); }
@@ -51,6 +51,14 @@
 .cors-stage[data-narrow] .cors-diyagram { flex:none; height:var(--diyagram-h); }
 .cors-diyagram svg.plot { position:static; display:block; }
 .cors-diyagram .probe { visibility:hidden; font-size:var(--fs-tick); }
+
+/* intro and summary: the book's definition and tables in place of the diagram */
+.cors-scene .kitap-blok { flex:none; min-width:0; font-size:var(--fs-body); line-height:1.35; }
+.cors-scene .kitap-blok p { margin:0 0 6px; }
+.cors-scene .kitap-blok .kitap-not { color:var(--muted); }
+.cors-scene .kitap-blok .data-table { margin-bottom:8px; }
+.cors-scene .kitap-blok .data-table th, .cors-scene .kitap-blok .data-table td { padding:2px 6px; overflow-wrap:normal; }
+.cors-stage[data-narrow] .kitap-blok .data-table th, .cors-stage[data-narrow] .kitap-blok .data-table td { overflow-wrap:anywhere; }
 
 .cors-aciklama { flex:none; margin:6px 0 0; padding:3px 10px; border:2px dashed var(--line); border-radius:10px; font-size:var(--fs-tick); line-height:1.25; color:var(--muted); overflow-wrap:anywhere; }
 
