@@ -45,7 +45,10 @@ export class CodeTrace {
       if (spec.window !== undefined && first !== undefined && Math.abs(n - first) > spec.window) return;
       const li = doc.createElement('li');
       li.dataset.line = String(n);
-      if (active.has(n)) li.className = 'active';
+      if (active.has(n)) {
+        li.className = 'active';
+        li.setAttribute('aria-current', 'true');
+      }
       const code = doc.createElement('span');
       code.className = 'code-trace-text';
       code.textContent = text;

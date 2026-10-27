@@ -31,6 +31,10 @@ export interface SequenceSpec {
   stopAt?: string;
   /** Lane ids drawn faded. */
   dim?: string[];
+  /** Stop mark look: 'alarm' (red cross, default) or 'ok' (green return mark, the flow ended as intended). */
+  stopTone?: 'alarm' | 'ok';
+  /** Written to the nearest `<svg>` as `role="img"` + `aria-label`. */
+  ariaLabel?: string;
 }
 
 const MAX_ROWS = 8;
@@ -106,10 +110,18 @@ export class SequenceLayer {
   draw(spec: SequenceSpec, box: Rect, ms: number, fontPx: number): void {
     const lay = this.layout(spec, box, fontPx);
     this.xs = lay.xs;
+    this.label(spec);
     this.drawLanes(spec, lay, ms, fontPx);
     this.drawMessages(spec, lay, ms, fontPx);
     this.drawStop(spec, lay, ms);
     this.drawToken(spec, lay, ms, fontPx);
+  }
+
+  private label(spec: SequenceSpec): void {
+    const svg = (this.lanesG.node() as Element | null)?.closest('svg');
+    if (!svg || spec.ariaLabel === undefined) return;
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', spec.ariaLabel);
   }
 
   private layout(spec: SequenceSpec, box: Rect, fontPx: number): Layout {
@@ -280,11 +292,21 @@ export class SequenceLayer {
     }
     const last = lay.ys.length > 0 ? lay.ys[lay.ys.length - 1] : lay.headerBottom;
     const y = Math.min(lay.bottom - 8, last + Math.max(lay.rowH / 2, lay.lastBelow + 14));
+    const tone = spec.stopTone === 'ok' ? 'ok' : 'alarm';
     let g = this.stopG.select<SVGGElement>('g.seq-stop');
+    if (!g.empty() && g.attr('data-tone') !== tone) {
+      g.remove();
+      g = this.stopG.select<SVGGElement>('g.seq-stop');
+    }
     if (g.empty()) {
-      g = this.stopG.append('g').attr('class', 'seq-stop').attr('transform', `translate(${r1(x)},${r1(y)})`);
-      g.append('circle').attr('r', 8);
-      g.append('path').attr('d', 'M-4,-4L4,4M4,-4L-4,4');
+      g = this.stopG.append('g').attr('class', tone === 'ok' ? 'seq-stop ok' : 'seq-stop').attr('data-tone', tone).attr('transform', `translate(${r1(x)},${r1(y)})`);
+      if (tone === 'ok') {
+        // a green return mark: the flow came back with its answer
+        g.append('path').attr('class', 'seq-stop-return').attr('d', 'M-8,0H6M-2,-6L-8,0L-2,6M6,-7V0');
+      } else {
+        g.append('circle').attr('r', 8);
+        g.append('path').attr('d', 'M-4,-4L4,4M4,-4L-4,4');
+      }
     }
     tr(g, 'seq-stop', ms).attr('transform', `translate(${r1(x)},${r1(y)})`);
   }

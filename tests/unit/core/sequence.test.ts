@@ -185,4 +185,21 @@ describe('SequenceLayer', () => {
       expect(Number(t.getAttribute('cy'))).toBeCloseTo(r.top, 0);
     });
   });
+
+  it('stopTone ok draws the ok stop mark', () => {
+    const { svg, layer } = setup();
+    layer.draw(spec({ stopAt: 'b', stopTone: 'ok' }), BOX, 0, 14);
+    expect(svg.querySelectorAll('g.seq-stop.ok')).toHaveLength(1);
+    expect(svg.querySelector('g.seq-stop.ok circle')).toBeNull();
+    layer.draw(spec({ stopAt: 'b', stopTone: 'alarm' }), BOX, 0, 14);
+    expect(svg.querySelectorAll('g.seq-stop.ok')).toHaveLength(0);
+    expect(svg.querySelectorAll('g.seq-stop circle')).toHaveLength(1);
+  });
+
+  it('ariaLabel sets role and aria-label on the svg', () => {
+    const { svg, layer } = setup();
+    layer.draw(spec({ ariaLabel: 'Sıra diyagramı' }), BOX, 0, 14);
+    expect(svg.getAttribute('role')).toBe('img');
+    expect(svg.getAttribute('aria-label')).toBe('Sıra diyagramı');
+  });
 });

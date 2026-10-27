@@ -19,3 +19,6 @@ declare module 'node:path' {
   const path: { join(...parts: string[]): string };
   export default path;
 }
+declare module 'node:util' {
+  export function inspect(value: unknown): string;
+}
