@@ -51,8 +51,10 @@ test('salt-hash lab typing has no long task', async ({ page }, info) => {
   await parola.fill('');
   await parola.pressSequentially('Parola12', { delay: 80 });
   await expect(parola).toHaveValue('Parola12');
-  // the scrypt work yields with asyncTick; give it time to finish while the observer keeps watching
-  await page.waitForTimeout(4000);
+  // the scrypt work yields with asyncTick; the observer keeps watching until its hash has really arrived
+  await expect(page.locator('.seritler')).not.toContainText('hesaplanıyor…', { timeout: 20_000 });
+  await expect(page.locator('.segment-strip .parca:last-child .parca-metin').first()).toHaveText(/^[0-9a-f]{128}$/);
+  await expect(page.locator('.olcum')).toBeVisible();
   const long = await longTasks(page);
   const d = `salt-hash lab typing long tasks=${long.length} max=${round(Math.max(0, ...long))} ms`;
   info.annotations.push({ type: 'longtask', description: d });
