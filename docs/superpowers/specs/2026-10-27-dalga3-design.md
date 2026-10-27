@@ -110,6 +110,11 @@ Kabul ölçütleri:
 | R20 | Ortak parçalar | `check-list.ts` (sıralı denetimler: geçti, kaldı, atlandı, bekliyor) dört sayfada kullanılır: `jwt-akisi`, `rbac-401-403`, `cors-preflight`, `rate-limiting`. `segment-strip.ts` (renkli parçalı tek aralıklı metin, karakter farkı vurgusu) `salt-hash` ve `jwt-akisi`'de kullanılır. Zaman çizelgesi yalnız `rate-limiting`'in olduğundan sayfada kalır (`scene-timeline.ts`) | AGENTS.md: ikinci bir sayfanın istediği katman `core/plot`'a gider |
 | R21 | Dalga 2 küçükleri | Dalga 2 `final-review.md` "can wait" maddeleri bu dalgada açılmaz. Yalnız dokunulan ortak dosyalardaki maddeler kapanır: http-cards `.yanit-ust` ve pre-wrap (madde 2) ve `sequence.ts` eski `aria-label` (madde 1) | Dalga dar kalır; aynı dosyaya dokunulurken ucuz olanlar kapanır |
 | R22 | Görev incelemesi | Model, sahne ve ortak parça görevleri inceleyici alır. E2e, README ve kayıt defteri görevleri almaz. Son inceleme ve düzeltme opus'tadır, alt ajanlar sonnet | AGENTS.md bölüm temposu, öğretmenin model kuralı |
+| R24 | `kitap-11-7` sunucusu | Kod 11.7 yalnız izinsiz kökeni reddeder; izinli kökene başlık eklemez, yani gerçek bir tarayıcıda izinli köken de okuyamazdı. Bu sunucu türü kitabın iki kodunu birleştirir: izinsiz kökende `corsKontrolEt` (403), izinli kökende Kod 11.4'ün `corsKarariVer` başlıkları. `OPTIONS` ise `kitap-karari` gibi yanıtlanır (R25). Rozet `kitap-kodu`; ekranda "Kod 11.7 başlık eklemez; bu sayfa Kod 11.4'ün başlıklarını ekler" notu durur | Lab'daki her bileşim tanımlı olur. Birleştirme açıkça yazılır, kitaba atfedilmez |
+| R25 | Kitap kodunda `OPTIONS` | Kitabın sunucularında (`kitap-karari`, `kitap-11-7`) `OPTIONS` işleyicisi yoktur. Model, Express'in otomatik `OPTIONS` yanıtını izler: `200`, `Allow: POST` başlığı, gövde `POST`, ayrıca `corsKarariVer`'in iki başlığı. `Allow-Methods` ve `Allow-Headers` yoktur. Rozet `standart · Express, Fetch` | 204 uydurulmaz. Gerçek Express, `app.use` ile başlık ekleyip `next()` çağıran bir middleware'den sonra bu yanıtı verir |
+| R26 | HTTP eşlemesi (Kod 11.7) | Kod 11.7 bir fonksiyon sonucu döndürür, HTTP gövdesi değil. Yanıt kartı durumu `durumKodu`'ndan alır ve gövdeyi `{"mesaj":"…"}` olarak gösterir: sayfanın eşlemesidir, Dalga 2'nin REST eşlemesi gibi. Terminal ise L1207-1208'i harfiyen yazar | Birim testi L1208'i terminal satırında sabitler; kart ve terminal çelişmez |
+| R27 | Kod 10.7'nin kısa `tokenDogrula`'sı | `rbac-401-403/auth.ts`, L1169-1179'u ayrı bir fonksiyon (`tokenDogrulaKisa`) olarak birebir uygular. Biçim denetimi yoktur: `""` ve `gecersiz.token.deger` imza denetiminde kalır, hata `"401"`'dir. `CheckList` kimlik satırının ayrıntısı, kodun kaldığı satırdır ("L1171: imza eşleşmedi" ya da "L1175: süre doldu"). `tokenUret` `jwt-akisi/jwt.ts`'ten paylaşılır, çünkü L1163-1167 ile L445-450 aynı çıktıyı verir | Kitabın iki doğrulayıcısı farklıdır. Birini ötekinin modu yapmak farkı gizlerdi |
+| R28 | Sınırda patlama deseni | `sinir` deseni altı istektir: t = 0 (pencereyi açar, sayaç 1), 58 s (2), 59 s (3), 60 s (yeni pencere, 1), 60,5 s (2), 61 s (3). Hepsi kabul edilir ve hepsi nokta olarak çizilir. 58–61 s arasında beş istek geçer, iki pencere bandı görünür | Okuyucu t = 0 isteğini sordu; desen açıkça sabitlenir |
 | R23 | Kitap metni değiştirilmez | Tutarsızlıklar ekranda düzeltilmez, handoff'a yazılır: Kod 10.3 `tip` (R5); Kod 10.3 ve 10.7 imzayı `!==` ile karşılaştırır, oysa L316 hash için `timingSafeEqual` ister; Kod 11.4'ün başlıkları JSON preflight'ına yetmez, kitap bunu L646'da pakete bırakır; Kod 10.7'de `OUTPUT_FOR` bloğu yok | Kitap salt okunur; düzeltme bookMaker işidir |
 
 ## Kapsam dışı
@@ -307,11 +312,13 @@ metni değişmez.
 
 **Sunucu modeli (`sunucu.ts`).** Her istek için başlık kümesi üretir. Türler:
 
-- `kitap-karari`: her yanıta `corsKarariVer(origin)` başlıkları eklenir. `OPTIONS` → `204`.
+- `kitap-karari`: her yanıta `corsKarariVer(origin)` başlıkları eklenir. `OPTIONS` → R25 (`200`,
+  `Allow: POST`).
 - `cors-paketi`: R10.
-- `wildcard`: code_008'in başlıkları.
-- `kitap-11-7`: `corsKontrolEt(origin)` izinsiz kökende `403 {"mesaj":"Bu köken için CORS izni
-  yoktur."}` döner. `OPTIONS` dahil.
+- `wildcard`: code_008'in başlıkları; `OPTIONS` R25 gibidir.
+- `kitap-11-7` (R24): izinsiz kökende `corsKontrolEt` → `403`, gövde `{"mesaj":"Bu köken için CORS izni
+  yoktur."}` (R26). `OPTIONS` dahil. İzinli kökende `corsKarariVer` başlıkları eklenir, `OPTIONS` R25
+  gibidir.
 
 `GET /api/kitaplar` → `200`. `POST /api/giris` → Kod 11.7'nin `200 { durumKodu: 200, mesaj: 'Giriş
 başarılı.' }` yanıtı.
@@ -369,7 +376,8 @@ başarılı.' }` yanıtı.
    L633 ve L649. Rozet: `kitaba-dayali · L633, L649`.
 7. `preflight-gerekli` — İzinli kökenden `POST /api/giris`, `Content-Type: application/json`,
    `credentials: "include"`. Tarayıcı önce `OPTIONS` gönderir (kural 3). Rozet: `standart · Fetch`.
-8. `preflight-eksik` — Sunucu `kitap-karari`: `OPTIONS` yanıtında yalnız iki başlık var.
+8. `preflight-eksik` — Sunucu `kitap-karari`: `OPTIONS` yanıtı `200`, `Allow: POST` (R25) ve yalnız iki CORS
+   başlığı.
    `Access-Control-Allow-Headers: yok` alarm satırı. Denetim 5.5 kalır, `POST` gönderilmez, betik
    `TypeError` alır. Not: `corsKarariVer` yalnız köken kararını verir (L624); L646'ya göre preflight'ı
    `cors` paketi yönetir. Rozet: `standart · Fetch`.
@@ -426,8 +434,9 @@ durum ve bir olay döndürür.
 5. `pencere-doldu` — `simdi = baslangic + 60_000` → `yeni-pencere`, sayaç 1, kabul. L763 cümlesi.
    Rozet: `kitap-kodu`.
 6. `ayri-anahtar` — `203.0.113.20` kendi sayacıyla başlar. NAT uyarısı (L793). Rozet: `kitap-kodu`.
-7. `sinirda-patlama` — Pencere t = 0'da başlar; t = 58 ve 59 s'de iki istek (sayaç 3). t = 60 s'de yeni
-   pencere: 60, 60,5 ve 61 s'de üç istek kabul. 58–61 s arasında beş istek geçer. L771 dezavantajı.
+7. `sinirda-patlama` — R28 deseni: t = 0'daki istek pencereyi açar, 58 ve 59 s'deki istekler sayacı 3'e
+   çıkarır. t = 60 s'de yeni pencere başlar: 60, 60,5 ve 61 s'de üç istek kabul edilir. 58–61 s arasında
+   beş istek geçer. L771 dezavantajı.
    Rozet: `kitap-kodu`.
 8. `login-sira` — Kod 11.7'nin iki çağrısı: izinli köken → `200 'Giriş başarılı.'` (sayaç 1). Kötü
    niyetli köken → CORS'ta `403`; limiter çalışmaz, sayaç 1'de kalır. Terminal L1207-1208. L158 dikkat
