@@ -45,7 +45,7 @@ export const corsScenario: Scenario<CorsParams> = {
       title: 'CORS yanıtın okunmasını denetler',
       term: 'CORS',
       text: 'Kitaba göre CORS, bir sayfanın kendi kökeninden farklı bir kökene tarayıcı üzerinden yaptığı isteği denetleyen mekanizmadır. Köken protokol, alan adı ve port üçlüsüdür. Sunucu hangi kökenlere izin verdiğini Access-Control-Allow-Origin başlığıyla bildirir; tarayıcı yanıtı betiğe bu başlığa bakarak verir ya da vermez. Bu adımda henüz bir istek gitmedi.',
-      labText: 'Bu görünüm yalnızca tanımı gösterir. Köken, istemci ya da istek seçtiğinizde sonraki adımlarda istek çalışır.',
+      labText: 'Bu görünüm yalnızca kitabın tanımını gösterir. Köken, istemci ya da istek seçtiğinizde Lab akışa geçer ve istek hemen çalışır.',
       params: { ...VARSAYILAN, asama: 'tanitim' },
     },
     {
@@ -117,7 +117,7 @@ export const corsScenario: Scenario<CorsParams> = {
       title: 'Özet: CORS ne yapar, ne yapmaz',
       term: 'CORS özeti',
       text: 'Kitap iki şeyi birlikte söyler. CORS yalnızca yabancı kökenin yanıtı okumasını engeller; CSRF’i engellemez, çünkü istek sunucuya gönderilir ve sunucu onu işler. CORS ayrıca bir güvenlik duvarı değildir: curl gibi tarayıcı dışı araçlarda etkisizdir, bu yüzden sunucu tarafı yetkilendirmenin yerini tutmaz. Allow-Origin istekteki kökene eşitlenir; kimlik bilgisiyle “*” kullanılmaz.',
-      labText: 'Bu görünüm kitabın özetidir ve Lab seçimlerinizden etkilenmez.',
+      labText: 'Tablolar kitabın özetidir. Bir seçimi değiştirdiğinizde Lab akışa geçer ve seçtiğiniz isteği çalıştırır.',
       params: { ...VARSAYILAN, asama: 'ozet' },
     },
   ],

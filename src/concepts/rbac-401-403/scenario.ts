@@ -50,7 +50,7 @@ export const rbacScenario: Scenario<RbacParams> = {
       title: '401 ve 403 farklı sorulardır',
       term: '401 / 403',
       text: 'Kitaba göre 401, kimliğin doğrulanamadığı anlamına gelir: sunucu isteği yapanı tanıyamamıştır. 403 ise kimliğin doğrulandığı, ama o kimliğin istenen işlemi yapma yetkisinin olmadığı anlamına gelir. Kitabın sınav notu bunu şöyle özetler: 401 “sen kimsin, bilmiyorum”, 403 “seni tanıyorum ama bu işleme iznin yok”. Bu adımda henüz bir istek çalışmadı.',
-      labText: 'Bu görünüm yalnızca tanımı gösterir. Kullanıcıyı ya da tokenı değiştirdiğinizde sonraki adımlarda istek çalışır.',
+      labText: 'Bu görünüm yalnızca tanımı gösterir. Kullanıcıyı ya da tokenı değiştirdiğinizde Lab kitapEkle akışına geçer ve istek hemen çalışır.',
       params: { ...VARSAYILAN, asama: 'tanitim' },
     },
     {
@@ -58,7 +58,7 @@ export const rbacScenario: Scenario<RbacParams> = {
       title: 'Kayıt: parola hash olarak saklanır',
       term: 'kayitOl',
       text: 'Kod 10.7 iki kullanıcı kaydeder: yasemin kütüphaneci, elif öğrenci. kayitOl her parola için bir salt üretir, parolayı hashler ve repository’ye yalnızca kullaniciAdi, salt, parolaHash ve rol yazar. Tabloda düz metin parola yoktur. Sayfa kitabın rastgele salt’ı yerine sabit bir salt kullanır; hash’in yalnızca ilk on altı karakteri gösterilir.',
-      labText: 'Kayıt adımı sabittir. Kullanıcı ve parola seçimleri bu görünümü değiştirmez.',
+      labText: 'Kayıt adımı kitabın iki kullanıcısıyla çalışır. Kullanıcıyı ya da parolayı değiştirdiğinizde Lab kitapEkle akışına geçer ve seçtiğiniz kullanıcının isteğini çalıştırır.',
       params: { ...VARSAYILAN, asama: 'kayit' },
     },
     {
@@ -66,7 +66,7 @@ export const rbacScenario: Scenario<RbacParams> = {
       title: 'Giriş: iki kullanıcı iki token alır',
       term: 'girisYap',
       text: 'girisYap önce kullanıcıyı repository’de bulur, sonra parolayı doğrular ve tokenUret ile bir token üretir. Token’ın payload’ında kullanıcının rolü bulunur. Böylece sonraki istekte rol sunucuda yeniden aranmaz. Terminalde her token yalnızca ilk karakterleriyle gösterilir.',
-      labText: 'Giriş adımı sabit parolalarla çalışır. Token’ın rol notu kullanıcıya göre değişir.',
+      labText: 'Giriş adımı kitabın iki kullanıcısıyla ve sabit parolalarla çalışır. Bir seçimi değiştirdiğinizde Lab kitapEkle akışına geçer ve seçtiğiniz kullanıcının girişiyle isteği çalıştırır.',
       params: { ...VARSAYILAN, asama: 'giris' },
     },
     {
@@ -106,7 +106,7 @@ export const rbacScenario: Scenario<RbacParams> = {
       title: 'Kod 10.4: Bearer başlığı',
       term: 'authMiddleware',
       text: 'authMiddleware yalnızca kimliği denetler. Authorization başlığı yoksa ya da “Bearer ” ile başlamıyorsa 401 ve “Token bulunamadı.” döner. Başlık geçerli bir token taşıyorsa istek.kullanici doldurulur ve next() çağrılır. İstek kartlarındaki /kitaplar yolu bu sayfaya aittir; Kod 10.4’te bir yol yoktur. Terminaldeki next() → istek.kullanici satırı sayfanın kendi özetidir, kitabın çıktısı değildir. Kitap burada rol denetimi yapılmadığını dikkat notuyla belirtir.',
-      labText: 'Bu görünüm kitabın ara katman örneğinin iki çağrısını gösterir ve kullanıcı, token ya da rol seçimlerinden etkilenmez.',
+      labText: 'Bu görünüm kitabın ara katman örneğinin iki çağrısını gösterir. Kullanıcıyı, tokenı ya da rolü değiştirdiğinizde Lab kitapEkle akışına geçer.',
       params: { ...VARSAYILAN, program: 'kod-10-4' },
     },
     {
@@ -114,7 +114,7 @@ export const rbacScenario: Scenario<RbacParams> = {
       title: 'Kod 10.6: önce 401, sonra 403',
       term: 'denetim sırası',
       text: 'istegiIsle önce token’ın varlığını ve geçerliliğini denetler; bunlardan biri kalırsa 401 döner. Token geçerliyse rol denetlenir ve yetersizse 403 döner. İkisi de geçerse 200 döner. Üç çağrı sırayla 401, 403 ve 200 üretir; terminalde kitabın çıktısı görünür. Sıra, kimlik doğrulamanın yetkilendirmeden önce geldiğini gösterir.',
-      labText: 'Bu görünüm Kod 10.6’nın üç çağrısını gösterir ve Lab seçimlerinizden etkilenmez.',
+      labText: 'Bu görünüm Kod 10.6’nın üç çağrısını gösterir. Bir seçimi değiştirdiğinizde Lab kitapEkle akışına geçer.',
       params: { ...VARSAYILAN, program: 'kod-10-6' },
     },
     {
@@ -122,7 +122,7 @@ export const rbacScenario: Scenario<RbacParams> = {
       title: 'Yanlış kod: yetkisize 401',
       term: 'yanlış durum kodu',
       text: 'Kitabın yanlış örneğinde kimliği doğrulanmış bir öğrenci için 401 döner. Doğrusu 403’tür: kullanıcı tanınmıştır, ama yetkisi yoktur. 401 alan istemci kullanıcıyı gereksiz yere yeniden girişe yönlendirir; yeniden giriş yetki sorununu çözmez.',
-      labText: 'Bu görünüm kitabın yanlış örneğini gösterir ve Lab seçimlerinizden etkilenmez.',
+      labText: 'Bu görünüm kitabın yanlış örneğini gösterir. Bir seçimi değiştirdiğinizde Lab kitapEkle akışına geçer ve isteği doğru durum koduyla yanıtlar.',
       params: { ...VARSAYILAN, program: 'code-012', kullanici: 'elif' },
     },
     {
@@ -130,7 +130,7 @@ export const rbacScenario: Scenario<RbacParams> = {
       title: 'Özet: durum kodları',
       term: 'durum kodları',
       text: 'Tablo kitabın durum kodu özetidir: 401 kimlik doğrulanamadı, 403 kimlik doğrulandı ama yetki yok, 404 kaynak bulunamadı, 400 istek biçimi hatalı. Bölüm sınav notu da aynı ayrımı verir: authentication “kimsin”, authorization “ne yapabilirsin” sorusunu yanıtlar.',
-      labText: 'Bu görünüm kitabın özet tablosudur ve Lab seçimlerinizden etkilenmez.',
+      labText: 'Bu görünüm kitabın özet tablosudur. Bir seçimi değiştirdiğinizde Lab kitapEkle akışına geçer.',
       params: { ...VARSAYILAN, asama: 'ozet' },
     },
   ],

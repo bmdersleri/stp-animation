@@ -47,7 +47,7 @@ export const rateScenario: Scenario<RateParams> = {
       title: 'Rate limiting istek sayısını sınırlar',
       term: 'rate limiting',
       text: 'Kitaba göre rate limiting, bir istemcinin belirli bir sürede yapabileceği istek sayısını sınırlar. Amaç kaba kuvvet denemelerini ve aşırı yükü azaltmaktır. Bu bölümdeki sınırlayıcı sabit pencere kullanır: her istemci anahtarı için bir sayaç ve bir pencere başlangıcı tutulur. Bu adımda henüz bir istek gelmedi.',
-      labText: 'Bu görünüm yalnızca tanımı gösterir. Bir adım seçtiğinizde ya da kendi isteklerinizi eklediğinizde sınırlayıcı çalışır.',
+      labText: 'Bu görünüm yalnızca kitabın tanımını gösterir. Bir ayarı değiştirdiğinizde ya da kendi isteklerinizi eklediğinizde Lab akışa geçer ve sınırlayıcı hemen çalışır.',
       params: { ...VARSAYILAN, asama: 'tanitim' },
     },
     {
@@ -103,7 +103,7 @@ export const rateScenario: Scenario<RateParams> = {
       title: 'Kod 11.7: denetim sırası',
       term: 'denetim zinciri',
       text: 'Kod 11.7’de login isteği önce CORS denetiminden, sonra rate limit denetiminden geçer; ilk başarısız denetim zinciri durdurur. İlk iki çağrının çıktısı kitapta basılıdır: izinli kökenden gelen çağrı başarılı olur, kötü niyetli siteden gelen çağrı CORS’ta 403 alır. CORS’ta reddedilen çağrı sınırlayıcıya ulaşmaz.',
-      labText: 'Sınırlayıcı ayarları bu desende sabittir. Zincirin devamını görmek için giriş sırası adımının sonrasındaki 429 adımına geçin.',
+      labText: 'Bu desenin sınırlayıcı ayarları sabittir; bir ayarı değiştirdiğinizde Lab kitap desenine geçer. Zincirin devamı sonraki adımdadır.',
       params: { ...VARSAYILAN, desen: 'login', istek: 2 },
     },
     {
@@ -111,7 +111,7 @@ export const rateScenario: Scenario<RateParams> = {
       title: 'Giriş denemesi sınırı aşınca 429',
       term: 'AppError 429',
       text: 'Aynı IP’den izinli kökenle gelen çağrılar sayacı artırır. Sınır dolunca rate limit denetimi kalır ve sunucu 429 ile “Çok fazla giriş denemesi yapıldı.” mesajını döndürür. Sonraki denetimler atlanır; parola bile bakılmaz. Kod şeridi 429’u veren satırda durur.',
-      labText: 'Bu desenin ayarları sabittir. Başka bir desen seçerseniz sayaç ve pencere ayarlarını kendiniz değiştirebilirsiniz.',
+      labText: 'Bu desenin ayarları sabittir; bir ayarı değiştirdiğinizde Lab kitap desenine geçer ve sınırı ve pencereyi siz belirlersiniz.',
       params: { ...VARSAYILAN, desen: 'login' },
     },
     {
@@ -119,7 +119,7 @@ export const rateScenario: Scenario<RateParams> = {
       title: 'Özet: sabit pencere ve sınırı',
       term: 'rate limiting özeti',
       text: 'Kitaba göre sabit pencere basit ve anlaşılırdır: anahtar başına bir sayaç yeter. Pencere dönünce sayaç sıfırlanır; bu yüzden sınırda kısa süreli bir patlama mümkündür. Sınırlayıcı CORS’tan sonra, doğrulamadan önce çalışır ve aşırı denemeleri 429 ile durdurur.',
-      labText: 'Bu görünüm kitabın özetidir ve Lab seçimlerinizden etkilenmez.',
+      labText: 'Tablo ve not kitabın özetidir. Bir ayarı değiştirdiğinizde Lab akışa geçer ve sınırlayıcı seçtiğiniz desenle çalışır.',
       params: { ...VARSAYILAN, asama: 'ozet' },
     },
   ],

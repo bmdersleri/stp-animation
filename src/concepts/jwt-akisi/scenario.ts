@@ -38,7 +38,7 @@ export const jwtScenario: Scenario<JwtParams> = {
       title: 'JWT üç bölümdür',
       term: 'JWT',
       text: 'Kitaba göre JWT, noktayla ayrılmış üç bölümden oluşur: header, payload ve imza. Header token türünü ve imza algoritmasını, payload kullanıcıya ait bilgileri taşır; imza ise ilk iki bölümün değiştirilmediğini gösterir. Bu adımda henüz bir token üretilmedi.',
-      labText: 'Bu görünüm yalnızca tanımı gösterir. Kullanıcıyı ya da bozulmayı değiştirdiğinizde token şeridi sonraki adımlarda dolar.',
+      labText: 'Bu görünüm yalnızca tanımı gösterir. Kullanıcıyı ya da bozulmayı değiştirdiğinizde Lab doğrulama görünümüne geçer ve token şeridi hemen dolar.',
       params: { ...VARSAYILAN, asama: 'tanitim' },
     },
     {
@@ -62,7 +62,7 @@ export const jwtScenario: Scenario<JwtParams> = {
       title: 'Payload şifreli değil, okunur',
       term: 'base64url',
       text: 'JWT’nin payload’ı şifrelenmemiştir, yalnızca imzalanmıştır; herkes base64url çözerek içeriğini okuyabilir. Kitabın yanlış örneği payload’a parola koyar ve çözülen metin terminalde parolayı açıkça gösterir. Bu yüzden payload’a parola gibi hassas bilgi konmaz.',
-      labText: 'Bu görünüm kitabın yanlış örneğidir ve Lab seçimlerinizden etkilenmez.',
+      labText: 'Bu görünüm kitabın yanlış örneğidir. Bir seçimi değiştirdiğinizde Lab doğrulama görünümüne geçer ve seçtiğiniz token’ı denetler.',
       params: { ...VARSAYILAN, asama: 'okunur' },
     },
     {
@@ -118,7 +118,7 @@ export const jwtScenario: Scenario<JwtParams> = {
       title: 'İstemci ve sunucu akışı',
       term: 'durumsuz kimlik doğrulama',
       text: 'Diyagram kitaptaki Şekil 10.3’ün sadeleştirilmiş özetidir; mesaj adları sayfaya aittir. İstemci giriş yapar, sunucu token verir, istemci korumalı isteğe token’ı ekler, sunucu imzayı ve süreyi denetler ve yanıt verir. Sunucu oturum tutmaz; bunun bedeli, verilmiş bir token’ı süresi dolmadan iptal etmenin zor olmasıdır. Süresi dolmuş token Kod 10.3’te 401 ile reddedilir.',
-      labText: 'Bu görünüm sabit bir özet diyagramdır ve Lab seçimlerinizden etkilenmez.',
+      labText: 'Bu görünüm bir özet diyagramdır. Bir seçimi değiştirdiğinizde Lab doğrulama görünümüne geçer ve seçtiğiniz token’ı denetler.',
       params: { ...VARSAYILAN, asama: 'akis' },
     },
   ],

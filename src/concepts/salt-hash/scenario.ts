@@ -108,7 +108,7 @@ export const saltScenario: Scenario<SaltParams> = {
       title: 'Bilinçli olarak yavaş fonksiyonlar',
       term: 'anahtar türetme',
       text: 'Gerçek dünyada tercih edilen scrypt, bcrypt ve argon2 bilinçli olarak yavaş çalışacak şekilde tasarlanmıştır; bu, saldırganın saniyede deneyebileceği parola sayısını sınırlayarak kaba kuvvet saldırılarını yavaşlatır. Alternatifler tablosunda düz SHA-256 hızlıdır ve parola hashleme için önerilmez.',
-      labText: 'Tablo kitabın alternatifler tablosudur ve Lab seçimlerinizden etkilenmez.',
+      labText: 'Tablo kitabın alternatifler tablosudur. Bir seçimi değiştirdiğinizde Lab hesap hattına geçer ve kendi girdinizin hash’ini hesaplar.',
       params: { ...VARSAYILAN, gorunum: 'yavas' },
     },
     {
@@ -116,7 +116,7 @@ export const saltScenario: Scenario<SaltParams> = {
       title: 'Doğru yaklaşım',
       term: 'salt ve yavaş hash',
       text: 'Kritik satırlar: randomBytes her kullanıcı için benzersiz bir salt üretir, scryptSync bilinçli yavaş çalışarak kaba kuvveti yavaşlatır, timingSafeEqual karşılaştırmayı sabit sürede yapar. Doğru yaklaşım, kullanıcı başına benzersiz salt ve yavaş bir anahtar türetme fonksiyonudur; karşılaştırma da her zaman timingSafeEqual ile yapılmalıdır.',
-      labText: 'Özet sabittir: Lab seçimleriniz bu maddeleri değiştirmez.',
+      labText: 'Maddeler kitabın özetidir. Bir seçimi değiştirdiğinizde Lab hesap hattına geçer ve kendi girdinizin hash’ini hesaplar.',
       params: { ...VARSAYILAN, gorunum: 'ozet' },
     },
   ],
