@@ -229,6 +229,9 @@ export function mountSaltScene(
     render(s);
   });
 
+  // the player may already hold parameters the cache lacks (a Lab opened on them)
+  planla(player.state.params);
+
   return {
     resize(w: number, h: number): void {
       size = { w, h };

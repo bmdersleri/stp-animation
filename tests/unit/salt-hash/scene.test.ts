@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SALT_1, SCRYPT_ONBELLEK, SHA_123456 } from '../../../src/concepts/salt-hash/degerler';
 import { saltScenario } from '../../../src/concepts/salt-hash/scenario';
 import { deriveSaltView } from '../../../src/concepts/salt-hash/view';
+import { StepPlayer } from '../../../src/core/player';
+import { mountSaltScene } from '../../../src/concepts/salt-hash/scene';
 import { go, setup, texts } from './harness';
 
 const ONBELLEK = new Map(Object.entries(SCRYPT_ONBELLEK));
@@ -73,6 +75,28 @@ describe('salt-hash scene', () => {
     const olcum = el.querySelector<HTMLElement>('.olcum')!;
     expect(olcum.hidden).toBe(false);
     expect(olcum.textContent).toMatch(/^bu tarayıcıda ölçüldü: sha256 [\d.]+ ms, scrypt [\d.]+ ms$/);
+  });
+
+  it('mount with uncached params computes without a change', async () => {
+    vi.useFakeTimers();
+    const player = new StepPlayer(saltScenario);
+    player.setParams({ parola: 'zzz', gorunum: 'hat' });
+    const gelen: string[] = [];
+    const el = document.createElement('div');
+    document.body.append(el);
+    const scene = mountSaltScene(el, player, 'lab', {
+      durationScale: 0,
+      hesapla: async (parola) => {
+        gelen.push(parola);
+        return 'd'.repeat(128);
+      },
+    });
+    scene.resize(1280, 540);
+    await vi.advanceTimersByTimeAsync(250);
+    expect(gelen).toEqual(['zzz']);
+    expect(el.querySelector('.olcum')!.textContent).toContain('ölçüldü');
+    scene.destroy();
+    player.destroy();
   });
 
   it('rapid step jumps leave no duplicates', () => {
