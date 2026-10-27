@@ -72,7 +72,7 @@ export const loopScenario: Scenario<LoopParams> = {
       term: 'async/await',
       text: 'await, yalnızca bu async fonksiyonun devamını bekletir; tüm Node.js programını kilitlemez. Bu nedenle son satırdaki "başka siparişler" mesajı önce görünür.',
       labText: 'Fonksiyon yığından çıktı, ana akış devam etti ve ikinci satır yazıldı. Askıya alınan işin hangi kuyrukta beklediğine bakın.',
-      params: { program: 'kod-4-5', kare: findFrame('kod-4-5', (f) => f.output.length === 2) },
+      params: { program: 'kod-4-5', kare: findFrame('kod-4-5', (f) => f.note === 'await: fonksiyon askıya alındı') },
     },
     {
       id: 'cozuldu',

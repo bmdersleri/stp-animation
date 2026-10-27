@@ -31,7 +31,7 @@ describe('event-loop scenario', () => {
     expect(framesOf('kod-4-4')[at(4).kare].output).toHaveLength(2);
     expect(at(5).kare).toBe(last('kod-4-4'));
     expect(at(6)).toMatchObject({ program: 'bitti-gec', kare: last('bitti-gec') });
-    expect(framesOf('kod-4-5')[at(7).kare].output).toHaveLength(2);
+    expect(framesOf('kod-4-5')[at(7).kare].note).toBe('await: fonksiyon askıya alındı');
     expect(at(8)).toMatchObject({ program: 'kod-4-5', kare: last('kod-4-5') });
     expect(at(9)).toMatchObject({ program: 'mikro-makro', kare: last('mikro-makro') });
   });

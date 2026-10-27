@@ -13,6 +13,7 @@ export default defineConfig({
       input: {
         main: resolve(root, 'index.html'),
         'istek-yanit': resolve(root, 'istek-yanit/index.html'),
+        'event-loop': resolve(root, 'event-loop/index.html'),
       },
     },
   },

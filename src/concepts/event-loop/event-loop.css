@@ -1,0 +1,61 @@
+/* event-loop page: queue board, phase ring, code strip, Lab controls. */
+.loop-scene { box-sizing:border-box; padding:0 8px; width:100%; height:100%; min-height:0; display:flex; flex-direction:column; gap:10px; font-family:var(--font); color:var(--navy); }
+.loop-stage { flex:1 1 0; min-height:0; overflow:auto; display:flex; flex-direction:column; }
+.loop-stage [hidden] { display:none; }
+
+/* board: clock on top, stack on the left over two rows, the other boxes beside it, notes below */
+.tahta { flex:1 1 0; min-height:0; display:grid; gap:8px; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.2fr); grid-template-rows:auto minmax(0,1fr) minmax(0,1fr) auto;
+  grid-template-areas:'saat saat saat' 'yigin zaman mikro' 'yigin terminal makro' 'notlar notlar notlar'; }
+.saat { grid-area:saat; font-family:var(--mono, ui-monospace, Consolas, monospace); font-weight:700; font-size:var(--fs-body); font-variant-numeric:tabular-nums; }
+.kutu-yigin { grid-area:yigin; } .kutu-zamanlayici { grid-area:zaman; } .kutu-mikro { grid-area:mikro; } .kutu-makro { grid-area:makro; }
+.terminal { grid-area:terminal; }
+.notlar { grid-area:notlar; min-width:0; display:grid; gap:4px; max-height:30vh; overflow:auto; }
+.notlar [hidden] { display:none; }
+.kutu, .terminal { min-width:0; min-height:0; overflow:hidden; border:2px solid var(--line); border-radius:10px; background:var(--surface); padding:5px 10px; display:flex; flex-direction:column; gap:4px; }
+.kart-baslik { font-weight:700; font-size:var(--fs-axis); color:var(--muted); line-height:1.2; }
+.kutu-liste { flex:1 1 0; min-height:0; display:flex; flex-direction:row; flex-wrap:wrap; align-content:flex-start; gap:6px; overflow:hidden; }
+.kutu-yigin .kutu-liste { flex-direction:column-reverse; flex-wrap:nowrap; align-content:stretch; }
+.kutu-zamanlayici .kutu-liste { flex-direction:column; flex-wrap:nowrap; }
+.kutu-liste[data-empty]::after { content:'boş'; color:var(--muted); font-size:var(--fs-tick); font-style:italic; }
+.is { min-width:0; padding:2px 10px; border:2px solid var(--navy); border-radius:8px; background:var(--navy-soft); font-size:var(--fs-tick); line-height:1.25; display:grid; gap:1px; will-change:transform; }
+.kutu-yigin .is { background:var(--navy); color:#fff; }
+.kutu-mikro .is { background:var(--accent-soft); border-color:var(--accent); }
+.kutu-makro .is { background:#e4eef9; }
+.is .kalan { font-size:var(--fs-tick); color:var(--muted); font-variant-numeric:tabular-nums; }
+.sure-cubuk { height:6px; border-radius:3px; background:var(--line); overflow:hidden; }
+.sure-dolu { display:block; height:100%; background:var(--accent); }
+.terminal { background:#14365c; border-color:#14365c; }
+.terminal .kart-baslik { color:#c9d5e3; }
+.terminal-satirlar { overflow:auto; min-height:0; }
+.terminal-satir { margin:0; color:#fff; font-size:var(--fs-tick); font-family:var(--mono, ui-monospace, Consolas, monospace); overflow-wrap:anywhere; }
+.kitap-notu, .not { margin:0; padding:3px 10px; border-left:5px solid var(--accent); background:var(--accent-soft); font-size:var(--fs-tick); line-height:1.3; overflow-wrap:anywhere; }
+.not-liste { display:grid; gap:4px; }
+.not-liste:empty { display:none; }
+
+/* phases: ring on top, the book's notes under it */
+.asamalar { flex:1 1 0; min-height:0; display:flex; flex-direction:column; gap:8px; }
+.asamalar-sema { flex:none; position:relative; min-width:0; }
+.asamalar-sema svg.plot { position:static; display:block; max-width:100%; }
+.asamalar-sema .probe { visibility:hidden; font-size:var(--fs-tick); }
+.asamalar-notlar { display:grid; gap:6px; }
+.asamalar-notlar code { font-family:var(--mono, ui-monospace, Consolas, monospace); font-weight:700; }
+.poll-dongu { fill:none; }
+
+/* a phone: every box in one column, the stage scrolls */
+.loop-stage[data-narrow] .tahta { flex:none; grid-template-columns:minmax(0,1fr); grid-template-rows:none; grid-template-areas:'saat' 'yigin' 'zaman' 'mikro' 'makro' 'terminal' 'notlar'; }
+.loop-stage[data-narrow] .kutu-liste { flex:none; }
+.loop-stage[data-narrow] .notlar { max-height:none; }
+
+/* code strip: --strip-lines lines at a tight line height */
+.code-strip { flex:none; height:calc(var(--strip-lines, 7) * 1.25 * var(--fs-tick) + var(--fs-axis) + 28px); }
+.code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:6px 12px; gap:4px; }
+.code-strip[data-empty] .code-trace-lines { visibility:hidden; }
+.code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:4px; }
+
+.loop-params { display:grid; gap:8px; }
+.loop-params .ctl { min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
+.loop-params .ctl-label { font-weight:600; }
+.loop-params select { min-height:var(--ctl); max-width:100%; padding:0 .5em; border:2px solid var(--navy); border-radius:8px; background:var(--surface); font:inherit; }
+.loop-params input[type='range'] { width:100%; min-height:var(--ctl); }
+.loop-params .kare-deger { font-variant-numeric:tabular-nums; color:var(--muted); }
+.loop-stage[data-narrow] .asamalar { flex:none; }
