@@ -19,9 +19,9 @@ function setup(): { svg: SVGSVGElement; layer: SequenceLayer } {
 }
 
 const lanes = [
-  { id: 'a', label: ['TarayÄ±cÄ±'] },
+  { id: 'a', label: ['Tarayıcı'] },
   { id: 'b', label: ['Sunucu'], sub: ':8000' },
-  { id: 'c', label: ['VeritabanÄ±'] },
+  { id: 'c', label: ['Veritabanı'] },
   { id: 'd', label: ['Disk'] },
 ];
 const msg = (id: string, from: string, to: string, kind: Message['kind'] = 'request', extra: Partial<Message> = {}): Message => ({ id, from, to, label: id, kind, ...extra });

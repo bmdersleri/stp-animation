@@ -91,6 +91,18 @@ describe('event-loop programs', () => {
     expect(() => simulate(ops)).toThrow('simulate: kare sınırı');
   });
 
+  it('await outside a call throws', () => {
+    expect(() => simulate([{ op: 'await', line: 1, ms: 1, label: 'x', rest: [] }])).toThrow('simulate: await yalnız call içinde');
+  });
+
+  it('job pop frame keeps the line of the last op that ran', () => {
+    const frames = framesOf('kod-4-4');
+    const i = frames.findIndex((f) => f.output.length === 3);
+    expect(frames[i].line).toBe(9);
+    expect(frames[i + 1].stack).toEqual([]);
+    expect(frames[i + 1].line).toBe(9);
+  });
+
   it('code is verbatim', () => {
     expect(PROGRAMS['kod-4-4'].code[0]).toBe('// File: eventLoopSirasi.ts');
     expect(PROGRAMS['kod-4-5'].code).toContain('  const sonucMesaji = await siparisHazirla();');

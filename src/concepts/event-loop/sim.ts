@@ -39,6 +39,7 @@ export function simulate(ops: readonly Op[]): Frame[] {
   const micro: Job[] = [];
   const macro: Job[] = [];
   const output: string[] = [];
+  let callDepth = 0; // await is only valid directly inside a call
 
   const emit = (atLine: number, note?: string): void => {
     line = atLine;
@@ -75,12 +76,16 @@ export function simulate(ops: readonly Op[]): Frame[] {
         case 'call':
           stack.push(o.name);
           emit(o.line);
-          if (!run(o.body)) {
+          callDepth++;
+          const suspended = run(o.body);
+          callDepth--;
+          if (!suspended) {
             stack.pop();
             emit(o.line);
           }
           break;
         case 'await': {
+          if (callDepth === 0) throw new Error('simulate: await yalnız call içinde');
           const callName = stack[stack.length - 1] ?? 'main';
           timers.push({
             label: o.label,
@@ -109,13 +114,16 @@ export function simulate(ops: readonly Op[]): Frame[] {
   const runJob = (job: Job, note?: string): void => {
     stack.push(job.label);
     emit(job.line, note);
+    const outerDepth = callDepth;
+    callDepth = 0;
     run(job.body);
+    callDepth = outerDepth;
     if (job.resolves) {
       micro.push({ label: job.resolves.label, line: job.resolves.line, body: job.resolves.rest });
       emit(job.resolves.line);
     }
     stack.pop();
-    emit(job.line);
+    emit(line); // keep the line of the last op that ran in the job
   };
 
   emit(0);
