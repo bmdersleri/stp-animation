@@ -100,7 +100,22 @@ test('ders font floors at 1280x720', async ({ page }, info) => {
   info.annotations.push({ type: 'min font-size px', description: JSON.stringify(measured) });
 });
 
-for (const n of [3, 8]) {
+test('ders: the request card shows on steps 3, 8 and 9 at 1280x720', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await open(page, PAGE, 'ders', READY);
+  const metot = { 3: ['GET'], 8: ['OPTIONS'], 9: ['POST'] } as const;
+  for (const n of [3, 8, 9] as const) {
+    await gotoStep(page, n - 1, STEPS, 0);
+    await rest(page);
+    await expect(page.locator('.istek-karti:visible'), `step ${n}`).toHaveCount(1);
+    await expect(page.locator('.istek-karti .metot'), `step ${n}`).toHaveText([...metot[n]]);
+    expect(await stageBoxProblems(page, '.cors-stage', '.istek-karti, .yanit-karti, .check-list'), `step ${n}`).toEqual([]);
+  }
+  await expect(page.locator('.yanit-karti .sira')).toHaveText(['#1', '#2']);
+  await expect(page.locator('.yanit-karti .durum-kodu')).toHaveText(['204', '200']);
+});
+
+for (const n of [3, 8, 9]) {
   test(`screenshot: ders ${n}`, async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await open(page, PAGE, 'ders', READY);

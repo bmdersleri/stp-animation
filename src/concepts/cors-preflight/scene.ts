@@ -25,8 +25,6 @@ const NARROW_HEADER = 8;
 const NARROW_ROW = 3.2;
 /** Horizontal room (px) a lane title keeps clear of its neighbours. */
 const LANE_PAD = 12;
-/** Gap (px) between the diagram and the origin tags / explanation line around it. */
-const GAP = 6;
 
 function el<K extends keyof HTMLElementTagNameMap>(doc: Document, tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
   const e = doc.createElement(tag);
@@ -41,6 +39,13 @@ function kokenEtiketi(doc: Document, cls: string, baslik: string): { root: HTMLE
   const deger = el(doc, 'span', 'koken-deger');
   root.append(el(doc, 'span', 'koken-baslik', baslik), deger);
   return { root, deger };
+}
+
+/** Writes an origin so that a narrow screen may break it only after a dot or a slash. */
+function kokenYaz(e: HTMLElement, metin: string): void {
+  const doc = e.ownerDocument;
+  const parcalar = metin.split(/(?<=[./])/);
+  e.replaceChildren(...parcalar.flatMap((t, i) => (i === 0 ? [t] : [doc.createElement('wbr'), t])));
 }
 
 /**
@@ -61,7 +66,7 @@ export function mountCorsScene(
   const apiK = kokenEtiketi(doc, 'koken-api', 'API');
   kokenSerit.append(sayfaK.root, apiK.root);
   const rozetYeri = el(doc, 'div', 'rozet-yeri');
-  ust.append(rozetYeri);
+  ust.append(kokenSerit, rozetYeri);
   const stage = el(doc, 'div', 'cors-stage');
   const main = el(doc, 'div', 'cors-main');
   const yan = el(doc, 'div', 'cors-yan');
@@ -76,7 +81,7 @@ export function mountCorsScene(
   diyagram.append(svg);
 
   const aciklama = el(doc, 'p', 'cors-aciklama');
-  main.append(kokenSerit, diyagram, aciklama);
+  main.append(diyagram, aciklama);
 
   const denetimYeri = el(doc, 'div', 'denetim-yeri');
   const denetim = new CheckList(denetimYeri);
@@ -95,6 +100,8 @@ export function mountCorsScene(
   let size: { w: number; h: number } | null = null;
   /** Set by a Lab change, cleared by a step change: which badge the scene shows. */
   let labRozeti = false;
+  /** Height (px) the diagram was last drawn at; a later change of its box (a web font arriving wraps the explanation) redraws it. */
+  let drawnH = 0;
 
   function rozet(state: PlayerState<CorsParams>): void {
     const r: Rozet = labRozeti ? corsLabRozet(state.params) : (CORS_ROZET[state.step.id] ?? { tur: 'kitap' });
@@ -114,8 +121,8 @@ export function mountCorsScene(
     strip.update({ ...v.code, window: STRIP_WINDOW });
 
     kokenSerit.hidden = v.ozet;
-    sayfaK.deger.textContent = v.kokenler.sayfa;
-    apiK.deger.textContent = v.kokenler.api;
+    kokenYaz(sayfaK.deger, v.kokenler.sayfa);
+    kokenYaz(apiK.deger, v.kokenler.api);
     kokenSerit.toggleAttribute('data-ayni', !v.ozet && v.kokenler.sayfa === v.kokenler.api);
 
     const yanVar = v.denetim !== null || v.http.istek !== undefined || v.http.yanitlar.length > 0 || v.http.terminal.length > 0;
@@ -124,8 +131,8 @@ export function mountCorsScene(
     denetimYeri.hidden = v.denetim === null;
     if (v.denetim) denetim.update(v.denetim);
     kartlar.update(v.http);
-    // desktop: the cards column cannot grow, so it gives up the least needed parts step by step until it fits the stage
-    for (const sik of narrow ? [0] : [0, 1, 2, 3]) {
+    // desktop: the cards column cannot grow, so it gives up the terminal (title first, then the whole box) until it fits the stage; request, responses and checks always stay
+    for (const sik of narrow ? [0] : [0, 1, 2]) {
       stage.dataset.sik = String(sik);
       if (narrow || yan.hidden || yan.getBoundingClientRect().height <= stage.clientHeight + 1) break;
     }
@@ -133,12 +140,15 @@ export function mountCorsScene(
     aciklama.hidden = v.aciklama === null;
     aciklama.textContent = v.aciklama ?? '';
 
+    // measure the diagram box without the previous drawing inside it
+    svg.setAttribute('height', '0');
     const tick = measure.fonts(mode).tick;
     const dw = Math.floor(diyagram.getBoundingClientRect().width) || size!.w;
     const dh = narrow
       ? Math.min(NARROW_MAX, Math.max(NARROW_MIN, Math.ceil(tick * (NARROW_HEADER + NARROW_ROW * v.sequence.messages.length))))
-      : Math.max(160, (Math.floor(stage.getBoundingClientRect().height) || Math.max(160, size!.h - 60)) - ((kokenSerit.hidden ? 0 : Math.ceil(kokenSerit.getBoundingClientRect().height) + GAP) + (aciklama.hidden ? 0 : Math.ceil(aciklama.getBoundingClientRect().height) + GAP)));
+      : Math.max(160, Math.floor(diyagram.getBoundingClientRect().height) || Math.max(160, size!.h - 60));
     svg.setAttribute('width', String(dw));
+    drawnH = dh;
     svg.setAttribute('height', String(dh));
     svg.setAttribute('viewBox', `0 0 ${dw} ${dh}`);
     diyagram.style.setProperty('--diyagram-h', `${dh}px`);
@@ -152,6 +162,11 @@ export function mountCorsScene(
   function render(state: PlayerState<CorsParams>): void {
     if (size) draw(state);
   }
+
+  const boxWatch = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => {
+    if (size && !stage.hasAttribute('data-narrow') && Math.abs(diyagram.clientHeight - drawnH) > 1) render(player.state);
+  });
+  boxWatch?.observe(diyagram);
 
   const unsubscribe = player.subscribe((s, cause) => {
     if (cause === 'param') labRozeti = true;
@@ -171,6 +186,7 @@ export function mountCorsScene(
     },
     destroy(): void {
       unsubscribe();
+      boxWatch?.disconnect();
       layer.clear();
       denetim.destroy();
       kartlar.destroy();

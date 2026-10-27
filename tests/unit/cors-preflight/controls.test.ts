@@ -46,7 +46,7 @@ describe('cors-preflight Lab controls', () => {
     expect(sel(host, 'kimlik').disabled).toBe(false);
   });
 
-  it('lab change from the intro and summary steps shows the whole flow', () => {
+  it('a lab change always shows the whole flow (intro, summary and cut-off traces)', () => {
     const { host, player } = setup(1280, 540, 'lab');
     go(player, 'tanitim');
     choose(sel(host, 'koken'), 'kotu');
