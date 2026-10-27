@@ -13,6 +13,19 @@ const TEXTS = '.denetim, .terminal-satir, .istek-satir, .cors-aciklama, .koken-e
 
 test.use({ reducedMotion: 'reduce' });
 
+/** Lane titles hyphenated by a break, and arrow labels sticking out past the ends of their own arrow (a label crossing a lane line). */
+const laneProblems = (page: Page) =>
+  page.evaluate(() => {
+    const out: string[] = [];
+    for (const t of document.querySelectorAll('svg.plot .seq-lane-label')) if (/-\s*$/.test(t.textContent ?? '') || [...t.children].some((c) => /-$/.test(c.textContent ?? ''))) out.push(`lane title "${t.textContent}"`);
+    for (const m of document.querySelectorAll('svg.plot g.seq-msg:not(.old)')) {
+      const a = m.querySelector('path.seq-arrow')?.getBoundingClientRect();
+      const l = m.querySelector('text.seq-msg-label')?.getBoundingClientRect();
+      if (a && l && l.width > 0 && (l.left < a.left - 4 || l.right > a.right + 4)) out.push(`label "${m.querySelector('text.seq-msg-label')!.textContent}" crosses its lanes`);
+    }
+    return out;
+  });
+
 const rest = (page: Page) => settled(() => page.locator('.cors-scene').innerHTML());
 
 test('ders keyboard walkthrough', async ({ page }) => {
@@ -72,6 +85,7 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         expect(reach.lost, at).toEqual([]);
         const clipped = (await clippedBoxes(page, BOXES)).filter((c) => !(c.endsWith(': outside the stage') && reach.reachable.includes(c.split(':')[0])));
         expect(clipped, at).toEqual([]);
+        if (w === 1280 && mode === 'ders') expect(await laneProblems(page), `${at} lanes`).toEqual([]);
         if (w === 1280) expect(await stageBoxProblems(page, '.cors-stage', STAGE_BOXES), `${at} boxes`).toEqual([]);
         if (mode === 'ders' && w === 1280) expect((await pageOverflow(page)).y, at).toBeLessThanOrEqual(0);
       }

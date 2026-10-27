@@ -41,6 +41,19 @@ function kokenEtiketi(doc: Document, cls: string, baslik: string): { root: HTMLE
   return { root, deger };
 }
 
+/** Puts a line-break opportunity after every `.`, `/`, `,` and `:` of the text nodes under `root`, so a long value breaks at such a boundary and not inside a word. */
+function kirilmaYumusat(root: Element): void {
+  const doc = root.ownerDocument;
+  const walker = doc.createTreeWalker(root, 4);
+  const nodes: Text[] = [];
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) nodes.push(n as Text);
+  for (const t of nodes) {
+    const parts = t.data.split(/(?<=[./,:])(?=[^\s])/);
+    if (parts.length < 2) continue;
+    t.replaceWith(...parts.flatMap((x, i) => (i === 0 ? [x] : [doc.createElement('wbr'), x])));
+  }
+}
+
 /** Writes an origin so that a narrow screen may break it only after a dot or a slash. */
 function kokenYaz(e: HTMLElement, metin: string): void {
   const doc = e.ownerDocument;
@@ -131,6 +144,7 @@ export function mountCorsScene(
     denetimYeri.hidden = v.denetim === null;
     if (v.denetim) denetim.update(v.denetim);
     kartlar.update(v.http);
+    for (const t of yan.querySelectorAll('.alanlar dd, .kaynak, .yol, .govde, .denetim-ayrinti, .terminal-satir')) kirilmaYumusat(t);
     // desktop: the cards column cannot grow, so it gives up the terminal (title first, then the whole box) until it fits the stage; request, responses and checks always stay
     for (const sik of narrow ? [0] : [0, 1, 2]) {
       stage.dataset.sik = String(sik);
@@ -153,7 +167,8 @@ export function mountCorsScene(
     svg.setAttribute('viewBox', `0 0 ${dw} ${dh}`);
     diyagram.style.setProperty('--diyagram-h', `${dh}px`);
     const lane = dw / v.sequence.lanes.length - LANE_PAD;
-    const lanes = v.sequence.lanes.map((l) => ({ ...l, label: l.label.flatMap((t) => breakWord(t, lane, (x) => measure.width(x, 'seq-lane-label', tick))) }));
+    // only a phone breaks inside a lane title; at desktop widths a title wraps at spaces
+    const lanes = narrow ? v.sequence.lanes.map((l) => ({ ...l, label: l.label.flatMap((t) => breakWord(t, lane, (x) => measure.width(x, 'seq-lane-label', tick))) })) : v.sequence.lanes;
     layer.draw({ ...v.sequence, lanes }, { left: 0, top: 0, width: dw, height: dh }, 0, tick);
 
     rozet(state);
