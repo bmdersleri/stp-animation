@@ -39,6 +39,8 @@ const PAD = 6;
 const TOKEN_R = 6;
 const RESPONSE_DASH = '7 5';
 const NOTE_H_LINES_PAD = 8;
+/** Clear space (px) kept between the content of two neighbouring rows. */
+const ROW_CLEAR = 4;
 let layerCount = 0;
 
 interface Layout {
@@ -47,6 +49,12 @@ interface Layout {
   headerBottom: number;
   rowH: number;
   bottom: number;
+  left: number;
+  right: number;
+  /** Centre line (y) of every message, in spec order; hidden older ones share the first visible row. */
+  ys: number[];
+  /** Room (px) the last row's message needs below its line. */
+  lastBelow: number;
 }
 
 /**
@@ -98,7 +106,7 @@ export class SequenceLayer {
     this.drawLanes(spec, lay, ms, fontPx);
     this.drawMessages(spec, lay, ms, fontPx);
     this.drawStop(spec, lay, ms);
-    this.drawToken(spec, lay, ms);
+    this.drawToken(spec, lay, ms, fontPx);
   }
 
   private layout(spec: SequenceSpec, box: Rect, fontPx: number): Layout {
@@ -109,7 +117,45 @@ export class SequenceLayer {
     const headLines = Math.max(0, ...spec.lanes.map((l) => this.laneLines(l, gap, fontPx).length + (l.sub ? 1 : 0)));
     const headerBottom = box.top + headLines * lh + 2 * PAD;
     const bottom = box.top + box.height;
-    return { xs, gap, headerBottom, rowH: Math.max(0, (bottom - headerBottom) / MAX_ROWS), bottom };
+    // rows sit on an even grid, pushed down where a row's content (note box, wrapped label) would touch the one above
+    const tail = lh + NOTE_H_LINES_PAD / 2;
+    const rowH = Math.max(0, (bottom - headerBottom - tail) / MAX_ROWS);
+    const lay: Layout = { xs, gap, headerBottom, rowH, bottom, left: box.left, right: box.left + box.width, ys: [], lastBelow: 0 };
+    const first = Math.max(0, spec.messages.length - MAX_ROWS);
+    let prevY = 0;
+    let prevBelow = 0;
+    spec.messages.forEach((m, i) => {
+      const row = Math.max(0, i - first);
+      const { above, below } = this.extent(m, lay, fontPx);
+      const grid = headerBottom + rowH * (row + 0.75);
+      const y = i <= first ? Math.max(grid, headerBottom + above + ROW_CLEAR) : Math.max(grid, prevY + prevBelow + above + ROW_CLEAR);
+      lay.ys.push(y);
+      prevY = y;
+      prevBelow = below;
+    });
+    lay.lastBelow = prevBelow;
+    return lay;
+  }
+
+  /** Lines a note's text wraps to; a note may span a couple of lanes, so a short check stays on one line even on a phone. */
+  private noteLines(label: string, lay: Layout, fontPx: number): string[] {
+    return this.measure.wrap(label, Math.min(lay.gap * 2.4, lay.right - lay.left) - 2 * PAD, 'seq-msg-label', fontPx);
+  }
+
+  /** Lines an arrow's label wraps to. */
+  private arrowLines(m: Message, lay: Layout, fontPx: number): string[] {
+    const span = Math.abs((lay.xs.get(m.to) ?? 0) - (lay.xs.get(m.from) ?? 0));
+    return this.measure.wrap(m.label, Math.max(lay.gap - 2 * PAD, span - 2 * PAD), 'seq-msg-label', fontPx);
+  }
+
+  /** Room (px) a message needs above and below its line. */
+  private extent(m: Message, lay: Layout, fontPx: number): { above: number; below: number } {
+    const lh = fontPx * LINE_K;
+    if (m.kind === 'note') {
+      const half = (this.noteLines(m.label, lay, fontPx).length * lh + NOTE_H_LINES_PAD) / 2;
+      return { above: half, below: half };
+    }
+    return { above: 6 + (this.arrowLines(m, lay, fontPx).length - 1) * lh + fontPx, below: TOKEN_R };
   }
 
   private laneLines(l: Lane, gap: number, fontPx: number): string[] {
@@ -148,19 +194,10 @@ export class SequenceLayer {
     });
   }
 
-  /** Row slot of message i of n: the last MAX_ROWS keep their own slot, older ones share the first and are hidden by `.old`. */
-  private rowOf(i: number, n: number): number {
-    return Math.max(0, i - Math.max(0, n - MAX_ROWS));
-  }
-
-  private rowY(lay: Layout, row: number): number {
-    return lay.headerBottom + lay.rowH * (row + 0.75);
-  }
-
   private drawMessages(spec: SequenceSpec, lay: Layout, ms: number, fontPx: number): void {
     const n = spec.messages.length;
     const index = new Map(spec.messages.map((m, i) => [m.id, i]));
-    const y = (m: Message): number => this.rowY(lay, this.rowOf(index.get(m.id)!, n));
+    const y = (m: Message): number => lay.ys[index.get(m.id)!];
     const lh = fontPx * LINE_K;
     const sel = this.msgsG.selectAll<SVGGElement, Message>('g.seq-msg').data(spec.messages, (d) => `${d.id}|${d.kind}`);
     sel.exit().remove();
@@ -203,16 +240,18 @@ export class SequenceLayer {
         });
       };
       if (d.kind === 'note') {
-        const lines = this.measure.wrap(d.label, lay.gap * 1.4 - 2 * PAD, 'seq-msg-label', fontPx);
+        const lines = this.noteLines(d.label, lay, fontPx);
         const w = this.measure.maxWidth(lines, 'seq-msg-label', fontPx) + 2 * PAD;
         const h = lines.length * lh + NOTE_H_LINES_PAD;
         const r = g.querySelector('rect')!;
-        r.setAttribute('x', String(r1(x1 - w / 2)));
+        // a note on an outer lane stays inside the diagram
+        const cx = Math.max(lay.left + 2 + w / 2, Math.min(lay.right - 2 - w / 2, x1));
+        r.setAttribute('x', String(r1(cx - w / 2)));
         r.setAttribute('y', String(r1(-h / 2)));
         r.setAttribute('width', String(r1(w)));
         r.setAttribute('height', String(r1(h)));
         r.setAttribute('rx', '4');
-        addLines(lines, x1, -((lines.length - 1) * lh) / 2 + fontPx * 0.35, 'middle');
+        addLines(lines, cx, -((lines.length - 1) * lh) / 2 + fontPx * 0.35, 'middle');
         return;
       }
       const path = g.querySelector('path.seq-arrow')!;
@@ -220,7 +259,7 @@ export class SequenceLayer {
       path.setAttribute('marker-end', `url(#${this.prefix}-${d.tone ?? 'plain'})`);
       if (d.kind === 'response') path.setAttribute('stroke-dasharray', RESPONSE_DASH);
       else path.removeAttribute('stroke-dasharray');
-      const lines = this.measure.wrap(d.label, Math.max(lay.gap - 2 * PAD, Math.abs(x2 - x1) - 2 * PAD), 'seq-msg-label', fontPx);
+      const lines = this.arrowLines(d, lay, fontPx);
       addLines(lines, (x1 + x2) / 2, -6 - (lines.length - 1) * lh, 'middle');
     });
   }
@@ -231,8 +270,8 @@ export class SequenceLayer {
       this.stopG.selectAll('*').remove();
       return;
     }
-    const rows = Math.min(spec.messages.length, MAX_ROWS);
-    const y = Math.min(lay.bottom - 8, lay.headerBottom + lay.rowH * (rows + 0.25));
+    const last = lay.ys.length > 0 ? lay.ys[lay.ys.length - 1] : lay.headerBottom;
+    const y = Math.min(lay.bottom - 8, last + Math.max(lay.rowH / 2, lay.lastBelow + 14));
     let g = this.stopG.select<SVGGElement>('g.seq-stop');
     if (g.empty()) {
       g = this.stopG.append('g').attr('class', 'seq-stop').attr('transform', `translate(${r1(x)},${r1(y)})`);
@@ -242,7 +281,7 @@ export class SequenceLayer {
     tr(g, 'seq-stop', ms).attr('transform', `translate(${r1(x)},${r1(y)})`);
   }
 
-  private drawToken(spec: SequenceSpec, lay: Layout, ms: number): void {
+  private drawToken(spec: SequenceSpec, lay: Layout, ms: number, fontPx: number): void {
     const n = spec.messages.length;
     const i = spec.messages.findIndex((m) => m.id === spec.active);
     if (i < 0 || n - i > MAX_ROWS) {
@@ -250,18 +289,27 @@ export class SequenceLayer {
       return;
     }
     const m = spec.messages[i];
-    const y = this.rowY(lay, this.rowOf(i, n));
-    const x1 = lay.xs.get(m.from) ?? 0;
-    const x2 = lay.xs.get(m.to) ?? 0;
+    const y = lay.ys[i];
+    let x1 = lay.xs.get(m.from) ?? 0;
+    let x2 = lay.xs.get(m.to) ?? 0;
+    let cy = y;
+    if (m.kind === 'note') {
+      // the token marks a note on its top-left corner, off the text
+      const lines = this.noteLines(m.label, lay, fontPx);
+      const w = this.measure.maxWidth(lines, 'seq-msg-label', fontPx) + 2 * PAD;
+      const cx = Math.max(lay.left + 2 + w / 2, Math.min(lay.right - 2 - w / 2, x1));
+      x1 = x2 = Math.max(lay.left + TOKEN_R + 1, cx - w / 2);
+      cy = y - (lines.length * fontPx * LINE_K + NOTE_H_LINES_PAD) / 2;
+    }
     let c = this.tokenG.select<SVGCircleElement>('circle.seq-token');
     const fresh = c.empty();
     if (fresh) c = this.tokenG.append('circle').attr('class', 'seq-token').attr('r', TOKEN_R);
     c.interrupt('seq-token');
     if (ms > 0) {
-      c.attr('cx', r1(x1)).attr('cy', r1(y));
+      c.attr('cx', r1(x1)).attr('cy', r1(cy));
       tr(c, 'seq-token', ms).attr('cx', r1(x2));
     } else {
-      c.attr('cx', r1(x2)).attr('cy', r1(y));
+      c.attr('cx', r1(x2)).attr('cy', r1(cy));
     }
   }
 

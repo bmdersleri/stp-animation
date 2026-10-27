@@ -65,7 +65,7 @@ describe('istek-yanit Lab controls', () => {
     player.play();
     toggle(yetki(host), false);
     await new Promise((r) => setTimeout(r, 60));
-    expect(el.querySelectorAll('.seq-token').length).toBeLessThanOrEqual(1);
+    expect(el.querySelectorAll('.seq-token')).toHaveLength(1);
     player.pause();
   });
 

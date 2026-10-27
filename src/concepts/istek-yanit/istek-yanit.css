@@ -6,20 +6,20 @@
 .istek-diagram svg.plot { position:static; display:block; }
 .istek-diagram .probe { visibility:hidden; font-size:var(--fs-tick); }
 
-.istek-cards { min-width:0; min-height:0; display:flex; flex-direction:column; gap:10px; overflow:auto; }
+.istek-cards { min-width:0; min-height:0; display:flex; flex-direction:column; gap:6px; overflow:auto; }
 .istek-cards [hidden] { display:none; }
-.istek-karti, .yanit-karti, .terminal { border:2px solid var(--line); border-radius:10px; background:var(--surface); padding:8px 12px; }
-.kart-baslik { font-weight:700; font-size:var(--fs-axis); color:var(--muted); margin-bottom:4px; }
-.istek-satir { margin:0 0 6px; font-size:var(--fs-body); }
+.istek-karti, .yanit-karti, .terminal { border:2px solid var(--line); border-radius:10px; background:var(--surface); padding:5px 12px; }
+.kart-baslik { font-weight:700; font-size:var(--fs-axis); color:var(--muted); margin-bottom:1px; line-height:1.2; }
+.istek-satir { margin:0 0 2px; line-height:1.3; font-size:var(--fs-body); }
 .istek-satir .metot { font-weight:700; color:var(--accent-text); }
 .istek-satir .yol, .alanlar, .terminal-satir { font-family:var(--mono, ui-monospace, Consolas, monospace); }
 .alanlar { display:grid; grid-template-columns:auto 1fr; gap:2px 12px; margin:0; font-size:var(--fs-tick); }
 .alanlar dt { color:var(--muted); }
 .alanlar dd { margin:0; font-weight:700; }
-.durum-kodu { display:inline-block; padding:0 .6em; border-radius:8px; font-weight:700; font-size:var(--fs-title); color:#fff; font-variant-numeric:tabular-nums; }
+.durum-kodu { display:inline-block; padding:0 .6em; border-radius:8px; font-weight:700; font-size:var(--fs-title); line-height:1.2; color:#fff; font-variant-numeric:tabular-nums; }
 .durum-kodu.ok { background:#1E7B3A; }
 .durum-kodu.alarm { background:#C0392B; }
-.yanit-karti .mesaj { margin:6px 0 0; font-size:var(--fs-body); }
+.yanit-karti .mesaj { margin:2px 0 0; line-height:1.25; font-size:var(--fs-body); }
 .terminal { background:#14365c; border-color:#14365c; }
 .terminal .kart-baslik { color:#c9d5e3; }
 .terminal-satir { margin:0; color:#fff; font-size:var(--fs-tick); overflow-wrap:anywhere; }
@@ -31,9 +31,11 @@
 .ozet-tablosu td.ok { color:#1E7B3A; font-weight:700; }
 .ozet-tablosu td.alarm { color:#C0392B; font-weight:700; }
 
-.code-strip { flex:none; min-height:calc(5 * 1.5 * var(--fs-tick) + var(--fs-axis) + 40px); }
+/* five lines at a tight line height: the diagram above needs every pixel it can get */
+.code-strip { flex:none; height:calc(5 * 1.25 * var(--fs-tick) + var(--fs-axis) + 28px); }
+.code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:6px 12px; gap:4px; }
 .code-strip[data-empty] .code-trace-lines { visibility:hidden; }
-.code-strip .code-trace-lines { overflow:hidden; }
+.code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:4px; }
 
 .istek-params { display:grid; gap:8px; }
 .istek-params .ctl { min-width:0; }

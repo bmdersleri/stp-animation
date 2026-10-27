@@ -19,11 +19,16 @@ const MS_STEP = 600;
 /** Below this stage width (px) the cards sit under the diagram. */
 const NARROW = 700;
 const GAP = 12;
+/** Horizontal room (px) a lane title keeps clear of its neighbours. */
+const LANE_PAD = 12;
 const CARDS_W = 340;
+const CARDS_WIDE = 800;
 /** A narrow diagram is this share of the stage height, within these bounds (px). */
 const NARROW_SHARE = 0.55;
 const NARROW_MIN = 300;
 const NARROW_MAX = 460;
+/** A narrow diagram is at least this many text lines tall (header, eight rows and a note under the last). */
+const NARROW_LINES = 22;
 /** Height (px) reserved for the Ders code strip when layout is unavailable (title + five lines). */
 const STRIP_FALLBACK_H = 150;
 /** Lines of code the Ders strip shows around the active one. */
@@ -84,20 +89,29 @@ export function mountIstekScene(
     const v = deriveIstekView(state.params);
     const ms = ds > 0 && !instant && cause !== 'param' ? MS_STEP * ds : 0;
     const a = area();
+    const tick = measure.fonts(mode).tick;
     const narrow = a.w < NARROW;
     stage.toggleAttribute('data-narrow', narrow);
-    const dw = narrow ? a.w : a.w - CARDS_W - GAP;
-    const dh = narrow ? Math.min(NARROW_MAX, Math.max(NARROW_MIN, Math.floor(a.h * NARROW_SHARE))) : a.h;
-    stage.style.setProperty('--cards-w', `${CARDS_W}px`);
+    // the three-call table needs room: on that step the cards take most of the width
+    const cardsW = v.ozet !== null ? Math.min(CARDS_WIDE, Math.floor(a.w * 0.64)) : CARDS_W;
+    const dw = narrow ? a.w : a.w - cardsW - GAP;
+    const dh = narrow ? Math.min(NARROW_MAX, Math.max(NARROW_MIN, Math.ceil(tick * NARROW_LINES), Math.floor(a.h * NARROW_SHARE))) : a.h;
+    stage.style.setProperty('--cards-w', `${cardsW}px`);
     stage.style.setProperty('--diagram-h', `${dh}px`);
     svg.setAttribute('width', String(dw));
     svg.setAttribute('height', String(dh));
     svg.setAttribute('viewBox', `0 0 ${dw} ${dh}`);
-    layer.draw(v.sequence, { left: 0, top: 0, width: dw, height: dh }, ms, measure.fonts(mode).tick);
+    // class names under the lane titles go when one of them is wider than its lane (phone width)
+    const lane = dw / v.sequence.lanes.length - LANE_PAD;
+    const subFits = v.sequence.lanes.every((l) => measure.width(l.sub ?? '', 'seq-lane-sub', tick) <= lane);
+    const sequence = subFits ? v.sequence : { ...v.sequence, lanes: v.sequence.lanes.map(({ sub: _sub, ...l }) => l) };
+    layer.draw(sequence, { left: 0, top: 0, width: dw, height: dh }, ms, tick);
     cards.update(v);
-    stripHost.hidden = mode !== 'ders';
+    // a phone has no room for the strip next to the diagram and the cards
+    stripHost.hidden = mode !== 'ders' || narrow;
     stripHost.toggleAttribute('data-empty', v.code.active.length === 0);
-    strip.update({ ...v.code, window: STRIP_WINDOW });
+    // before the first event no line runs: the strip keeps its height but lists nothing
+    strip.update({ ...v.code, lines: v.code.active.length === 0 ? [] : v.code.lines, window: STRIP_WINDOW });
     rendered = true;
   }
 
