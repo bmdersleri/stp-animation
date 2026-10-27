@@ -27,6 +27,8 @@ Herhangi bir kavram sayfasına `?mod=ders` eklemek, sınıfta projeksiyon için 
 | F | Tam ekran |
 | Home / End | İlk / son adım |
 | ? | Yardım |
+| Y | İstek-yanıt: yetkiyi aç / kapa |
+| [ / ] | Event loop (Lab): önceki / sonraki kare |
 
 ## Geliştirme
 

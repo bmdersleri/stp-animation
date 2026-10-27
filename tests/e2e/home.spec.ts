@@ -19,3 +19,14 @@ for (const size of [
     expect((await pageOverflow(page)).x).toBeLessThanOrEqual(0);
   });
 }
+
+for (const [href, title] of [
+  ['istek-yanit/', "İstek-yanıt yolculuğu: istemciden backend'e"],
+  ['event-loop/', 'Event loop: çağrı yığını ve kuyruklar'],
+] as const) {
+  test(`home: card ${href} opens its page`, async ({ page }) => {
+    await page.goto('/');
+    await page.locator(`a.card.hazir[href$="${href}"]`).click();
+    await expect(page.locator('h1.title')).toHaveText(title);
+  });
+}
