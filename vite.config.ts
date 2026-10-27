@@ -12,6 +12,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(root, 'index.html'),
+        'istek-yanit': resolve(root, 'istek-yanit/index.html'),
       },
     },
   },

@@ -34,7 +34,14 @@ export function soon(id: string, chapter: number, title: string): ConceptEntry {
 }
 
 export const concepts: ConceptEntry[] = [
-  soon('istek-yanit', 1, "İstek-yanıt yolculuğu: istemciden backend'e"),
+  {
+    id: 'istek-yanit',
+    chapter: 1,
+    chapterTitle: CH[1],
+    title: "İstek-yanıt yolculuğu: istemciden backend'e",
+    status: 'hazir',
+    href: 'istek-yanit/',
+  },
   soon('event-loop', 4, 'Event loop: çağrı yığını ve kuyruklar'),
   soon('middleware-zinciri', 5, 'Middleware zinciri: istek işlem hattı'),
   soon('rest-crud', 6, 'CRUD, HTTP metotları ve durum kodları'),
