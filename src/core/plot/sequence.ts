@@ -162,7 +162,7 @@ export class SequenceLayer {
     const index = new Map(spec.messages.map((m, i) => [m.id, i]));
     const y = (m: Message): number => this.rowY(lay, this.rowOf(index.get(m.id)!, n));
     const lh = fontPx * LINE_K;
-    const sel = this.msgsG.selectAll<SVGGElement, Message>('g.seq-msg').data(spec.messages, (d) => d.id);
+    const sel = this.msgsG.selectAll<SVGGElement, Message>('g.seq-msg').data(spec.messages, (d) => `${d.id}|${d.kind}`);
     sel.exit().remove();
     const enter = sel.enter().append('g').attr('data-id', (d) => d.id);
     enter.each((d, i, nodes) => {
@@ -245,7 +245,7 @@ export class SequenceLayer {
   private drawToken(spec: SequenceSpec, lay: Layout, ms: number): void {
     const n = spec.messages.length;
     const i = spec.messages.findIndex((m) => m.id === spec.active);
-    if (i < 0) {
+    if (i < 0 || n - i > MAX_ROWS) {
       this.tokenG.selectAll('*').interrupt('seq-token').remove();
       return;
     }

@@ -108,4 +108,22 @@ describe('SequenceLayer', () => {
     layer.clear();
     expect(svg.querySelectorAll('.seq-lane, .seq-msg, .seq-stop, .seq-token')).toHaveLength(0);
   });
+
+  it('kind change on same id redraws without throwing', () => {
+    const { svg, layer } = setup();
+    layer.draw(spec({ messages: [msg('x', 'a', 'b')] }), BOX, 0, 14);
+    expect(() => layer.draw(spec({ messages: [msg('x', 'c', 'c', 'note')] }), BOX, 0, 14)).not.toThrow();
+    expect(svg.querySelectorAll('g.seq-msg')).toHaveLength(1);
+    expect(svg.querySelector('g.seq-msg[data-id="x"] rect')).not.toBeNull();
+    expect(() => layer.draw(spec({ messages: [msg('x', 'a', 'b', 'response')] }), BOX, 0, 14)).not.toThrow();
+    expect(svg.querySelectorAll('g.seq-msg')).toHaveLength(1);
+    expect(svg.querySelector('g.seq-msg[data-id="x"] path.seq-arrow')!.getAttribute('stroke-dasharray')).toBeTruthy();
+  });
+
+  it('no token for an active message hidden as old', () => {
+    const { svg, layer } = setup();
+    const messages = Array.from({ length: 10 }, (_, i) => msg(`m${i}`, 'a', 'b'));
+    layer.draw(spec({ messages, active: 'm0' }), BOX, 0, 14);
+    expect(svg.querySelectorAll('circle.seq-token')).toHaveLength(0);
+  });
 });

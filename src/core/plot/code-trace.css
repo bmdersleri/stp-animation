@@ -1,6 +1,6 @@
 /* Code trace panel (core/plot/code-trace.ts): numbered lines, active line highlight, inline notes. */
 .code-trace { display:grid; gap:6px; padding:10px 12px; min-height:0; }
-.code-trace-title { font-weight:700; font-size:var(--fs-axis); color:var(--ink); }
+.code-trace-title { font-weight:700; font-size:var(--fs-axis); color:var(--navy); }
 .code-trace-lines { margin:0; padding:8px 4px; list-style:none; counter-reset:none; border-radius:6px; background:var(--bg); overflow:auto; font-family:var(--mono, ui-monospace, Consolas, monospace); font-size:var(--fs-tick); line-height:1.5; }
 .code-trace-lines li { display:flex; flex-wrap:wrap; align-items:baseline; gap:0 10px; padding:0 8px; border-left:5px solid transparent; }
 .code-trace-lines li::before { content:attr(data-line); flex:none; width:2em; text-align:right; opacity:.55; }
