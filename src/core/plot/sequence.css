@@ -1,0 +1,20 @@
+/* Sequence diagram (core/plot/sequence.ts): lanes, request / response arrows, notes, token, stop mark. */
+.seq-lane-label { font-size:var(--fs-tick); fill:var(--ink); font-weight:700; }
+.seq-lane-sub { font-size:var(--fs-tick); fill:var(--muted); }
+.seq-lifeline { stroke:var(--muted); stroke-width:2; stroke-dasharray:3 5; }
+.seq-lane.dim { opacity:.35; }
+
+.seq-arrow { fill:none; stroke:var(--ink); stroke-width:2.5; }
+.seq-msg-label { font-size:var(--fs-tick); fill:var(--ink); }
+.seq-note { fill:#fff; stroke:var(--ink); stroke-width:2; }
+.seq-arrow-head { fill:var(--ink); }
+.seq-arrow-head.head-alarm { fill:#C0392B; }
+.seq-msg.alarm .seq-arrow { stroke:#C0392B; }
+.seq-msg.alarm .seq-msg-label { fill:#C0392B; }
+.seq-msg.alarm .seq-note { stroke:#C0392B; }
+.seq-msg.ok .seq-note { stroke:#1E7B3A; }
+.seq-msg.old { display:none; }
+
+.seq-token { fill:#F08A00; stroke:#fff; stroke-width:2; }
+.seq-stop circle { fill:#C0392B; stroke:#fff; stroke-width:2; }
+.seq-stop path { stroke:#fff; stroke-width:2.5; fill:none; }
