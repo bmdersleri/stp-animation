@@ -138,6 +138,13 @@ export const concepts: ConceptEntry[] = [
     status: 'hazir',
     href: 'nginx-tls/',
   },
-  soon('iot-zaman-serisi', 16, 'IoT: sensör verisi ve zaman serisi'),
+  {
+    id: 'iot-zaman-serisi',
+    chapter: 16,
+    chapterTitle: CH[16],
+    title: 'IoT: sensör verisi ve zaman serisi',
+    status: 'hazir',
+    href: 'iot-zaman-serisi/',
+  },
   soon('timeout-retry', 17, 'Timeout, retry ve hata izolasyonu'),
 ];

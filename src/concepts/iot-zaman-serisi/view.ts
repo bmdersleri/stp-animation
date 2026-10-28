@@ -80,7 +80,7 @@ const SUNUCU_ZAMANI_NOTU = 'sunucuZamanDamgasi: new Date().toISOString() zaman d
 const AG_GECIKMESI_NOTU = 'Dikkat noktası: Zaman damgasının istemci yerine sunucuda üretilmesi, dağıtık IoT sistemlerinde cihaz saatlerinin güvenilmez olabileceği gerçek bir problemi çözer; ancak bu yaklaşım, gerçek ölçüm anı ile sunucuya ulaşma anı arasındaki ağ gecikmesini de gizler.'; // L558
 const TAMPON_NOTU = 'Başarısız yazmada tampon geri yüklenir; ancak bellek içi batch, süreç yeniden başlarsa veriyi kaybeder — dayanıklı kuyruk ayrı mekanizmadır.'; // L761
 /** The page's own note (R24), not a book sentence. */
-const BIRLESTIRME_NOTU = 'Pencere, imza ve aralık denetimlerinin birleştirilmesi bu sayfanındır.';
+export const BIRLESTIRME_NOTU = 'Pencere, imza ve aralık denetimlerinin birleştirilmesi bu sayfanındır.';
 
 const ALTERNATIFLER: DataTableSpec = {
   baslik: 'Alternatifler', // L564
