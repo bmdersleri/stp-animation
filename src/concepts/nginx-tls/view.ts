@@ -136,7 +136,8 @@ function akisKodu(p: NginxTlsParams, iz: NginxIzi, kitapCiktisi: boolean): CodeT
   const kapali = p.uygulama === 'kapali';
   const dolu = p.kalanGun <= 0;
   const var443 = p.hedef === 'https-443';
-  if (p.ayar === 'kod-15-5') {
+  // R18: code-007 is its own port-80 block plus Kod 15.5's 443 block
+  if (p.ayar === 'kod-15-5' || (p.ayar === 'code-007' && var443)) {
     if (!var443) return kodSeridi(K5, [456]);
     if (dolu) return kodSeridi(K5, [463]);
     return kodSeridi(K5, kitapCiktisi && !kapali ? [460, 463, 464, 468] : [467]);

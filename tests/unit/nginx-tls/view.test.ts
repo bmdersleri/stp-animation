@@ -166,6 +166,22 @@ describe('nginx-tls view', () => {
     expect(lab({ hedef: 'http-80', ayar: 'basliksiz' })).toEqual([satir('kod-15-3', 303)]);
   });
 
+  it('code-007 on 443 uses the Kod 15.5 block, on 80 its own line', () => {
+    const lab = (p: Partial<NginxTlsParams>) => odak(deriveNginxView({ ...step(8), ayar: 'code-007', ...p }, false));
+    expect(lab({ hedef: 'https-443' })).toEqual([satir('kod-15-5', 467)]);
+    expect(lab({ hedef: 'https-443', kalanGun: 0 })).toEqual([satir('kod-15-5', 463)]);
+    expect(lab({ hedef: 'https-443', uygulama: 'kapali' })).toEqual([satir('kod-15-5', 467)]);
+    expect(lab({ hedef: 'http-80' })).toEqual([satir('code-007', 514)]);
+    expect(deriveNginxView({ ...step(8), ayar: 'code-007', hedef: 'https-443' }, false).code.title).toBe(listing(LISTINGS, 'kod-15-5').title);
+  });
+
+  it('flag: expired certificate, sahteXff and certbot in Ders and Lab', () => {
+    for (const k of [true, false]) expect(odak(deriveNginxView({ ...step(8), kalanGun: 0 }, k))).toEqual([satir('kod-15-5', 463)]);
+    expect(odak(deriveNginxView(step(6), false))).toEqual([satir('kod-15-3', 303)]);
+    expect(odak(deriveNginxView(step(6), true))).toEqual([satir('code-004', 360)]);
+    for (const k of [true, false]) expect(odak(deriveNginxView(step(9), k))).toEqual([548, 549, 550, 551, 552, 553].map((n) => satir('kod-15-6', n)));
+  });
+
   it('every step and lab combination derives without throwing', () => {
     for (let n = 1; n <= 11; n++) for (const k of [true, false]) expect(() => view(n, k)).not.toThrow();
     for (const hedef of ['http-80', 'https-443', 'port-3000', 'port-5432'] as const)
