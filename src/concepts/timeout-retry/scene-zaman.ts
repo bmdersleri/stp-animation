@@ -9,9 +9,9 @@ import type { Bosluk, Cubuk, ZamanSpec } from './view';
 const NS = 'http://www.w3.org/2000/svg';
 /** Radius (px) of the tip mark at the end of a bar. */
 const R = 6;
-/** Tick spacings (ms) tried from the finest. */
 /** Class of the header labels; the CSS makes it bold, so it is also the class their width is measured with. */
 const BASLIK_SINIFI = 'tick zaman-baslik';
+/** Tick spacings (ms) tried from the finest. */
 const ADIMLAR = [1000, 2000, 2500, 5000, 10_000];
 
 const sayi = (v: number): string => String(v).replace('.', ',');

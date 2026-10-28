@@ -252,6 +252,16 @@ const KEY_STEPS: { n: number; check: (page: Page) => Promise<void> }[] = [
     await expect(p.locator('.timeout-kart')).toContainText('özet yok');
     await expect(p.locator('.terminal-satir').first()).toHaveText('Özet alınamadı: AI servisi zaman aşımına uğradı.');
     await expect(p.locator('.timeout-sayfa-notu')).toHaveCount(2);
+    // the closing 17.5 arrow is on screen, inside the diagram's svg
+    await expect(p.locator('.timeout-govde')).not.toHaveAttribute('data-birakilan', /sira/);
+    const ok = p.locator('.timeout-diyagram g.seq-msg').last();
+    await expect(ok).toContainText('200 OK (özet yok,');
+    await expect(ok).toContainText('veri korunur)');
+    expect(await seqOutsideSvg(p)).toEqual([]);
+    const svg = (await p.locator('.timeout-diyagram svg.plot').boundingBox())!;
+    const kutu = (await ok.boundingBox())!;
+    expect(kutu.y).toBeGreaterThanOrEqual(svg.y - 1);
+    expect(kutu.y + kutu.height).toBeLessThanOrEqual(svg.y + svg.height + 1);
   } },
   { n: 9, check: async (p) => {
     await expect(p.locator('.timeout-zaman')).toBeHidden();
@@ -304,7 +314,7 @@ test('ders: steps 1 and 10 show the book block at 1280x720', async ({ page }) =>
 test('ders font floors at 1280x720', async ({ page }, info) => {
   await open(page, PAGE, 'ders', READY);
   const measured: Record<string, number | null> = {};
-  for (const n of [1, 2, 3, 6, 7, 8, 9, 10]) {
+  for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
     await gotoStep(page, n - 1, STEPS, 0);
     await rest(page);
     const m: Record<string, number[]> = {

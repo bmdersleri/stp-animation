@@ -30,10 +30,10 @@
 .timeout-sag .data-table th, .timeout-sag .data-table td { overflow-wrap:anywhere; padding:1px 6px; line-height:1.1; }
 .timeout-sag .data-table-title { margin-bottom:0; }
 .timeout-sag .http-cards { min-width:0; }
-/* without the diagram the column is wide: the answer card and the terminal sit side by side */
-.timeout-stage:not([data-narrow]) .timeout-govde:not([data-cizgi]) .timeout-kart .http-cards { flex-direction:row; align-items:stretch; }
-.timeout-stage:not([data-narrow]) .timeout-govde:not([data-cizgi]) .timeout-kart .yanit-karti { flex:0 0 auto; min-width:25%; }
-.timeout-stage:not([data-narrow]) .timeout-govde:not([data-cizgi]) .timeout-kart .terminal { flex:1 1 0; min-width:0; }
+/* wide screens: the answer card and the terminal sit side by side, with or without the diagram, so the column stays short */
+.timeout-stage:not([data-narrow]) .timeout-govde .timeout-kart .http-cards { flex-direction:row; align-items:stretch; }
+.timeout-stage:not([data-narrow]) .timeout-govde .timeout-kart .yanit-karti { flex:0 0 auto; min-width:25%; }
+.timeout-stage:not([data-narrow]) .timeout-govde .timeout-kart .terminal { flex:1 1 0; min-width:0; }
 .timeout-sag .terminal { padding:3px 10px; }
 .timeout-sag .terminal-satir { overflow-wrap:anywhere; }
 .timeout-sag .kart-baslik { margin-bottom:0; }
