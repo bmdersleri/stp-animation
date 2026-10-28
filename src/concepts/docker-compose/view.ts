@@ -41,6 +41,7 @@ const kodSeridi = (l: Listing, kitapSatirlari: readonly number[]): CodeTraceSpec
 
 /** The book's sentences, verbatim without code ticks, bold marks and emoji (final.md line in the comment). */
 const TANIM = "Docker Compose, birden fazla container'ı (servisi), aralarındaki volume ve network ilişkileriyle birlikte tek bir YAML dosyasında tanımlayıp docker compose up tek komutuyla birlikte çalıştırmayı sağlayan araçtır."; // L564
+const IMAJ_TANIMI = "Tanım. Image, bir uygulamanın çalışması için gereken dosya sistemi katmanlarının salt okunur bir anlık görüntüsüdür. Container ise bu image'dan başlatılan, kendi izole süreç alanına, dosya sistemine ve ağ arayüzüne sahip çalışan örnektir."; // L351
 const SINAV_NOTU = "Sınav Notu: Image salt okunur bir taslaktır, container bu taslaktan üretilen çalışan örnektir; volume container'ın ötesinde kalıcı veri sağlar, network container'lar arası isimle iletişimi sağlar, Docker Compose ise bunların tamamını tek bir bildirimsel dosyada birleştirir."; // L1014
 const AG_NOTU = "Dikkat noktası: Varsayılan bridge network'te container'lar birbirini adla bulamaz; servis adıyla iletişim ancak açıkça oluşturulmuş bir user-defined network'te mümkündür — bu örnekteki --network kutuphane-network bu yüzden zorunludur."; // L520
 const DOWN_V_NOTU = "Üçüncü hata, docker compose down -v komutunu (volume'ları da silen) docker compose down ile karıştırıp yanlışlıkla tüm veritabanı verisini silmektir."; // L720
@@ -154,6 +155,7 @@ export function deriveComposeView(p: ComposeParams, kitapCiktisi = false): Compo
         ...bos(kodSeridi(K4, [391, 392])),
         tablo: tablo("Container'lar", ['container', 'port'], satirlar.map((s) => { const [ad, port] = s.split(/\s+/); return { key: ad, cells: [ad, port] }; })),
         terminal: satirlar.map((metin) => ({ metin })),
+        notlar: [IMAJ_TANIMI],
       };
     }
     case 'cok-asamali':

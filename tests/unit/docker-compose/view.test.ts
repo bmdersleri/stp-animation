@@ -51,6 +51,12 @@ describe('docker-compose view', () => {
     expect(v.problar).toBeNull();
   });
 
+  it('step 2 shows the L351 image/container definition its badge cites', () => {
+    expect(view(2).notlar).toEqual([
+      "Tanım. Image, bir uygulamanın çalışması için gereken dosya sistemi katmanlarının salt okunur bir anlık görüntüsüdür. Container ise bu image'dan başlatılan, kendi izole süreç alanına, dosya sistemine ve ağ arayüzüne sahip çalışan örnektir.",
+    ]);
+  });
+
   it("step 3 table cells are the book's comment lines", () => {
     const t = view(3).tablo!;
     const yorum = (...L: number[]) => L.map((n) => satir('kod-14-3', n).replace('# ', '')).join('; ');
