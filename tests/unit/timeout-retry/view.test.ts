@@ -230,6 +230,20 @@ describe('timeout-retry view', () => {
     expect(bozuk.map((m) => m.label)).toEqual(['POST /predict', '200', '200 OK (özet yok, temel veri korunur)']);
   });
 
+  it('a Lab run of Kod 17.3 (steps 3 and 4 before any change) highlights Kod 17.3 lines', () => {
+    const iptal = deriveTimeoutView(step(3), false);
+    expect(iptal.code.title.startsWith('Kod 17.3')).toBe(true);
+    expect(odak(iptal)).toEqual([satir('kod-17-3', 369), satir('kod-17-3', 370)]);
+    const basari = deriveTimeoutView(step(4), false);
+    expect(basari.code.title.startsWith('Kod 17.3')).toBe(true);
+    expect(odak(basari)).toEqual([satir('kod-17-3', 367)]);
+    const kalici = deriveTimeoutView({ ...step(3), senaryo: 'http-500' }, false);
+    expect(odak(kalici)).toEqual([satir('kod-17-3', 372)]);
+    // Ders keeps the step's own focus
+    expect(odak(view(3))).toEqual([satir('kod-17-3', 365), satir('kod-17-3', 369), satir('kod-17-3', 370)]);
+    expect(odak(view(4))).toEqual([satir('kod-17-3', 374)]);
+  });
+
   it('lab http-500 answers 500 in the diagram and is not retried', () => {
     const v = lab({ senaryo: 'http-500' });
     expect(v.zaman!.cubuklar).toEqual([{ deneme: 1, bas: 0, son: 1200, uc: 'yanit' }]);

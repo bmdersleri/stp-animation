@@ -183,13 +183,17 @@ function siraKur(p: TimeoutParams, olaylar: readonly IstekOlayi[], ozet: string 
   };
 }
 
-/** Ders: the table's focus (Kod 17.3 for the single attempts, code_006 where retries run out). Lab: the Kod 17.5 line that decided the result. */
+/**
+ * The listing that runs comes first: Kod 17.3 (steps 3 and 4, also in Lab mode before any change) or Kod 17.5. Ders: the
+ * table's focus (code_006 where retries run out). Lab: the line that decided the result.
+ */
 function akisKodu(p: TimeoutParams, olaylar: readonly IstekOlayi[], ders: boolean): CodeTraceSpec {
   const sonuc = sonuclan(olaylar);
   const iptalli = olaylar.some((o) => o.tur === 'iptal');
-  if (ders && p.surum === '17.3') {
-    if (sonuc === 'iptal') return kodSeridi(K173, [365, 369, 370]);
-    return kodSeridi(K173, sonuc === 'http-500' ? [372] : [374]);
+  if (p.surum === '17.3') {
+    if (sonuc === 'iptal') return kodSeridi(K173, ders ? [365, 369, 370] : [369, 370]);
+    if (sonuc === 'http-500') return kodSeridi(K173, [372]);
+    return kodSeridi(K173, ders ? [374] : [367]);
   }
   if (ders && sonuc === 'iptal' && p.maksRetry > 0) return kodSeridi(K6, [461, 465]);
   if (ders && iptalli) return kodSeridi(K175, [724, 725]);
