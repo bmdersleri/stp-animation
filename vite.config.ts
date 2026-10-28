@@ -24,6 +24,7 @@ export default defineConfig({
         'cors-preflight': resolve(root, 'cors-preflight/index.html'),
         'rate-limiting': resolve(root, 'rate-limiting/index.html'),
         'docker-compose': resolve(root, 'docker-compose/index.html'),
+        'nginx-tls': resolve(root, 'nginx-tls/index.html'),
       },
     },
   },

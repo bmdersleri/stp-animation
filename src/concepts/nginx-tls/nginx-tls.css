@@ -1,0 +1,72 @@
+/* nginx-tls page: badge, four-lane request diagram, cards, path checks, application view, XFF strip, certificate, notes, code strip, Lab controls. */
+.nginx-scene { width:100%; height:100%; min-height:0; display:flex; flex-direction:column; gap:4px; font-family:var(--font); color:var(--navy); }
+.nginx-scene [hidden] { display:none !important; }
+.nginx-ust { flex:none; display:flex; justify-content:flex-end; align-items:flex-start; min-height:calc(1.3 * var(--fs-tick) + 4px); }
+.nginx-ust .rozet-yeri { flex:0 1 auto; margin-left:auto; display:flex; justify-content:flex-end; min-width:0; }
+.nginx-scene .kaynak-rozeti { white-space:normal; text-align:right; border-radius:14px; max-width:100%; }
+
+.nginx-stage { flex:1 1 0; min-height:0; display:flex; flex-direction:column; gap:6px; overflow:hidden; }
+.nginx-stage[data-narrow] { overflow:auto; }
+.nginx-govde { flex:1 1 0; min-height:0; min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:6px 12px; align-content:start; }
+.nginx-govde[data-cizgi] { grid-template-columns:minmax(280px,0.7fr) minmax(0,1.7fr); grid-template-rows:minmax(0,1fr); }
+.nginx-stage[data-narrow] .nginx-govde, .nginx-stage[data-narrow] .nginx-govde[data-cizgi] { flex:none; grid-template-columns:minmax(0,1fr); grid-template-rows:none; }
+.nginx-diyagram { position:relative; min-width:0; min-height:0; overflow:hidden; }
+.nginx-stage[data-narrow] .nginx-diyagram { height:var(--diyagram-h); }
+.nginx-diyagram svg.plot { position:static; display:block; }
+.nginx-diyagram .probe { visibility:hidden; font-size:var(--fs-tick); }
+
+.nginx-sag { min-width:0; min-height:0; display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:6px; align-self:start; }
+.nginx-sag-kolon { min-width:0; display:flex; flex-direction:column; gap:6px; }
+.nginx-stage[data-narrow] .nginx-sag { grid-template-columns:minmax(0,1fr); }
+.nginx-sag .data-table th, .nginx-sag .data-table td { overflow-wrap:normal; padding:2px 8px; }
+.nginx-sag .data-table-title { margin-bottom:0; }
+.nginx-sag .http-cards { min-width:0; }
+.nginx-sag .terminal { padding:3px 10px; }
+.nginx-sag .terminal-satir { overflow-wrap:anywhere; }
+.nginx-sag .kart-baslik { margin-bottom:0; }
+.nginx-sag .yanit-yok { margin:0; padding:3px 10px; border:2px dashed var(--line); border-radius:10px; font-size:var(--fs-tick); }
+.nginx-sag .segment-strip { min-width:0; }
+.nginx-sag .check-list { padding:3px 10px; min-width:0; }
+.nginx-sag .denetim { padding:1px 0; line-height:1.15; }
+.nginx-sag .denetim-ayrinti, .nginx-sag .denetim-ad { overflow-wrap:normal; }
+.nginx-sag .check-list-rows { margin:0; }
+.nginx-stage:not([data-narrow]) .nginx-sag .check-list-title { display:none; }
+.nginx-stage[data-narrow] .nginx-sag .data-table td, .nginx-stage[data-narrow] .nginx-sag .data-table th { overflow-wrap:anywhere; }
+.nginx-stage[data-narrow] .nginx-sag .denetim-ayrinti, .nginx-stage[data-narrow] .nginx-sag .denetim-ad { overflow-wrap:anywhere; }
+
+.nginx-notlar { flex:none; display:flex; flex-direction:column; gap:4px; }
+.nginx-not { margin:0; padding:3px 10px; border:2px dashed var(--line); border-radius:10px; font-size:var(--fs-tick); line-height:1.25; color:var(--muted); overflow-wrap:anywhere; }
+
+.nginx-scene .code-strip { flex:none; height:calc(3 * 1.25 * var(--fs-tick) + var(--fs-axis) + 18px); }
+.nginx-scene .code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:3px 12px; gap:2px; }
+.nginx-scene .code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:2px 4px; }
+
+.nginx-params { display:grid; gap:8px; }
+.nginx-params .ctl { min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
+.nginx-params .ctl[hidden] { display:none; }
+.nginx-params .ctl-label { font-weight:600; }
+.nginx-params select { min-height:var(--ctl); max-width:100%; box-sizing:border-box; padding:0 .5em; border:2px solid var(--navy); border-radius:8px; background:var(--surface); font:inherit; }
+.nginx-params input[type=range] { width:100%; min-height:var(--ctl); }
+
+/* the summary's 7-row matrix plus its note must fit the stage at 1280x720: table and note in the tick size */
+.nginx-stage .kitap-blok .data-table th, .nginx-stage .kitap-blok .data-table td, .nginx-stage .kitap-blok:has(.data-table) .kitap-not { font-size:var(--fs-tick); line-height:1.2; }
+.nginx-stage .kitap-blok .data-table th, .nginx-stage .kitap-blok .data-table td { padding:1px 5px; line-height:1.15; }
+.nginx-stage .kitap-blok .data-table { margin-bottom:4px; }
+.nginx-stage .kitap-blok p { margin-bottom:2px; }
+.nginx-sag .denetim { font-size:var(--fs-tick); line-height:1.1; }
+.nginx-sag .istek-satir, .nginx-sag .yanit-karti .mesaj { font-size:var(--fs-tick); }
+.nginx-sag .durum-kodu { font-size:var(--fs-body); }
+.nginx-sag .istek-karti, .nginx-sag .yanit-karti { padding:3px 10px; }
+.nginx-stage .kitap-blok .data-table th, .nginx-stage .kitap-blok .data-table td { line-height:1.1; }
+.nginx-stage .kitap-blok .data-table-title { line-height:1.1; margin:0; }
+.nginx-sag .data-table th, .nginx-sag .data-table td { padding:1px 6px; line-height:1.1; }
+.nginx-sag .govde-yok { font-size:var(--fs-tick); margin:0; }
+.nginx-sag-kolon { gap:4px; }
+.nginx-sag { gap:4px 6px; }
+.nginx-sag .istek-karti .kart-baslik, .nginx-sag .yanit-karti .kart-baslik { float:left; margin:0 8px 0 0; }
+.nginx-sag .yanit-karti .yanit { overflow:hidden; }
+.nginx-sag .istek-karti::after { content:''; display:block; clear:both; }
+.nginx-sag .istek-karti, .nginx-sag .yanit-karti { padding:2px 10px; }
+.nginx-sag .check-list { padding:2px 10px; }
+.nginx-sag .data-table th, .nginx-sag .data-table td { overflow-wrap:anywhere; }
+.nginx-sag .denetim-ayrinti, .nginx-sag .denetim-ad { overflow-wrap:anywhere; }

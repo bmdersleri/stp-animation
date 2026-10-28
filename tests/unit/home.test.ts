@@ -24,11 +24,11 @@ describe('home page', () => {
     chapters.forEach((ch, i) => expect(heads[i].startsWith(`Bölüm ${ch} ·`), heads[i]).toBe(true));
   });
 
-  it('twelve cards are ready: ... rate-limiting and docker-compose', () => {
+  it('thirteen cards are ready: ... docker-compose and nginx-tls', () => {
     const root = render();
     const ready = [...root.querySelectorAll('a.card.hazir')];
-    expect(ready).toHaveLength(12);
-    expect(ready.map((a) => a.getAttribute('href'))).toEqual(['istek-yanit/', 'event-loop/', 'middleware-zinciri/', 'rest-crud/', 'sql-join/', 'katmanli-mimari/', 'salt-hash/', 'jwt-akisi/', 'rbac-401-403/', 'cors-preflight/', 'rate-limiting/', 'docker-compose/']);
+    expect(ready).toHaveLength(13);
+    expect(ready.map((a) => a.getAttribute('href'))).toEqual(['istek-yanit/', 'event-loop/', 'middleware-zinciri/', 'rest-crud/', 'sql-join/', 'katmanli-mimari/', 'salt-hash/', 'jwt-akisi/', 'rbac-401-403/', 'cors-preflight/', 'rate-limiting/', 'docker-compose/', 'nginx-tls/']);
   });
 
   it('hazir cards link to href and ders mode', () => {

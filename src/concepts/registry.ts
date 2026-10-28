@@ -130,7 +130,14 @@ export const concepts: ConceptEntry[] = [
     status: 'hazir',
     href: 'docker-compose/',
   },
-  soon('nginx-tls', 15, 'Nginx reverse proxy ve HTTPS/TLS'),
+  {
+    id: 'nginx-tls',
+    chapter: 15,
+    chapterTitle: CH[15],
+    title: 'Nginx reverse proxy ve HTTPS/TLS',
+    status: 'hazir',
+    href: 'nginx-tls/',
+  },
   soon('iot-zaman-serisi', 16, 'IoT: sensör verisi ve zaman serisi'),
   soon('timeout-retry', 17, 'Timeout, retry ve hata izolasyonu'),
 ];
