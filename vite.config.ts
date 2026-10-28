@@ -23,6 +23,7 @@ export default defineConfig({
         'rbac-401-403': resolve(root, 'rbac-401-403/index.html'),
         'cors-preflight': resolve(root, 'cors-preflight/index.html'),
         'rate-limiting': resolve(root, 'rate-limiting/index.html'),
+        'docker-compose': resolve(root, 'docker-compose/index.html'),
       },
     },
   },
