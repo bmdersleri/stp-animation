@@ -24,11 +24,11 @@ describe('home page', () => {
     chapters.forEach((ch, i) => expect(heads[i].startsWith(`Bölüm ${ch} ·`), heads[i]).toBe(true));
   });
 
-  it('fourteen cards are ready: ... docker-compose, nginx-tls and iot-zaman-serisi', () => {
+  it('fifteen cards are ready: ... iot-zaman-serisi and timeout-retry', () => {
     const root = render();
     const ready = [...root.querySelectorAll('a.card.hazir')];
-    expect(ready).toHaveLength(14);
-    expect(ready.map((a) => a.getAttribute('href'))).toEqual(['istek-yanit/', 'event-loop/', 'middleware-zinciri/', 'rest-crud/', 'sql-join/', 'katmanli-mimari/', 'salt-hash/', 'jwt-akisi/', 'rbac-401-403/', 'cors-preflight/', 'rate-limiting/', 'docker-compose/', 'nginx-tls/', 'iot-zaman-serisi/']);
+    expect(ready).toHaveLength(15);
+    expect(ready.map((a) => a.getAttribute('href'))).toEqual(['istek-yanit/', 'event-loop/', 'middleware-zinciri/', 'rest-crud/', 'sql-join/', 'katmanli-mimari/', 'salt-hash/', 'jwt-akisi/', 'rbac-401-403/', 'cors-preflight/', 'rate-limiting/', 'docker-compose/', 'nginx-tls/', 'iot-zaman-serisi/', 'timeout-retry/']);
   });
 
   it('hazir cards link to href and ders mode', () => {

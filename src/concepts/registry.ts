@@ -146,5 +146,12 @@ export const concepts: ConceptEntry[] = [
     status: 'hazir',
     href: 'iot-zaman-serisi/',
   },
-  soon('timeout-retry', 17, 'Timeout, retry ve hata izolasyonu'),
+  {
+    id: 'timeout-retry',
+    chapter: 17,
+    chapterTitle: CH[17],
+    title: 'Timeout, retry ve hata izolasyonu',
+    status: 'hazir',
+    href: 'timeout-retry/',
+  },
 ];

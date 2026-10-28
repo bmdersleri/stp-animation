@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fitDrops, type Birakilabilir } from '../../../src/concepts/iot-zaman-serisi/scene-fit';
+import { fitDrops, type Birakilabilir } from '../../src/core/plot/fit-drops';
 
 /** A piece of `h` px that can be hidden. */
 const parca = (h: number) => {

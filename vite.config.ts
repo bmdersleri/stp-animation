@@ -26,6 +26,7 @@ export default defineConfig({
         'docker-compose': resolve(root, 'docker-compose/index.html'),
         'nginx-tls': resolve(root, 'nginx-tls/index.html'),
         'iot-zaman-serisi': resolve(root, 'iot-zaman-serisi/index.html'),
+        'timeout-retry': resolve(root, 'timeout-retry/index.html'),
       },
     },
   },

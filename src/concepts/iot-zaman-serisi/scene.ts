@@ -12,7 +12,7 @@ import { SequenceLayer } from '../../core/plot/sequence';
 import { sourceBadge, type Rozet } from '../../core/plot/source-badge';
 import { TextMeasure } from '../../core/plot/text-measure';
 import type { SceneHandle } from '../../core/shell';
-import { fitDrops, type Birakilabilir } from './scene-fit';
+import { fitDrops, type Birakilabilir } from '../../core/plot/fit-drops';
 import { SeriLayer } from './scene-seri';
 import { IOT_ROZET, type IotParams } from './scenario';
 import { BIRLESTIRME_NOTU, deriveIotView, iotLabRozet } from './view';
