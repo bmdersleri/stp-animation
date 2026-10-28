@@ -18,8 +18,9 @@ describe('nginx-tls view', () => {
     expect(v.kitap!.paragraflar![0]).toMatch(/`docker compose`|docker compose/);
     expect(v.kitap!.paragraflar![0]).not.toContain('`');
     expect(v.kitap!.notlar).toHaveLength(2);
-    expect(v.kitap!.notlar.join(' ')).toContain('127.0.0.1');
-    expect(v.kitap!.notlar.join(' ')).toContain('502 Bad Gateway');
+    // book order (L278): the 502 sentence, then the 127.0.0.1 sentence
+    expect(v.kitap!.notlar[0]).toMatch(/^502 Bad Gateway yanıtı bu nedenle uygulama kodunda değil/);
+    expect(v.kitap!.notlar[1]).toMatch(/^Uygulamanın yalnızca 127.0.0.1 üzerinde dinlediğine/);
     expect(v.sequence).toBeNull();
     const o = view(11).kitap!;
     expect(o.tablolar.map((t) => [t.baslik, t.satirlar.length])).toEqual([['Alternatifler', 4], ['Alternatifler', 4]]);

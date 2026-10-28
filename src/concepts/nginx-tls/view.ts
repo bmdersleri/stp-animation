@@ -75,7 +75,7 @@ const ALTERNATIFLER_SERTIFIKA: DataTableSpec = {
   ],
 };
 
-const TANITIM_BLOK: KitapBlok = { tanim: TANIM, paragraflar: [PARAGRAF], tablolar: [], notlar: [YEREL_NOT, BAD_GATEWAY_NOT] };
+const TANITIM_BLOK: KitapBlok = { tanim: TANIM, paragraflar: [PARAGRAF], tablolar: [], notlar: [BAD_GATEWAY_NOT, YEREL_NOT] };
 const OZET_BLOK: KitapBlok = { tablolar: [ALTERNATIFLER_TRAFIK, ALTERNATIFLER_SERTIFIKA], notlar: [SINAV_NOTU] };
 
 const YENILEME_ESIGI = '30 gün';

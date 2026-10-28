@@ -132,7 +132,8 @@ test('ders: steps 1 and 11 show the book block at 1280x720', async ({ page }) =>
   await expect(page.locator('.nginx-govde')).toBeHidden();
   await expect(blok.locator('.tanim-metin')).toContainText('Reverse proxy, istemcilerden gelen HTTP(S) isteklerini');
   await expect(blok.locator('.kitap-not')).toHaveCount(2);
-  await expect(blok.locator('.kitap-not').first()).toContainText('127.0.0.1 üzerinde dinlediğine');
+  await expect(blok.locator('.kitap-not').first()).toContainText('502 Bad Gateway yanıtı bu nedenle');
+  await expect(blok.locator('.kitap-not').nth(1)).toContainText('127.0.0.1 üzerinde dinlediğine');
   expect((await pageOverflow(page)).x, 'step 1').toBeLessThanOrEqual(0);
   expect((await pageOverflow(page)).y, 'step 1').toBeLessThanOrEqual(0);
   expect(await stageBoxProblems(page, '.nginx-stage', '.kitap-blok, .tanim-metin, .kitap-not'), 'step 1').toEqual([]);
