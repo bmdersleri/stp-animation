@@ -135,6 +135,31 @@ test('ders: steps 1 and 11 show the book block at 1280x720', async ({ page }) =>
   expect(await stageBoxProblems(page, '.compose-stage', '.kitap-blok, .data-table, .data-table tbody tr, .kitap-not'), 'step 11').toEqual([]);
 });
 
+for (const [w, h] of [[1280, 720], [1280, 740]] as const) {
+  test(`ders: step 2 shows the L351 definition its badge cites at ${w}x${h}`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await open(page, PAGE, 'ders', READY);
+    await gotoStep(page, 1, STEPS, 0);
+    await rest(page);
+    await expect(page.locator('.rozet-yeri .kaynak-rozeti')).toContainText('L351');
+    const not = page.locator('.compose-not');
+    await expect(not).toHaveCount(1);
+    await expect(not).toBeVisible();
+    await expect(not).toHaveText(/^Tanım\. Image, bir uygulamanın çalışması için gereken dosya sistemi katmanlarının/);
+    await expect(not).not.toHaveClass(/compose-sayfa-notu/);
+    expect(await stageBoxProblems(page, '.compose-stage', '.compose-not, .data-table, .terminal'), 'step 2').toEqual([]);
+    expect(await clippedBoxes(page, '.compose-not'), 'step 2').toEqual([]);
+  });
+}
+
+test('ders: the page assumption note is styled apart from book notes', async ({ page }) => {
+  await open(page, PAGE, 'ders', READY);
+  await gotoStep(page, 9, STEPS, 0);
+  await rest(page);
+  await expect(page.locator('.compose-not.compose-sayfa-notu')).toHaveText("sayfa varsayımı: veritabanı t = 1 s'de hazır");
+  await expect(page.locator('.compose-not:not(.compose-sayfa-notu)')).toHaveText(/^Dikkat noktası: docker-compose\.yml'deki depends_on/);
+});
+
 test('ders font floors at 1280x720', async ({ page }, info) => {
   await open(page, PAGE, 'ders', READY);
   const measured: Record<string, number | null> = {};

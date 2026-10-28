@@ -50,8 +50,8 @@ const BASLIK_NOTU = 'Dikkat noktası: Bu başlıklar eklenmezse uygulama tüm is
 const YONLENDIRME_NOTU = 'Dikkat noktası: 301 yönlendirmesi tarayıcılar tarafından agresif biçimde önbelleğe alınır; yanlış yapılandırılmış bir yönlendirme sonradan düzeltilse bile bazı istemcilerde uzun süre etkili kalabilir.'; // L482
 const YAYGIN_HATA_NOTU = "Yaygın hatalar. En yaygın hata, HTTP'den HTTPS'e yönlendirmeyi unutup, kullanıcıların hâlâ şifresiz http:// adresinden erişebilmesine izin vermektir."; // L498
 const SINAV_NOTU = "Sınav Notu: Nginx trafiği API'nin önünde karşılar ve yönlendirir; HTTPS bu trafiği şifreler; ortam değişkenleri sırları koddan ayırır; health check ise servisin gerçekten sağlıklı olup olmadığını, yalnızca ayakta olup olmadığından ayırt eder."; // L959
-/** R18: Nginx's default `Host`, which the 443 block of Kod 15.5 leaves as it is. */
-const VARSAYILAN_NOTU = "Nginx varsayılanı: Host = $proxy_host (127.0.0.1:3000); Kod 15.5'in 443 bloğu yalnız X-Forwarded-Proto ekler.";
+/** R18: Nginx's default `Host`, which the 443 block of Kod 15.5 leaves as it is. The page's own sentence: the scene styles it apart. */
+export const VARSAYILAN_NOTU = "Nginx varsayılanı: Host = $proxy_host (127.0.0.1:3000); Kod 15.5'in 443 bloğu yalnız X-Forwarded-Proto ekler.";
 
 const SUTUNLAR = ['Yaklaşım', 'Avantajı', 'Dezavantajı', 'Uygun kullanım'].map((ad) => ({ ad }));
 const ALTERNATIFLER_TRAFIK: DataTableSpec = {

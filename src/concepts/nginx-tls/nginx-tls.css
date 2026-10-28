@@ -40,6 +40,8 @@
 
 .nginx-notlar { flex:none; display:flex; flex-direction:column; gap:4px; }
 .nginx-not { margin:0; padding:3px 10px; border:2px dashed var(--line); border-radius:10px; font-size:var(--fs-tick); line-height:1.25; color:var(--muted); overflow-wrap:anywhere; }
+/* the page's own sentence is not the book's: a solid navy edge instead of the muted dashed book note */
+.nginx-not.nginx-sayfa-notu { border:2px solid var(--navy); color:var(--navy); }
 
 .nginx-scene .code-strip { flex:none; height:calc(3 * 1.25 * var(--fs-tick) + var(--fs-axis) + 18px); }
 .nginx-scene .code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:3px 12px; gap:2px; }

@@ -32,6 +32,8 @@
 
 .compose-notlar { flex:none; display:flex; flex-direction:column; gap:4px; }
 .compose-not { margin:0; padding:3px 10px; border:2px dashed var(--line); border-radius:10px; font-size:var(--fs-tick); line-height:1.25; color:var(--muted); overflow-wrap:anywhere; }
+/* the page's own assumption is not the book's: a solid navy edge instead of the muted dashed book note */
+.compose-not.compose-sayfa-notu { border:2px solid var(--navy); color:var(--navy); }
 
 .compose-scene .code-strip { flex:none; height:calc(3 * 1.25 * var(--fs-tick) + var(--fs-axis) + 18px); }
 .compose-scene .code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:3px 12px; gap:2px; }

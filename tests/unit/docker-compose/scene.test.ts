@@ -24,6 +24,20 @@ describe('docker-compose scene', () => {
     expect(el.querySelectorAll('svg.plot g.seq-msg[data-id^="prob-"]')).toHaveLength(2);
   });
 
+  it("the page's assumption note is styled apart from the book notes", () => {
+    const { el, player } = setup();
+    go(player, 'yeniden-deneme');
+    const notlar = [...el.querySelectorAll<HTMLElement>('.compose-not')];
+    expect(notlar.map((n) => [n.textContent!.slice(0, 16), n.classList.contains('compose-sayfa-notu')])).toEqual([
+      ['sayfa varsayımı:', true],
+      ['Dikkat noktası: ', false],
+    ]);
+    go(player, 'image-container');
+    const tanim = el.querySelector<HTMLElement>('.compose-not')!;
+    expect(tanim.textContent).toMatch(/^Tanım\. Image, bir uygulamanın/);
+    expect(tanim.classList.contains('compose-sayfa-notu')).toBe(false);
+  });
+
   it('steps 2-7 hide the diagram and keep the table', () => {
     const { el, player } = setup();
     go(player, 'cok-asamali');

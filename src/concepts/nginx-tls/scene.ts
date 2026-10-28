@@ -13,7 +13,7 @@ import { sourceBadge, type Rozet } from '../../core/plot/source-badge';
 import { TextMeasure } from '../../core/plot/text-measure';
 import type { SceneHandle } from '../../core/shell';
 import { NGINX_ROZET, type NginxTlsParams } from './scenario';
-import { nginxLabRozet, deriveNginxView } from './view';
+import { VARSAYILAN_NOTU, nginxLabRozet, deriveNginxView } from './view';
 import './nginx-tls.css';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -150,7 +150,8 @@ export function mountNginxScene(
     parca(xffYeri, v.xff, () => xff.update(v.xff!));
     parca(sertifikaYeri, v.sertifika, () => sertifika.update(v.sertifika!));
     parca(certbotYeri, v.certbot, () => certbot.update(v.certbot!));
-    notlarYeri.replaceChildren(...v.notlar.map((n) => el(doc, 'p', 'nginx-not', n)));
+    // the page's own sentence (R18) is not the book's: it gets its own style
+    notlarYeri.replaceChildren(...v.notlar.map((n) => el(doc, 'p', n === VARSAYILAN_NOTU ? 'nginx-not nginx-sayfa-notu' : 'nginx-not', n)));
     notlarYeri.hidden = v.notlar.length === 0;
 
     // steps 1, 5 and 9 have no diagram: the cards, strip and tables take its place

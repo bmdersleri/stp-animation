@@ -70,6 +70,9 @@ const OZET_BLOK: KitapBlok = { tablolar: [MATRIS], notlar: [HEALTHCHECK_NOTU] };
 /** The book's own comment on `localhost` (code_012 L868-870, without the `// ` prefixes). */
 const LOCALHOST_YORUMU = [868, 869, 870].map((n) => kitapMetni(K12, n).replace(/^\s*\/\/ /, '')).join(' ');
 
+/** R8: the page's own assumption note opens with this; it is not a book sentence and the scene styles it apart. */
+export const SAYFA_VARSAYIMI = 'sayfa varsayımı: ';
+
 /** P11: the Turkish reading of R10's `unhealthy` state. */
 const UNHEALTHY_SATIRI = 'kutuphane-db unhealthy: service_healthy koşulu sağlanmadı, kutuphane-api başlatılmadı.';
 
@@ -131,7 +134,7 @@ function baslatmaGorunumu(p: ComposeParams, kitapCiktisi: boolean): ComposeView 
   else if (sonuc.durum === 'hata') terminal = [{ metin: sonuc.baglanti!.hata!, akis: 'stderr' }];
   else terminal = sonuc.baglanti!.log.map((metin) => ({ metin })); // on step 10 this is the book's own line (L990)
 
-  const notlar = [`sayfa varsayımı: veritabanı ${saniyeEtiketi(p.dbHazirMs)}'de hazır`];
+  const notlar = [`${SAYFA_VARSAYIMI}veritabanı ${saniyeEtiketi(p.dbHazirMs)}'de hazır`];
   if (p.asama === 'kod-14-9') notlar.push(DEPENDS_ON_NOTU);
 
   let code: CodeTraceSpec;

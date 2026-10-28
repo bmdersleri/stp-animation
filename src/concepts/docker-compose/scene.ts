@@ -12,7 +12,7 @@ import { sourceBadge, type Rozet } from '../../core/plot/source-badge';
 import { TextMeasure } from '../../core/plot/text-measure';
 import type { SceneHandle } from '../../core/shell';
 import { COMPOSE_ROZET, type ComposeParams } from './scenario';
-import { composeLabRozet, deriveComposeView } from './view';
+import { SAYFA_VARSAYIMI, composeLabRozet, deriveComposeView } from './view';
 import './docker-compose.css';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -125,7 +125,8 @@ export function mountComposeScene(
     if (v.problar) denetim.update(v.problar);
     kartYeri.hidden = v.terminal.length === 0;
     kartlar.update({ yanitlar: [], terminal: v.terminal });
-    notlarYeri.replaceChildren(...v.notlar.map((n) => el(doc, 'p', 'compose-not', n)));
+    // the page's own assumption (R8) is not the book's: it gets its own style
+    notlarYeri.replaceChildren(...v.notlar.map((n) => el(doc, 'p', n.startsWith(SAYFA_VARSAYIMI) ? 'compose-not compose-sayfa-notu' : 'compose-not', n)));
     notlarYeri.hidden = v.notlar.length === 0;
 
     // steps 2-7 have no diagram: the table and the terminal take its place

@@ -36,6 +36,16 @@ describe('nginx-tls scene', () => {
     expect(el.querySelector<HTMLElement>('.sertifika-yeri')!.hidden).toBe(false);
   });
 
+  it("step 8's Nginx default note is the page's own and styled apart", () => {
+    const { el, player } = setup();
+    go(player, 'tls-sonlandirma');
+    const not = el.querySelector<HTMLElement>('.nginx-not')!;
+    expect(not.textContent).toMatch(/^Nginx varsayılanı: /);
+    expect(not.classList.contains('nginx-sayfa-notu')).toBe(true);
+    go(player, 'basliksiz-ip');
+    expect(el.querySelector<HTMLElement>('.nginx-not')!.classList.contains('nginx-sayfa-notu')).toBe(false);
+  });
+
   it('step 10 shows 502 card', () => {
     const { el, player } = setup();
     go(player, 'bad-gateway-502');
