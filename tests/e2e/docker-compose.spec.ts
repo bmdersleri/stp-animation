@@ -65,6 +65,7 @@ test('lab: extreme parameters fit at 1280x720 and 390', async ({ page }) => {
     await page.setViewportSize({ width: w, height: h });
     await open(page, PAGE, 'lab', READY);
     await gotoStep(page, 8, STEPS, 0);
+    await page.locator('select[name="mod"]').selectOption('saglikli');
     for (const [dbHazirMs, retries] of [[30_000, 10], [20_000, 10]] as const) {
       await slide(page, 'dbHazirMs', dbHazirMs);
       await slide(page, 'retries', retries);
@@ -74,7 +75,7 @@ test('lab: extreme parameters fit at 1280x720 and 390', async ({ page }) => {
       const at = `${w} db ${dbHazirMs} localhost`;
       expect(await seqOutsideSvg(page), at).toEqual([]);
       expect((await pageOverflow(page)).x, at).toBeLessThanOrEqual(0);
-      expect(await page.locator('.denetim-yeri .denetim').count(), at).toBeLessThanOrEqual(5);
+      expect(await page.locator('.denetim-yeri .denetim').count(), at).toBe(5);
       const reach = await scrollReach(page, BOXES);
       expect(reach.lost, at).toEqual([]);
       if (w === 1280) {
