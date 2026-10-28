@@ -18,6 +18,10 @@ Sunucu tabanlı programlama kavramlarını adım adım animasyonlarla anlatan, d
 - RBAC, 401 ve 403: https://bmdersleri.github.io/stp-animation/rbac-401-403/
 - CORS ve preflight: https://bmdersleri.github.io/stp-animation/cors-preflight/
 - Rate limiting: https://bmdersleri.github.io/stp-animation/rate-limiting/
+- Docker Compose: https://bmdersleri.github.io/stp-animation/docker-compose/
+- Nginx ve HTTPS/TLS: https://bmdersleri.github.io/stp-animation/nginx-tls/
+- IoT zaman serisi: https://bmdersleri.github.io/stp-animation/iot-zaman-serisi/
+- Timeout ve retry: https://bmdersleri.github.io/stp-animation/timeout-retry/
 - Ders modu: https://bmdersleri.github.io/stp-animation/istek-yanit/?mod=ders
 
 Site, GitHub Pages etkinleştirildiğinde (Settings > Pages > Source: GitHub Actions) `main` dalına her push ile yayına girer. GitHub Actions yalnızca derleyip yayınlar; testler yerelde çalışır. `npm ci` bir push öncesi kancası (`.githooks/pre-push`) kurar: `main`'e her push'tan önce `npm run check` kendiliğinden çalışır ve geçmezse push durur.
