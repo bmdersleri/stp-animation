@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import { sourceBadge } from '../../../src/core/plot/source-badge';
+import { rozetSatiri, sourceBadge } from '../../../src/core/plot/source-badge';
 
 describe('sourceBadge', () => {
   it('has the text and class of each kind', () => {
@@ -25,5 +25,21 @@ describe('sourceBadge', () => {
 
   it('ref appended after a middle dot', () => {
     expect(sourceBadge(document, 'kitap', 'Kod 6.1').textContent).toBe('Kitabın çıktısı · Kod 6.1');
+  });
+});
+
+describe('rozetSatiri', () => {
+  it('reads single lines and ranges of the ref', () => {
+    const ref = 'L398, L433, L770';
+    expect([398, 433, 770].map((s) => rozetSatiri(ref, s))).toEqual([true, true, true]);
+    expect([397, 434, 771].map((s) => rozetSatiri(ref, s))).toEqual([false, false, false]);
+    expect([716, 734, 740, 761].map((s) => rozetSatiri('L716-734, L740-749, L761', s))).toEqual([true, true, true, true]);
+    expect([715, 735, 750].map((s) => rozetSatiri('L716-734, L740-749, L761', s))).toEqual([false, false, false]);
+    expect(rozetSatiri('Compose; L657, L683', 683)).toBe(true);
+  });
+
+  it('no ref cites nothing', () => {
+    expect(rozetSatiri(undefined, 433)).toBe(false);
+    expect(rozetSatiri('Kod 6.1', 6)).toBe(false);
   });
 });

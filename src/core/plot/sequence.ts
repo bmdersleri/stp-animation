@@ -38,7 +38,8 @@ export interface SequenceSpec {
   ariaLabel?: string;
 }
 
-const MAX_ROWS = 8;
+/** Rows the diagram shows at most; older messages beyond it are faded out as `old`. */
+export const MAX_ROWS = 8;
 const LINE_K = 1.2;
 const PAD = 6;
 const TOKEN_R = 6;

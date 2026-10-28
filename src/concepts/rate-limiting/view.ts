@@ -4,6 +4,7 @@ import type { CheckListSpec, Denetim } from '../../core/plot/check-list';
 import type { CodeTraceSpec } from '../../core/plot/code-trace';
 import type { DataTableSpec, TabloSatiri } from '../../core/plot/data-table';
 import type { TerminalSatir } from '../../core/plot/http-cards';
+import type { KitapBlok } from '../../core/plot/kitap-blok';
 import type { Rozet } from '../../core/plot/source-badge';
 import { LISTINGS } from './code-text';
 import { desenIstekleri, loginOynat, oynat, type Istek, type IstekSonucu } from './desenler';
@@ -16,15 +17,6 @@ export interface Nokta { t: number; ip: string; izin: boolean; durum: NoktaDurum
 export interface Bant { ip: string; bas: number; son: number }
 export interface TimelineSpec { noktalar: readonly Nokta[]; bantlar: readonly Bant[]; xMax: number; ipler: readonly string[] }
 
-/** The book's own text on the intro and summary steps, verbatim without code ticks and bold marks. */
-export interface RateKitapBlok {
-  /** The definition paragraph, shown after a bold "Tanım. " (the book's own label). */
-  tanim?: string;
-  tablolar: readonly DataTableSpec[];
-  /** Further book sentences, shown muted under the rest. */
-  notlar: readonly string[];
-}
-
 export interface RateView {
   timeline: TimelineSpec;
   tablo: DataTableSpec;
@@ -36,7 +28,7 @@ export interface RateView {
   code: CodeTraceSpec;
   ozet: boolean;
   /** The book block of the intro and summary steps (they draw no timeline, table or terminal); null on every flow step. */
-  kitap: RateKitapBlok | null;
+  kitap: KitapBlok | null;
 }
 
 /** The book's definition (L678) and warning (L675), as the intro step shows them. */
@@ -59,8 +51,8 @@ const ALTERNATIF_TABLO: DataTableSpec = {
 const REDIS_NOTU =
   'Bu basit yaklaşım tek sunuculu uygulamalarda çalışır; birden fazla sunucu örneği varsa sayaçlar paylaşılan bir depoda (örneğin Redis) tutulmalıdır, aksi hâlde her sunucu örneği kendi sayacını tutar ve gerçek sınır etkisiz hale gelir.';
 
-const TANITIM_BLOK: RateKitapBlok = { tanim: TANIM, tablolar: [], notlar: [DIKKAT] };
-const OZET_BLOK: RateKitapBlok = { tablolar: [ALTERNATIF_TABLO], notlar: [REDIS_NOTU] };
+const TANITIM_BLOK: KitapBlok = { tanim: TANIM, tablolar: [], notlar: [DIKKAT] };
+const OZET_BLOK: KitapBlok = { tablolar: [ALTERNATIF_TABLO], notlar: [REDIS_NOTU] };
 
 const K5 = listing(LISTINGS, 'kod-11-5');
 const K5_CIKTI = listing(LISTINGS, 'kod-11-5-cikti').lines;
@@ -77,7 +69,7 @@ const kodSeridi = (l: { title: string; lines: readonly string[] }, active: reado
 const saniye = (ms: number): string => `t = ${String(ms / 1000).replace('.', ',')} s`;
 
 /** An empty view: no timeline dots, table rows, terminal or check list, and a code strip with no active line. */
-function bosGorunum(ozet: boolean, kod: CodeTraceSpec = kodSeridi(K5, []), kitap: RateKitapBlok | null = null): RateView {
+function bosGorunum(ozet: boolean, kod: CodeTraceSpec = kodSeridi(K5, []), kitap: KitapBlok | null = null): RateView {
   return {
     timeline: { noktalar: [], bantlar: [], xMax: 0, ipler: [] },
     tablo: { baslik: TABLO_BASLIK, sutunlar: TABLO_SUTUNLARI, satirlar: [] },

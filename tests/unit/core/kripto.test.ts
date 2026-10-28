@@ -1,11 +1,20 @@
 import { createHash, createHmac, scryptSync } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { b64urlCoz, b64urlJson, b64urlMetin, hmacSha256B64url, NODE_SCRYPT, rastgeleSaltHex, scryptHex, sha256Hex } from '../../../src/core/kripto';
+import { b64urlCoz, b64urlJson, b64urlMetin, hmacSha256B64url, hmacSha256Hex, NODE_SCRYPT, rastgeleSaltHex, scryptHex, sha256Hex } from '../../../src/core/kripto';
 
 const TR = 'şifreİğ🙂';
 const JWT_ISLENEN = 'eyJhbGciOiJIUzI1NiIsInRpcCI6IkpXVCJ9.eyJrdWxsYW5pY2lBZGkiOiJlbGlmIiwicm9sIjoib2dyZW5jaSIsInNvbkdlY2VybGlsaWsiOjE3ODg2MDc0Mjg2MDB9';
 
 describe('kripto', () => {
+  it('hmac hex matches node', () => {
+    const veri = '1788602400.{"cihazId":"esp32-lab101-temp","sicaklik":21.5,"nem":45.2}';
+    expect(hmacSha256Hex('super-gizli-cihaz-anahtari-12345', veri)).toBe('bc27259801b8ac4b17c1cfe70a03f12f71ad16c462699066c5a221494bf08732');
+    expect(hmacSha256Hex('super-gizli-cihaz-anahtari-12345', veri)).toBe(createHmac('sha256', 'super-gizli-cihaz-anahtari-12345').update(veri).digest('hex'));
+    expect(hmacSha256Hex(TR, TR)).toBe(createHmac('sha256', TR).update(TR).digest('hex'));
+    expect(hmacSha256Hex(TR, 'x')).toBe(createHmac('sha256', TR).update('x').digest('hex'));
+    expect(hmacSha256Hex('k', TR)).toBe(createHmac('sha256', 'k').update(TR).digest('hex'));
+  });
+
   it('sha256 matches node', () => {
     expect(sha256Hex('123456')).toBe('8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92');
     expect(sha256Hex('123456')).toBe(createHash('sha256').update('123456').digest('hex'));

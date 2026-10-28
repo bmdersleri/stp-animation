@@ -53,12 +53,6 @@
 .cors-diyagram .probe { visibility:hidden; font-size:var(--fs-tick); }
 
 /* intro and summary: the book's definition and tables in place of the diagram */
-.cors-scene .kitap-blok { flex:none; min-width:0; font-size:var(--fs-body); line-height:1.35; }
-.cors-scene .kitap-blok p { margin:0 0 6px; }
-.cors-scene .kitap-blok .kitap-not { color:var(--muted); }
-.cors-scene .kitap-blok .data-table { margin-bottom:8px; }
-.cors-scene .kitap-blok .data-table th, .cors-scene .kitap-blok .data-table td { padding:2px 6px; overflow-wrap:normal; }
-.cors-stage[data-narrow] .kitap-blok .data-table th, .cors-stage[data-narrow] .kitap-blok .data-table td { overflow-wrap:anywhere; }
 
 .cors-aciklama { flex:none; margin:6px 0 0; padding:3px 10px; border:2px dashed var(--line); border-radius:10px; font-size:var(--fs-tick); line-height:1.25; color:var(--muted); overflow-wrap:anywhere; }
 

@@ -1,0 +1,50 @@
+/* docker-compose page: badge, start sequence diagram, services table, probes, terminal, notes, code strip, Lab controls. */
+.compose-scene { width:100%; height:100%; min-height:0; display:flex; flex-direction:column; gap:4px; font-family:var(--font); color:var(--navy); }
+.compose-scene [hidden] { display:none !important; }
+.compose-ust { flex:none; display:flex; justify-content:flex-end; align-items:flex-start; min-height:calc(1.3 * var(--fs-tick) + 4px); }
+.compose-ust .rozet-yeri { flex:0 1 auto; margin-left:auto; display:flex; justify-content:flex-end; min-width:0; }
+.compose-scene .kaynak-rozeti { white-space:normal; text-align:right; border-radius:14px; max-width:100%; }
+
+.compose-stage { flex:1 1 0; min-height:0; display:flex; flex-direction:column; gap:6px; overflow:hidden; }
+.compose-stage[data-narrow] { overflow:auto; }
+.compose-govde { flex:1 1 0; min-height:0; min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:6px 12px; align-content:start; }
+.compose-govde[data-cizgi] { grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr); }
+.compose-stage[data-narrow] .compose-govde, .compose-stage[data-narrow] .compose-govde[data-cizgi] { flex:none; grid-template-columns:minmax(0,1fr); grid-template-rows:none; }
+.compose-diyagram { position:relative; min-width:0; min-height:0; overflow:hidden; }
+.compose-stage[data-narrow] .compose-diyagram { height:var(--diyagram-h); }
+.compose-diyagram svg.plot { position:static; display:block; }
+.compose-diyagram .probe { visibility:hidden; font-size:var(--fs-tick); }
+
+.compose-sag { min-width:0; min-height:0; display:flex; flex-direction:column; gap:6px; align-self:start; }
+.compose-sag .data-table th, .compose-sag .data-table td { overflow-wrap:normal; padding:2px 8px; }
+.compose-sag .data-table-title { margin-bottom:0; }
+.compose-sag .http-cards { min-width:0; }
+.compose-sag .terminal { padding:3px 10px; }
+.compose-sag .terminal-satir { overflow-wrap:anywhere; }
+.compose-sag .kart-baslik { margin-bottom:0; }
+.compose-sag .check-list { padding:3px 10px; min-width:0; }
+.compose-sag .denetim { padding:1px 0; line-height:1.15; }
+.compose-sag .denetim-ayrinti, .compose-sag .denetim-ad { overflow-wrap:normal; }
+.compose-sag .check-list-rows { margin:0; }
+.compose-stage:not([data-narrow]) .compose-sag .check-list-title { display:none; }
+.compose-stage[data-narrow] .compose-sag .data-table td, .compose-stage[data-narrow] .compose-sag .data-table th { overflow-wrap:anywhere; }
+.compose-stage[data-narrow] .compose-sag .denetim-ayrinti, .compose-stage[data-narrow] .compose-sag .denetim-ad { overflow-wrap:anywhere; }
+
+.compose-notlar { flex:none; display:flex; flex-direction:column; gap:4px; }
+.compose-not { margin:0; padding:3px 10px; border:2px dashed var(--line); border-radius:10px; font-size:var(--fs-tick); line-height:1.25; color:var(--muted); overflow-wrap:anywhere; }
+/* the page's own assumption is not the book's: a solid navy edge instead of the muted dashed book note */
+.compose-not.compose-sayfa-notu { border:2px solid var(--navy); color:var(--navy); }
+
+.compose-scene .code-strip { flex:none; height:calc(3 * 1.25 * var(--fs-tick) + var(--fs-axis) + 18px); }
+.compose-scene .code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:3px 12px; gap:2px; }
+.compose-scene .code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:2px 4px; }
+
+.compose-params { display:grid; gap:8px; }
+.compose-params .ctl { min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
+.compose-params .ctl[hidden] { display:none; }
+.compose-params .ctl-label { font-weight:600; }
+.compose-params select { min-height:var(--ctl); max-width:100%; box-sizing:border-box; padding:0 .5em; border:2px solid var(--navy); border-radius:8px; background:var(--surface); font:inherit; }
+.compose-params input[type=range] { width:100%; min-height:var(--ctl); }
+
+/* the summary's 7-row matrix plus its note must fit the stage at 1280x720: table and note in the tick size */
+.compose-stage .kitap-blok .data-table th, .compose-stage .kitap-blok .data-table td, .compose-stage .kitap-blok:has(.data-table) .kitap-not { font-size:var(--fs-tick); line-height:1.2; }

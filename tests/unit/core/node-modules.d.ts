@@ -21,6 +21,7 @@ declare module 'node:path' {
 }
 declare module 'node:util' {
   export function inspect(value: unknown): string;
+  export function format(...args: unknown[]): string;
 }
 
 declare module 'node:child_process' {
@@ -43,4 +44,7 @@ declare module 'node:crypto' {
   export function scryptSync(password: string, salt: string, keylen: number): { toString(encoding: 'hex'): string };
 }
 
-declare const Buffer: { from(text: string): { toString(encoding: 'base64url'): string } };
+declare const Buffer: {
+  from(text: string, encoding: 'hex'): ArrayLike<number>;
+  from(text: string): { toString(encoding: 'base64url'): string };
+};

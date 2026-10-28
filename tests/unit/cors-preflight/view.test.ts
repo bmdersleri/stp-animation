@@ -125,7 +125,7 @@ describe('cors-preflight view', () => {
     expect(view(1).kokenler.sayfa).toBe('https://kutuphane.mehmetakif.edu.tr');
   });
 
-  it('step 10 shows the book tables L550-554 and L642-647', () => {
+  it('step 10 shows the book tables L548-554 and L640-647', () => {
     const [csrf, alt] = view(10).kitap!.tablolar;
     expect(csrf.baslik).toBe("CORS ile CSRF'i karıştırmayınız.");
     expect(csrf.sutunlar.map((s) => s.ad)).toEqual(['', 'CORS / Same-Origin Policy', 'CSRF koruması']);
