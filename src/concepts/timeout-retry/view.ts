@@ -158,7 +158,7 @@ function zamanKur(p: TimeoutParams, olaylar: readonly IstekOlayi[], bitisMs: num
 }
 
 /** Every attempt is `api -> servis`; the service answers or does not (the alarm); 17.5 ends with the answer to the client (P4). */
-function siraKur(p: TimeoutParams, olaylar: readonly IstekOlayi[], ozet: string | null): SequenceSpec {
+function siraKur(p: TimeoutParams, olaylar: readonly IstekOlayi[], ozet: string | null, ders: boolean): SequenceSpec {
   const messages: Message[] = [];
   for (const o of olaylar) {
     if (o.tur === 'istek') messages.push({ id: `istek-${o.deneme}`, from: 'api', to: 'servis', label: 'POST /predict', kind: 'request' });
@@ -168,7 +168,8 @@ function siraKur(p: TimeoutParams, olaylar: readonly IstekOlayi[], ozet: string 
       messages.push({ id: `yanit-${o.deneme}`, from: 'servis', to: 'api', label: hata ? '500' : '200', kind: 'response', tone: hata ? 'alarm' : 'ok' });
     }
   }
-  if (p.surum === '17.5') {
+  // spec: in Ders the closing arrow belongs to step 8 (no summary); Lab always draws it
+  if (p.surum === '17.5' && (!ders || ozet === null)) {
     messages.push({ id: 'istemci-yaniti', from: 'api', to: 'istemci', label: ozet === null ? OZET_YOK : OZET_VAR, kind: 'response', tone: ozet === null ? 'bilgi' : 'ok' });
   }
   return {
@@ -215,10 +216,10 @@ function akisGorunumu(p: TimeoutParams, ders: boolean): TimeoutView {
   return {
     ...bos(akisKodu(p, r.olaylar, ders)),
     zaman: zamanKur(p, r.olaylar, r.bitisMs),
-    sequence: siraKur(p, r.olaylar, r.ozet),
+    sequence: siraKur(p, r.olaylar, r.ozet, ders),
     kartlar: { yanitlar: [yanit], terminal: terminalSatirlari(r.konsol) },
     notlar: akisNotlari(p, sonuclan(r.olaylar)),
-    uyari: p.beklemeTabanMs === 0 && p.maksRetry >= 2 ? UYARI : null,
+    uyari: p.beklemeTabanMs === 0 && r.olaylar.filter((o) => o.tur === 'istek').length >= 3 ? UYARI : null,
   };
 }
 

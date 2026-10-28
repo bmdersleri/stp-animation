@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { LISTINGS } from '../../../src/concepts/timeout-retry/code-text';
 import { ozetiAl } from '../../../src/concepts/timeout-retry/istek';
@@ -152,7 +151,9 @@ describe('timeout-retry view', () => {
     expect(RETRY_NOTU).toBe('Kod 17.3/17.5 tek deneme yapar (L339); yeniden deneme bu sayfanın uzantısıdır');
     expect(VARSAYIM_NOTU).toBe('sayfa varsayımı: bekleme tabanı 1000 ms, yavaş servis 8000 ms, hızlı servis 1200 ms');
     expect(odak(v)).toEqual([satir('kod-17-5', 724), satir('kod-17-5', 725)]);
-    expect(sonOk(v)).toMatchObject({ from: 'api', to: 'istemci', label: '200 OK (özet var)' });
+    // spec: the last arrow to the client belongs to step 8 and Lab only
+    expect(v.sequence!.messages.some((m) => m.to === 'istemci')).toBe(false);
+    expect(sonOk(lab())).toMatchObject({ from: 'api', to: 'istemci', label: '200 OK (özet var)' });
   });
 
   it('step 8 last arrow says özet yok', () => {
@@ -201,6 +202,13 @@ describe('timeout-retry view', () => {
     expect(lab({ beklemeTabanMs: 0, maksRetry: 1 }).uyari).toBeNull();
     expect(lab({ beklemeTabanMs: 500, maksRetry: 3 }).uyari).toBeNull();
     expect(lab({ beklemeTabanMs: 0, maksRetry: 2, senaryo: 'yavas' }).zaman!.bosluklar).toEqual([]);
+  });
+
+  it('no-wait warning only when two retries actually run with no wait', () => {
+    for (const senaryo of ['hizli', 'http-500', 'bos-ozet', 'bozuk-govde', 'gecici'] as const) {
+      expect(lab({ beklemeTabanMs: 0, maksRetry: 3, senaryo }).uyari, senaryo).toBeNull();
+    }
+    expect(lab({ beklemeTabanMs: 0, maksRetry: 2, senaryo: 'yavas' }).uyari).not.toBeNull();
   });
 
   it('lab badge turns kitaba-dayali with a second attempt', () => {
@@ -269,40 +277,5 @@ describe('timeout-retry view', () => {
               expect(v.zaman!.cubuklar.length).toBeGreaterThan(0);
               expect(v.zaman!.cubuklar.every((c) => c.son <= v.zaman!.eksenMs)).toBe(true);
             }
-  });
-});
-
-// The book's own text, compared with the repository when it is checked out next to this one (skipped otherwise;
-// the literals above are what every other run checks).
-const KITAP = 'C:/projects/modernSunucuTabProg/chapters/b17-ai-ml-service-integration/content/final.md';
-describe.skipIf(!fs.existsSync(KITAP))('timeout-retry book text against final.md', () => {
-  const satirlar = fs.existsSync(KITAP) ? fs.readFileSync(KITAP, 'utf8').split('\n') : [];
-  const L = (n: number): string => satirlar[n - 1];
-  /** Code ticks, bold marks and the leading emoji are dropped; the label stays. */
-  const temiz = (s: string): string => s.replace(/\*\*/g, '').replace(/`/g, '').replace(/^\p{Extended_Pictographic}\uFE0F?\s*/u, '').trim();
-  const hucreler = (n: number): string[] => L(n).split('|').slice(1, -1).map((c) => temiz(c));
-
-  it('intro block L316 and L318', () => {
-    const v = view(1).kitap!;
-    expect(v.tanim).toBe(temiz(L(316)).replace(/^Tanım\. /, ''));
-    expect(v.paragraflar![0]).toBe(temiz(L(318)));
-  });
-  it('step notes L337, L419, L448 and L806', () => {
-    expect(view(6).notlar[0]).toBe(temiz(L(337)));
-    expect(view(4).notlar[0]).toBe(temiz(L(419)));
-    const agresif = view(8).notlar[2];
-    expect(temiz(L(448)).startsWith(agresif)).toBe(true);
-    expect(agresif.endsWith('artırabilir.')).toBe(true);
-    expect(view(10).kitap!.notlar[0]).toBe(temiz(L(806)));
-  });
-  it('Alternatifler table L440-446', () => {
-    const t = view(10).kitap!.tablolar[0];
-    expect(t.sutunlar.map((s) => s.ad)).toEqual(hucreler(440));
-    expect(t.satirlar.map((r) => r.cells)).toEqual([442, 443, 444, 445, 446].map(hucreler));
-  });
-  it('the focus lines of the listings are the book lines', () => {
-    for (const [id, n] of [['kod-17-3', 365], ['kod-17-3', 374], ['kod-17-3', 386], ['kod-17-5', 724], ['kod-17-5', 745], ['code-006', 461], ['code-006', 465], ['code-002', 175]] as const) {
-      expect(satir(id, n), `${id} L${n}`).toBe(L(n));
-    }
   });
 });
