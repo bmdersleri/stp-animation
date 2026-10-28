@@ -15,7 +15,7 @@ const ROZET: [string, string][] = [
   ['kitaba-dayali', 'L567, L612, L892'],
   ['standart', 'Compose; L657, L683'],
   ['kitap-kodu', 'L986, L990, L1002'],
-  ['kitap', 'L69-77, L683'],
+  ['kitap', 'L67-77, L683'],
 ];
 const LAB = { asama: 'compose', mod: 'saglikli', dbHazirMs: 4000, retries: 10, maksimumDeneme: 5, hostAdi: 'kutuphane-db' };
 

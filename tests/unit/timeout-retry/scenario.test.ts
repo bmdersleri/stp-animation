@@ -14,7 +14,7 @@ const ROZET: [string, string][] = [
   ['kitaba-dayali', 'L335, L443, L794'],
   ['kitaba-dayali', 'L335, L448, L471'],
   ['kitap', 'L772-776'],
-  ['kitap', 'L440-446, L806'],
+  ['kitap', 'L438-446, L806'],
 ];
 const LAB: TimeoutParams = { asama: 'akis', surum: '17.5', zamanAsimiMs: 5000, senaryo: 'gecici', maksRetry: 1, beklemeTabanMs: 1000, servisGecikmesiMs: 8000 };
 

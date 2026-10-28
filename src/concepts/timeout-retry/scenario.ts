@@ -40,7 +40,7 @@ export const TIMEOUT_ROZET: Readonly<Record<string, Rozet>> = {
   'retry-bekle': { tur: 'kitaba-dayali', ref: 'L335, L443, L794' },
   'retry-tukendi': { tur: 'kitaba-dayali', ref: 'L335, L448, L471' },
   dogrulama: { tur: 'kitap', ref: 'L772-776' },
-  ozet: { tur: 'kitap', ref: 'L440-446, L806' },
+  ozet: { tur: 'kitap', ref: 'L438-446, L806' },
 };
 
 /** The step scenario of the timeout-retry page (Ders steps 1-10). */

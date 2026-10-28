@@ -15,7 +15,7 @@ const ROZET: [string, string][] = [
   ['standart', 'TLS, Nginx; L479'],
   ['kitaba-dayali', 'L524-528, L566'],
   ['kitaba-dayali', 'L278'],
-  ['kitap', 'L330-335, L491-496, L959'],
+  ['kitap', 'L328-335, L489-496, L959'],
 ];
 const LAB = { asama: 'akis', hedef: 'https-443', ayar: 'kod-15-5', uygulama: 'ayakta', trustProxy: 0, sahteXff: false, kalanGun: 60 };
 

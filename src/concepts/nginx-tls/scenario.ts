@@ -23,7 +23,7 @@ export const NGINX_ROZET: Readonly<Record<string, Rozet>> = {
   'tls-sonlandirma': { tur: 'standart', ref: 'TLS, Nginx; L479' },
   certbot: { tur: 'kitaba-dayali', ref: 'L524-528, L566' },
   'bad-gateway-502': { tur: 'kitaba-dayali', ref: 'L278' },
-  ozet: { tur: 'kitap', ref: 'L330-335, L491-496, L959' },
+  ozet: { tur: 'kitap', ref: 'L328-335, L489-496, L959' },
 };
 
 /** The step scenario of the nginx-tls page (Ders steps 1-11). */

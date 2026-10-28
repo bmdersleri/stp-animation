@@ -83,7 +83,7 @@ const TAMPON_NOTU = 'Başarısız yazmada tampon geri yüklenir; ancak bellek i�
 export const BIRLESTIRME_NOTU = 'Pencere, imza ve aralık denetimlerinin birleştirilmesi bu sayfanındır.';
 
 const ALTERNATIFLER: DataTableSpec = {
-  baslik: 'Alternatifler', // L564
+  baslik: 'Alternatifler', // L565
   sutunlar: ['Yaklaşım', 'Avantajı', 'Dezavantajı', 'Uygun kullanım'].map((ad) => ({ ad })),
   satirlar: [ // L569-572
     { key: 'postgresql', cells: ["PostgreSQL'de zaman damgalı tablo (bu bölümde örneklenen)", 'Mevcut altyapıyla uyumlu, SQL ile esnek sorgulanabilir', 'Çok yüksek hacimde veri için özel zaman serisi veritabanları kadar optimize değildir', 'Orta hacimli, birkaç dakikada bir veri üreten sensörler'] },

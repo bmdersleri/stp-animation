@@ -28,7 +28,7 @@ export const COMPOSE_ROZET: Readonly<Record<string, Rozet>> = {
   'depends-on-sira': { tur: 'kitaba-dayali', ref: 'L567, L612, L892' },
   'healthcheck-bekle': { tur: 'standart', ref: 'Compose; L657, L683' },
   'yeniden-deneme': { tur: 'kitap-kodu', ref: 'L986, L990, L1002' },
-  ozet: { tur: 'kitap', ref: 'L69-77, L683' },
+  ozet: { tur: 'kitap', ref: 'L67-77, L683' },
 };
 
 /** The step scenario of the docker-compose page (Ders steps 1-11). */

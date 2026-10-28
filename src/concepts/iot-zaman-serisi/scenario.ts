@@ -31,7 +31,7 @@ export const IOT_ROZET: Readonly<Record<string, Rozet>> = {
   'aralik-dogrulama': { tur: 'kitap', ref: 'L544-546' },
   'sunucu-zamani-kayit': { tur: 'kitap-kodu', ref: 'L521, L554, L558' },
   'tampon-saatlik': { tur: 'kitap-kodu', ref: 'L716-734, L740-749, L761' },
-  ozet: { tur: 'kitap', ref: 'L448, L462, L567-572, L998' },
+  ozet: { tur: 'kitap', ref: 'L448, L462, L565-572, L998' },
 };
 
 /** The step scenario of the iot-zaman-serisi page (Ders steps 1-11). */

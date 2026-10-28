@@ -15,7 +15,7 @@ const ROZET: [string, string][] = [
   ['kitap', 'L544-546'],
   ['kitap-kodu', 'L521, L554, L558'],
   ['kitap-kodu', 'L716-734, L740-749, L761'],
-  ['kitap', 'L448, L462, L567-572, L998'],
+  ['kitap', 'L448, L462, L565-572, L998'],
 ];
 const LAB = { asama: 'istek', saatFarki: 0, sicaklik: 21.5, nem: 45.2, govde: 'saglam', tekrar: false };
 
