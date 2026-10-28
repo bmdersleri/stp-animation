@@ -29,9 +29,11 @@ describe('fitDrops', () => {
 
   it('calls apply after every change', () => {
     const ps = [parca(100), parca(100)];
-    let n = 0;
-    fitDrops(ps as Birakilabilir[], () => toplam(ps) <= 100, () => { n++; });
-    expect(n).toBeGreaterThan(0);
+    const log: string[] = [];
+    fitDrops(ps as Birakilabilir[], () => { log.push('fits'); return toplam(ps) <= 100; }, () => { log.push('apply'); });
+    // hide the first piece, apply, measure; on the way back show it, apply, measure, hide it again, apply
+    expect(log).toEqual(['fits', 'apply', 'fits', 'apply', 'fits', 'apply']);
+    expect(log.filter((e) => e === 'apply')).toHaveLength(3);
     expect(ps.map((p) => p.gizli)).toEqual([true, false]);
   });
 });
