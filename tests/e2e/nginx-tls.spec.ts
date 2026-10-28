@@ -119,6 +119,8 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         if (w === 1280) expect(await stageBoxProblems(page, '.nginx-stage', STAGE_BOXES), `${at} boxes`).toEqual([]);
         if (w === 1280 && mode === 'ders') expect(await slackProblems(page), `${at} slack`).toEqual([]);
         if (mode === 'ders' && w === 1280) expect((await pageOverflow(page)).y, at).toBeLessThanOrEqual(0);
+        // the diagram starts at its first message on every Ders step: none is faded out as old
+        if (mode === 'ders') await expect(page.locator('.seq-msg.old'), `${at} old messages`).toHaveCount(0);
       }
     });
   }
@@ -145,6 +147,26 @@ test('ders: steps 1 and 11 show the book block at 1280x720', async ({ page }) =>
   expect((await pageOverflow(page)).x, 'step 11').toBeLessThanOrEqual(0);
   expect((await pageOverflow(page)).y, 'step 11').toBeLessThanOrEqual(0);
   expect(await stageBoxProblems(page, '.nginx-stage', '.kitap-blok, .data-table, .data-table tbody tr, .kitap-not'), 'step 11').toEqual([]);
+});
+
+test('ders: steps 8 and 10 start the diagram at the client with the folded UFW pass', async ({ page }) => {
+  await open(page, PAGE, 'ders', READY);
+  for (const n of [8, 10]) {
+    await gotoStep(page, n - 1, STEPS, 0);
+    await rest(page);
+    await expect(page.locator('.seq-msg.old'), `step ${n}`).toHaveCount(0);
+    const ilk = page.locator('.nginx-diyagram g.seq-msg').first();
+    await expect(ilk, `step ${n}`).toHaveAttribute('data-id', 'istek');
+    await expect(ilk, `step ${n}`).toBeVisible();
+    await expect(ilk.locator('text.seq-msg-label'), `step ${n}`).toHaveText('GET :443 · UFW izin');
+    // the rest of the TLS path is still drawn in full
+    await expect(page.locator('.nginx-diyagram g.seq-msg[data-id="tls-hello"]'), `step ${n}`).toBeVisible();
+    expect(await seqOutsideSvg(page), `step ${n}`).toEqual([]);
+  }
+  await expect(page.locator('.nginx-not.nginx-sayfa-notu')).toHaveCount(0);
+  await gotoStep(page, 7, STEPS, 0);
+  await rest(page);
+  await expect(page.locator('.nginx-not.nginx-sayfa-notu')).toHaveText(/^Nginx varsayılanı: /);
 });
 
 test('ders font floors at 1280x720', async ({ page }, info) => {

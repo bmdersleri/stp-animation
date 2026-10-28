@@ -3,6 +3,7 @@ import { LISTINGS } from '../../../src/concepts/nginx-tls/code-text';
 import { nginxScenario as sc, type NginxTlsParams } from '../../../src/concepts/nginx-tls/scenario';
 import { deriveNginxView, nginxLabRozet } from '../../../src/concepts/nginx-tls/view';
 import { listing } from '../../../src/core/listing';
+import { MAX_ROWS } from '../../../src/core/plot/sequence';
 
 const step = (n: number): NginxTlsParams => sc.steps[n - 1].params as NginxTlsParams;
 const view = (n: number, kitapCiktisi = true) => deriveNginxView(step(n), kitapCiktisi);
@@ -126,6 +127,30 @@ describe('nginx-tls view', () => {
     expect(v.denetim!.denetimler.at(-2)).toMatchObject({ ad: 'Proxy', durum: 'kaldi', sonuc: '502' });
     expect(v.gorulen).toBeNull();
     expect(odak(v)).toEqual([satir('kod-15-5', 467)]);
+  });
+
+  it('a path longer than the diagram window folds the UFW pass so the diagram starts at the client', () => {
+    for (const n of [8, 10]) {
+      const m = view(n).sequence!.messages;
+      expect(m.length, `step ${n}`).toBeLessThanOrEqual(MAX_ROWS);
+      expect(m[0], `step ${n}`).toMatchObject({ id: 'istek', from: 'istemci', to: 'nginx', label: 'GET :443 · UFW izin', kind: 'request' });
+      expect(m.some((x) => x.id === 'ufw-izin'), `step ${n}`).toBe(false);
+      expect(m[1].label, `step ${n}`).toBe('ClientHello');
+    }
+    // a short path keeps the two arrows (client to UFW, UFW to Nginx)
+    expect(view(3).sequence!.messages.slice(0, 2).map((x) => [x.from, x.to, x.label])).toEqual([['istemci', 'ufw', 'GET :80'], ['ufw', 'nginx', ':80 izin']]);
+    // every Lab combination fits the window
+    for (const hedef of ['http-80', 'https-443', 'port-3000', 'port-5432'] as const) {
+      for (const ayar of ['kod-15-3', 'kod-15-5', 'code-007', 'basliksiz'] as const) {
+        for (const uygulama of ['ayakta', 'kapali'] as const) {
+          for (const kalanGun of [0, 29, 60]) {
+            const v = deriveNginxView({ ...sc.defaults, asama: 'akis', hedef, ayar, uygulama, kalanGun }, false);
+            expect(v.sequence!.messages.length, `${hedef} ${ayar} ${uygulama} ${kalanGun}`).toBeLessThanOrEqual(MAX_ROWS);
+            expect(v.sequence!.messages[0].from).toBe('istemci');
+          }
+        }
+      }
+    }
   });
 
   it('table hides on 301 and on no response', () => {

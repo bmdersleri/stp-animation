@@ -4,7 +4,7 @@ import type { CodeTraceSpec } from '../../core/plot/code-trace';
 import type { DataTableSpec } from '../../core/plot/data-table';
 import type { HttpCardsSpec } from '../../core/plot/http-cards';
 import type { KitapBlok } from '../../core/plot/kitap-blok';
-import type { Message, SequenceSpec } from '../../core/plot/sequence';
+import { MAX_ROWS, type Message, type SequenceSpec } from '../../core/plot/sequence';
 import type { Rozet } from '../../core/plot/source-badge';
 import type { SegmentStripSpec } from '../../core/plot/segment-strip';
 import { istekIsle, LISTINGS, dogruIstemciIpAl, sertifikaDurumu, type NginxIzi } from './proxy';
@@ -163,6 +163,16 @@ function xffSeridi(gorulen: [string, string][] | null): SegmentStripSpec | null 
   };
 }
 
+/**
+ * The diagram shows at most MAX_ROWS messages and fades older ones out. A longer path (the full TLS path has nine) folds
+ * the client's request and the UFW pass into one arrow, so the diagram still starts at the client.
+ */
+function katla(olaylar: readonly Message[]): Message[] {
+  const [istek, izin, ...kalan] = olaylar;
+  if (olaylar.length <= MAX_ROWS || izin?.id !== 'ufw-izin') return [...olaylar];
+  return [{ ...istek, to: 'nginx', label: `${istek.label} · UFW izin`, tone: 'ok' }, ...kalan];
+}
+
 function akisGorunumu(p: NginxTlsParams, kitapCiktisi: boolean): NginxView {
   const iz = istekIsle(p);
   const gorulen: DataTableSpec | null = iz.uygulamaGorur
@@ -176,7 +186,7 @@ function akisGorunumu(p: NginxTlsParams, kitapCiktisi: boolean): NginxView {
   const tls = p.hedef === 'https-443' && !kitapCiktisi;
   return {
     kitap: null,
-    sequence: sira(iz.olaylar, 'İstek sıra diyagramı', iz.denetimler[0].durum === 'kaldi' ? 'ufw' : undefined),
+    sequence: sira(katla(iz.olaylar), 'İstek sıra diyagramı', iz.denetimler[0].durum === 'kaldi' ? 'ufw' : undefined),
     kartlar: { istek: iz.istek, yanitlar: iz.yanit ? [iz.yanit] : [], terminal: [] },
     yanitYok: iz.yanitYok ?? null,
     denetim: { baslik: 'İstek yolu', denetimler: iz.denetimler },

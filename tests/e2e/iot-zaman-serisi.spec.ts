@@ -185,6 +185,8 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         if (w === 1280) expect(await stageBoxProblems(page, '.iot-stage', STAGE_BOXES), `${at} boxes`).toEqual([]);
         if (w === 1280) expect(await slackProblems(page), `${at} slack`).toEqual([]);
         if (mode === 'ders' && w === 1280) expect((await pageOverflow(page)).y, at).toBeLessThanOrEqual(0);
+        // the diagram starts at its first message on every Ders step: none is faded out as old
+        if (mode === 'ders') await expect(page.locator('.seq-msg.old'), `${at} old messages`).toHaveCount(0);
       }
     });
   }
