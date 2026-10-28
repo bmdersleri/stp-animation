@@ -118,6 +118,7 @@ Kabul ölçütleri:
 | R35 | Klavye | Yeni kısayol yoktur. Lab sonucu her parametre durumunda bütün olarak çizilir | Dalga dar kalır; README tablosu değişmez |
 | R36 | Ders sabitleri | `iot-zaman-serisi/degerler.ts` imza ve özet sabitlerini taşır. Birim testi her imzayı `createHmac` ile, özeti bağımsız bir tamsayı hesabıyla yeniden üretir; `kripto.ts`'in aynı değeri verdiğini doğrular. Lab canlı hesaplar | Dalga 3 R2 ile aynı ilke |
 | R37 | Görev incelemesi | Model, sahne ve `kitap-blok` göçü görevleri inceleyici alır. E2e, README ve kayıt defteri görevleri almaz. Son inceleme opus'tadır, alt ajanlar sonnet | AGENTS.md bölüm temposu |
+| R38 | Rozetin andığı notlar (son düzeltme turu) | Bir Ders adımının rozetinin andığı satırın kitap notu anahtar parçadır; yer açmak için gizlenmez. 1280×720 ve 1280×740'ta yer yetmezse önce sayfanın kendi notları gider: `iot` adım 7 ve 9'da birleştirme notu (R24'ün notu adım 4–6'da durur), `timeout-retry` adım 8'de "sayfa varsayımı" notu (R30; adım 7'de durur). `iot` grafiği gerekirse 100 px tabanına iner; denetim, kayıt ve terminal yan yanayken sütunlar içerik kadar geniştir. `timeout-retry`'da diyagram satırının sağ sütunu daha geniştir (0,85 : 1,15). Lab'da rozet satır anmaz; notlar önce gider. E2e her Ders adımında anılan notun görünür ve kesilmemiş olduğunu doğrular | Son inceleme I1; Dalga 3 I1 dersi. Rozet okurun göremediği metni iddia etmez |
 
 ## Kapsam dışı
 
@@ -219,7 +220,8 @@ View testleri güncellenir.
 
 1. `tanitim` — `KitapBlok`: tanım (L564), not: sınav notu (L1014). Rozet: `kitap · L564, L1014`.
 2. `image-container` — Kod 14.4: bir image'dan iki container. Tablo `container | port` yalnız L395-396'nın
-   değerleridir; terminal L395-396. Odak L391-392. Rozet: `kitap · L351, L395-396`.
+   değerleridir; terminal L395-396. Not L351 (image ve container tanımı, harfiyen). Odak L391-392.
+   Rozet: `kitap · L351, L395-396`.
 3. `cok-asamali` — Kod 14.3: tablo `aşama | içerik` (R9). Satır 1 "1. Aşama: Derleme (Builder)" (`derleyici`):
    L302, L305, L309 yorumları. Satır 2 "2. Aşama: Çalışma Zamanı (Production Runner)" (`uretim`): L322, L327
    yorumları. Odak L322-325. Rozet: `kitap · L293-334`.
@@ -238,8 +240,8 @@ View testleri güncellenir.
    başlar. Odak L673, L678-681. Rozet: `standart · Compose; L657, L683`.
 10. `yeniden-deneme` — Kod 14.9, `dbHazirMs` 1000: API `t = 0`'da; 0 ve 0,5 s kalır, 1 s'de kurulur. Terminal
     L990 harfiyen. Dikkat notu L1002. Odak L955, L963. Rozet: `kitap-kodu · L986, L990, L1002` (R11).
-11. `ozet` — `KitapBlok`: kavram sorumluluk matrisi (L69-77; sütunlar "Kavram", "Temel Görevi", "Ne Yapmaz?
-    (Sorumluluk Sınırı)"; tablo notu "tam tablo L69-77") ve not L683. Rozet: `kitap · L69-77, L683`.
+11. `ozet` — `KitapBlok`: kavram sorumluluk matrisi (başlık L67, tablo L69-77; sütunlar "Kavram", "Temel Görevi",
+    "Ne Yapmaz? (Sorumluluk Sınırı)"; tablo notu "tam tablo L69-77") ve not L683. Rozet: `kitap · L67-77, L683`.
 
 **Laboratuvar parametreleri.**
 
@@ -301,7 +303,9 @@ Kod 15.4 (L417-421) yalnız ref olarak anılır; Kod 15.6 aynı komutları taş�
 **Sahne.**
 
 - `SequenceLayer` şeritleri: "İstemci", "UFW", "Nginx", "Uygulama (127.0.0.1:3000)". Engellenen ok UFW'de durur.
-  TLS adımında el sıkışma mesajları (R19).
+  TLS adımında el sıkışma mesajları (R19). Diyagram en çok 8 mesaj gösterir; dokuz mesajlık tam TLS yolu (adım 8,
+  10, Lab'da `https:443`) istemcinin isteğini ve UFW geçişini tek okta toplar: `GET :443 · UFW izin`. Böylece
+  diyagram istemciden başlar; hiçbir Ders adımında soluk (`old`) mesaj kalmaz.
 - Sağda `HttpCards`: istek kartı (`kaynak` = istemci IP'si), yanıt kartı (301 + `Location`, 502), terminal.
 - `CheckList`: UFW → TLS → yönlendirme → proxy → uygulama. Sayfa satırları kendisi kurar; 301'de yönlendirme
   `gecti · 301`, sonrakiler `atlandi`.
@@ -314,7 +318,8 @@ Kod 15.4 (L417-421) yalnız ref olarak anılır; Kod 15.6 aynı komutları taş�
 **Adımlar:**
 
 1. `tanitim` — `KitapBlok`: tanım (L259), paragraf L266, not L278 ("502 Bad Gateway yanıtı bu nedenle uygulama
-   kodunda değil, Nginx tarafında üretilir"; `127.0.0.1` cümlesi). Rozet: `kitap · L259, L266, L278`.
+   kodunda değil, Nginx tarafında üretilir"; `127.0.0.1` cümlesi), kitaptaki sırasıyla.
+   Rozet: `kitap · L259, L266, L278`.
 2. `guvenlik-duvari` — Kod 15.2: `:443` izin, `:3000` ve `:5432` engel. Odak L215, L219-221.
    Rozet: `kitap-kodu · L174, L215-221`.
 3. `proxy-80` — Kod 15.3: `http://kutuphane.mehmetakif.edu.tr/api/kitaplar`; dört başlık tabloda (ilk
@@ -335,8 +340,8 @@ Kod 15.4 (L417-421) yalnız ref olarak anılır; Kod 15.6 aynı komutları taş�
    Odak L548-553. Rozet: `kitaba-dayali · L524-528, L566` (R15).
 10. `bad-gateway-502` — Uygulama kapalı, `https:443`: UFW ✓, TLS ✓, proxy ✗ → `502 Bad Gateway`; uygulama
     `atlandi`. Odak L467. Rozet: `kitaba-dayali · L278`.
-11. `ozet` — `KitapBlok`: sınav notu (L959) ve iki alternatif tablosu (L330-335, L491-496).
-    Rozet: `kitap · L330-335, L491-496, L959`.
+11. `ozet` — `KitapBlok`: sınav notu (L959) ve iki alternatif tablosu (başlıklarıyla L328-335, L489-496).
+    Rozet: `kitap · L328-335, L489-496, L959`.
 
 **Laboratuvar parametreleri** (R14).
 
@@ -447,15 +452,16 @@ onda bir cinsinden 8260, 8660, 4480.
    kabul; grafikte 10:00:00 ve 10:00:20 iki nokta. Not L433 ve L770 (nonce). Odak L398-399.
    Rozet: `kitaba-dayali · L398, L433, L770`.
 8. `aralik-dogrulama` — Kod 16.4'ün iki çağrısı aynen; grafik ve argüman tablosu gizli (R27). İkinci çağrıda
-   sıcaklık `kaldi`, nem `gecti`. Terminal L544-546. Odak L495-496, L516-517. Rozet: `kitap · L544-546`.
+   sıcaklık `kaldi`, nem `gecti`; denetim listesi yalnız bu iki satırdır (sayfanın `atlandi` satırları yoktur, rozet
+   `kitap`). Terminal L544-546. Odak L495-496, L516-517. Rozet: `kitap · L544-546`.
 9. `sunucu-zamani-kayit` — Cihaz saati 45 s geride (`IMZA_GERIDE`, R26): pencere geçer; kayıt
    `sunucuZamanDamgasi: 2026-09-05T10:00:00.000Z`. Not L554 ve L558. Odak L521.
    Rozet: `kitap-kodu · L521, L554, L558`.
 10. `tampon-saatlik` — Sabit seri: 100. okumada tek toplu yazma, tamponda 20 kayıt. Özet tablosu ve üretilen
     SQL (`saatlikOzetSorgusuUret(1, "2026-09-05T07:00:00Z")`). 09:00 satırı 20 örnek gösterir: tampondakiler
     henüz yazılmadı. Not L761. Odak L718, L741-742. Rozet: `kitap-kodu · L716-734, L740-749, L761`.
-11. `ozet` — `KitapBlok`: paragraf L462 (401/403/400), alternatifler tablosu (L567-572), notlar L998 ve L448.
-    Rozet: `kitap · L448, L462, L567-572, L998`.
+11. `ozet` — `KitapBlok`: paragraf L462 (401/403/400), alternatifler tablosu (başlığıyla L565-572), notlar L998 ve
+    L448. Rozet: `kitap · L448, L462, L565-572, L998`.
 
 **Laboratuvar parametreleri.** Her Lab durumu tek istektir; seri sabittir, Lab okuması 10:00:00'a eklenir.
 
@@ -532,8 +538,8 @@ sonucu `true` ya da `false [ '…' ]` biçimindedir (`nodeInspect`). Kabulde tam
    Not: kitabın çağrıları sinyali kullanmaz (R31). Odak L365, L369-370. Rozet: `kitap-kodu · L360-376`.
 4. `basarili` — Aynı kod, servis 1200 ms: yanıt gelir, `finally` zamanlayıcıyı temizler. Terminal `Kısa bir
    özet metni.` (L405). Not L419. Odak L374. Rozet: `kitap-kodu · L373-375, L405`.
-5. `izolasyon` — Kitabın iki çağrısı aynen (L390-396): terminal L405-407; ana yanıt `200`. Zaman ekseni
-   gizli. Odak L384-386. Rozet: `kitap · L405-407`.
+5. `izolasyon` — Kitabın iki çağrısı aynen (L390-396): terminal L405-407; ana yanıt `200` (kart adımın çerçevesidir,
+   kitabın bastığı bir değer değildir). Zaman ekseni gizli. Odak L384-386. Rozet: `kitap · L405-407`.
 6. `gecici-kalici` — Tablo: `AbortError` → `GeciciAiHatasi`; `AI servisi hata döndürdü: 500` → `KaliciAiHatasi`.
    Terminal: `Özet alınamadı, kitap bilgisi özetsiz gösterilecek: AI servisi kalıcı bir hata döndürdü.` Not
    L337. Odak L369-372. Rozet: `kitap-kodu · L337, L369-372`.
@@ -542,9 +548,11 @@ sonucu `true` ya da `false [ '…' ]` biçimindedir (`nodeInspect`). Kabulde tam
 8. `retry-tukendi` — 2. deneme de iptal: toplam 11 000 ms; terminal `Özet alınamadı: AI servisi zaman aşımına
    uğradı.`; `200 OK (özet yok, temel veri korunur)`. code_006'nın beklemesiz on denemesi karşıt not olarak
    durur (L448). Odak code_006 L461, L465. Rozet: `kitaba-dayali · L335, L448, L471`.
-9. `dogrulama` — Kod 17.5'in üç çağrısı aynen: ikinci çağrıda zaman aşımı `gecti`, doğrulama `kaldi`. Terminal
-   L772-776. Zaman ekseni gizli. Odak L744-745. Rozet: `kitap · L772-776`.
-10. `ozet` — `KitapBlok`: alternatifler tablosu (L440-446), not L806. Rozet: `kitap · L440-446, L806`.
+9. `dogrulama` — Kod 17.5'in üç çağrısı aynen: ikinci çağrıda zaman aşımı `gecti`, doğrulama `kaldi`. Ekranda
+   yalnız kitap metni durur (rozet `kitap`): yanıt kartı yoktur; `kaldi` satırının ayrıntısı kitabın log satırıdır
+   (L745, çıktıda L773), `gecti` satırının ayrıntısı yoktur. Terminal L772-776. Zaman ekseni gizli. Odak L744-745.
+   Rozet: `kitap · L772-776`.
+10. `ozet` — `KitapBlok`: alternatifler tablosu (başlığıyla L438-446), not L806. Rozet: `kitap · L438-446, L806`.
 
 **Laboratuvar parametreleri.** Altyapı Kod 17.5'tir; R29 notu durur.
 
@@ -556,8 +564,9 @@ sonucu `true` ya da `false [ '…' ]` biçimindedir (`nodeInspect`). Kabulde tam
 | `beklemeTabanMs` | 0 / 500 / 1000 / 2000 | 1000 |
 | `servisGecikmesiMs` | 500–12 000, adım 500 (yavaş ayak; hızlı 1200 sabit) | 8000 |
 
-`http-500`, `bos-ozet`, `bozuk-govde` 1200 ms'de yanıt verir ve tekrar denenmez. `beklemeTabanMs = 0` ve
-`maksRetry >= 2` iken "bekleme yok: code_006'nın deseni (L448)" uyarısı çıkar. Rozet: `kitap-kodu`; retry
+`http-500`, `bos-ozet`, `bozuk-govde` 1200 ms'de yanıt verir ve tekrar denenmez. `beklemeTabanMs = 0` iken ve en az
+iki yeniden deneme gerçekten çalıştıysa "bekleme yok: code_006'nın deseni (L448)" uyarısı çıkar; tek yeniden deneme
+çalışan ya da hiç çalışmayan durumda uyarı çıkmaz. Rozet: `kitap-kodu`; retry
 denemesi olan durumda `kitaba-dayali`.
 
 ## Bölüm 6 — Kayıt defteri, ana sayfa, README
