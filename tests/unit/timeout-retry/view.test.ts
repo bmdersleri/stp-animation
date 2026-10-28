@@ -174,9 +174,17 @@ describe('timeout-retry view', () => {
     expect(v.zaman).toBeNull();
     expect(v.sequence).toBeNull();
     expect(v.denetim!.baslik).toBe('Kod 17.5 çağrıları');
-    expect(v.denetim!.denetimler.map((d) => [d.ad, d.durum])).toEqual([['Zaman aşımı', 'gecti'], ['Doğrulama', 'kaldi']]);
+    // kitap badge: only book text on screen. The failed check carries the book's log line (L745, printed at L773); no 200 card.
+    expect(v.denetim!.denetimler).toEqual([
+      { ad: 'Zaman aşımı', durum: 'gecti' },
+      { ad: 'Doğrulama', durum: 'kaldi', ayrinti: 'AI servisi geçersiz/boş özet döndürdü, özet gösterilmeyecek.' },
+    ]);
+    expect(v.denetim!.denetimler[1].ayrinti).toBe(listing(LISTINGS, 'kod-17-5-cikti').lines[1]);
     expect(metinler(v)).toEqual(listing(LISTINGS, 'kod-17-5-cikti').lines);
-    expect(v.kartlar.yanitlar.map((y) => y.durumKodu)).toEqual([200]);
+    expect(v.kartlar.yanitlar).toEqual([]);
+    // without the step's badge no book output shows
+    expect(deriveTimeoutView(step(9), false).kartlar.terminal).toEqual([]);
+    expect(deriveTimeoutView(step(9), false).denetim!.denetimler.every((d) => d.ayrinti === undefined)).toBe(true);
     expect(odak(v)).toEqual([satir('kod-17-5', 744), satir('kod-17-5', 745)]);
   });
 

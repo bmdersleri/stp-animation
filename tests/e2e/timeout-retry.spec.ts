@@ -270,6 +270,10 @@ const KEY_STEPS: { n: number; check: (page: Page) => Promise<void> }[] = [
     await expect(p.locator('.denetim-yeri .denetim')).toHaveCount(2);
     await expect(p.locator('.denetim-yeri .denetim-gecti .denetim-ad')).toHaveText('Zaman aşımı');
     await expect(p.locator('.denetim-yeri .denetim-kaldi .denetim-ad')).toHaveText('Doğrulama');
+    // kitap badge: book text only. The failed check carries the book's log line; no page-made 200 card.
+    await expect(p.locator('.denetim-yeri .denetim-kaldi .denetim-ayrinti')).toHaveText('AI servisi geçersiz/boş özet döndürdü, özet gösterilmeyecek.');
+    await expect(p.locator('.denetim-yeri .denetim-gecti .denetim-ayrinti')).toHaveCount(0);
+    await expect(p.locator('.timeout-kart .yanit-karti')).toBeHidden();
     await expect(p.locator('.terminal-satir')).toHaveCount(5);
   } },
 ];

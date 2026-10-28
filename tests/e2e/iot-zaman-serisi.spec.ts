@@ -226,7 +226,9 @@ const KEY_STEPS: { n: number; check: (page: Page) => Promise<void> }[] = [
     expect(Math.abs(cx[1] - cx[0]), 'the two points are visibly apart').toBeGreaterThanOrEqual(8);
   } },
   { n: 8, check: async (p) => {
-    await expect(p.locator('.denetim-yeri .denetim')).toHaveCount(5);
+    // the book's two range results only (kitap badge)
+    await expect(p.locator('.denetim-yeri .denetim')).toHaveCount(2);
+    await expect(p.locator('.denetim-yeri .denetim-atlandi')).toHaveCount(0);
     await expect(p.locator('.denetim-yeri .denetim-kaldi .denetim-ad')).toHaveText('Sıcaklık');
     await expect(p.locator('.terminal-satir')).toHaveCount(3);
   } },

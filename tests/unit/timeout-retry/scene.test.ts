@@ -38,6 +38,9 @@ describe('timeout-retry scene', () => {
     expect(el.querySelector<HTMLElement>('.timeout-zaman')!.hidden).toBe(true);
     expect(el.querySelectorAll('.denetim-yeri .denetim')).toHaveLength(2);
     expect(el.querySelectorAll('.denetim-yeri .denetim-kaldi')).toHaveLength(1);
+    // kitap badge: no page-made 200 card, only the book's terminal
+    expect(el.querySelector<HTMLElement>('.yanit-karti')!.hidden).toBe(true);
+    expect(el.querySelectorAll('.terminal-satir')).toHaveLength(5);
   });
 
   it('step 6 shows the error table', () => {

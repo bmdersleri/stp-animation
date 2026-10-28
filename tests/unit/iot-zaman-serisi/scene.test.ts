@@ -21,7 +21,7 @@ describe('iot-zaman-serisi scene', () => {
     go(player, 'aralik-dogrulama');
     expect(el.querySelector<HTMLElement>('.iot-seri')!.hidden).toBe(true);
     expect(el.querySelector<HTMLElement>('.arguman-yeri')!.hidden).toBe(true);
-    expect(el.querySelectorAll('.denetim-yeri .denetim')).toHaveLength(5);
+    expect(el.querySelectorAll('.denetim-yeri .denetim')).toHaveLength(2);
     expect(texts(el, '.terminal-satir').join('\n')).toContain('sicaklik aralık dışı');
   });
 

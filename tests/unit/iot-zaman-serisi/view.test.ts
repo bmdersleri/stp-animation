@@ -157,11 +157,11 @@ describe('iot-zaman-serisi view', () => {
     expect(v.sequence).toBeNull();
     expect(metinler(v)).toEqual(listing(LISTINGS, 'kod-16-4-cikti').lines);
     expect(metinler(v)[2]).toBe("false [ 'sicaklik aralık dışı (-40 ile 85 arası bekleniyor).' ]");
-    expect(v.denetim!.denetimler.map((d) => [d.ad, d.durum])).toEqual([
-      ['Zaman penceresi', 'atlandi'], ['Cihaz UUID', 'atlandi'], ['HMAC', 'atlandi'], ['Sıcaklık', 'kaldi'], ['Nem', 'gecti'],
+    // only the book's two range results (the second call): no row in the page's own wording under the kitap badge
+    expect(v.denetim!.denetimler).toEqual([
+      { ad: 'Sıcaklık', durum: 'kaldi', ayrinti: 'sicaklik aralık dışı (-40 ile 85 arası bekleniyor).' },
+      { ad: 'Nem', durum: 'gecti' },
     ]);
-    expect(v.denetim!.denetimler[0].ayrinti).toBe('Kod 16.4 yalnız aralık denetler');
-    expect(v.denetim!.denetimler[3].ayrinti).toBe('sicaklik aralık dışı (-40 ile 85 arası bekleniyor).');
     expect(odak(v)).toEqual([495, 496, 516, 517].map((n) => satir('kod-16-4', n)));
     expect(deriveIotView(step(8), false).terminal).toEqual([]);
   });

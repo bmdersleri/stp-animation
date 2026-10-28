@@ -240,14 +240,13 @@ function hmacGorunumu(p: IotParams): IotView {
   };
 }
 
+/** Step 8 (`kitap` badge): only the book's two range results of Kod 16.4's second call; the error text is the book's (L546). */
 function aralikGorunumu(kitapCiktisi: boolean): IotView {
-  const atla = (ad: string): Denetim => ({ ad, durum: 'atlandi', ayrinti: 'Kod 16.4 yalnız aralık denetler' });
   return {
     ...bos(kodSeridi(K4, [495, 496, 516, 517])),
     denetim: {
       baslik: 'Denetimler',
       denetimler: [
-        atla('Zaman penceresi'), atla('Cihaz UUID'), atla('HMAC'),
         { ad: 'Sıcaklık', durum: 'kaldi', ayrinti: 'sicaklik aralık dışı (-40 ile 85 arası bekleniyor).' },
         { ad: 'Nem', durum: 'gecti' },
       ],

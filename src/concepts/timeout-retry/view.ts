@@ -244,21 +244,27 @@ function hataTurleriGorunumu(): TimeoutView {
   };
 }
 
-/** Steps 5 and 9: the book's own example calls; their output is the book's, shown only while a Ders badge shows. */
+/**
+ * Steps 5 and 9: the book's own example calls; their output is the book's, shown only while a Ders badge shows. Step 5
+ * keeps the spec's main `200` card (the step's frame, not a printed value); step 9 (`kitap` badge) shows only book text:
+ * the second call's checks, the failed one with the book's log line (L745, printed at L773).
+ */
 function kitapCagrilariGorunumu(surum: TimeoutParams['surum'], kitapCiktisi: boolean): TimeoutView {
-  const cikti = surum === '17.3' ? kitapCagrilari173 : kitapCagrilari175;
-  const gorunum: TimeoutView = {
-    ...bos(surum === '17.3' ? kodSeridi(K173, [384, 385, 386]) : kodSeridi(K175, [744, 745])),
-    kartlar: { yanitlar: [{ durumKodu: 200 }], terminal: kitapCiktisi ? terminalSatirlari(cikti()) : [] },
-  };
-  if (surum === '17.3') return gorunum;
+  if (surum === '17.3') {
+    return {
+      ...bos(kodSeridi(K173, [384, 385, 386])),
+      kartlar: { yanitlar: [{ durumKodu: 200 }], terminal: kitapCiktisi ? terminalSatirlari(kitapCagrilari173()) : [] },
+    };
+  }
+  const cikti = kitapCagrilari175();
   return {
-    ...gorunum,
+    ...bos(kodSeridi(K175, [744, 745])),
+    kartlar: { yanitlar: [], terminal: kitapCiktisi ? terminalSatirlari(cikti) : [] },
     denetim: {
       baslik: 'Kod 17.5 çağrıları',
       denetimler: [
-        { ad: 'Zaman aşımı', durum: 'gecti', ayrinti: 'ikinci çağrı: yanıt zamanında geldi' },
-        { ad: 'Doğrulama', durum: 'kaldi', ayrinti: 'ikinci çağrı: özet boş' },
+        { ad: 'Zaman aşımı', durum: 'gecti' },
+        { ad: 'Doğrulama', durum: 'kaldi', ...(kitapCiktisi ? { ayrinti: cikti[1] } : {}) },
       ],
     },
   };
