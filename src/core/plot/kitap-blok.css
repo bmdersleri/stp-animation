@@ -1,0 +1,6 @@
+.kitap-blok { flex:none; min-width:0; font-size:var(--fs-body); line-height:1.35; }
+.kitap-blok p { margin:0 0 6px; }
+.kitap-blok .kitap-not { color:var(--muted); }
+.kitap-blok .data-table { margin-bottom:8px; }
+.kitap-blok .data-table th, .kitap-blok .data-table td { padding:2px 6px; overflow-wrap:normal; }
+[data-narrow] .kitap-blok .data-table th, [data-narrow] .kitap-blok .data-table td { overflow-wrap:anywhere; }

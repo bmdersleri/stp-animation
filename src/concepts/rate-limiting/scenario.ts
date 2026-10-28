@@ -35,7 +35,7 @@ export const RATE_ROZET: Readonly<Record<string, Rozet>> = {
   'sinirda-patlama': { tur: 'kitap-kodu', ref: 'L771' },
   'login-sira': { tur: 'kitap-kodu', ref: 'L158, L1207-1208' },
   'login-429': { tur: 'kitap-kodu', ref: 'L1171-1172' },
-  ozet: { tur: 'kitap', ref: 'L763, L771-774' },
+  ozet: { tur: 'kitap', ref: 'L763, L767-774' },
 };
 
 /** The step scenario of the rate-limiting page (Ders steps 1-10). */

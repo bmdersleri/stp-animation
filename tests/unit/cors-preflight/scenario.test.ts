@@ -7,7 +7,7 @@ import { labTextTests } from '../lab-text';
 
 const IDS = ['tanitim', 'izinli', 'izinsiz', 'sunucu-reddi', 'curl', 'wildcard', 'preflight-gerekli', 'preflight-eksik', 'preflight-tamam', 'ozet'];
 const ROZET: [string, string][] = [
-  ['kitaba-dayali', 'L540'],
+  ['kitaba-dayali', 'L528, L540'],
   ['kitap-kodu', 'L614-620'],
   ['kitap-kodu', 'L621, L552-556'],
   ['kitap-kodu', 'L1116, L1208'],
@@ -16,7 +16,7 @@ const ROZET: [string, string][] = [
   ['standart', 'Fetch'],
   ['standart', 'Fetch, L624, L646'],
   ['standart', 'Fetch, cors'],
-  ['kitap', 'L550-554, L644-647'],
+  ['kitap', 'L548-554, L640-647'],
 ];
 
 describe('cors-preflight scenario', () => {

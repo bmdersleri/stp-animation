@@ -24,7 +24,7 @@ const VARSAYILAN: CorsParams = {
 
 /** Source badge of every step, keyed by step id. */
 export const CORS_ROZET: Readonly<Record<string, Rozet>> = {
-  tanitim: { tur: 'kitaba-dayali', ref: 'L540' },
+  tanitim: { tur: 'kitaba-dayali', ref: 'L528, L540' },
   izinli: { tur: 'kitap-kodu', ref: 'L614-620' },
   izinsiz: { tur: 'kitap-kodu', ref: 'L621, L552-556' },
   'sunucu-reddi': { tur: 'kitap-kodu', ref: 'L1116, L1208' },
@@ -33,7 +33,7 @@ export const CORS_ROZET: Readonly<Record<string, Rozet>> = {
   'preflight-gerekli': { tur: 'standart', ref: 'Fetch' },
   'preflight-eksik': { tur: 'standart', ref: 'Fetch, L624, L646' },
   'preflight-tamam': { tur: 'standart', ref: 'Fetch, cors' },
-  ozet: { tur: 'kitap', ref: 'L550-554, L644-647' },
+  ozet: { tur: 'kitap', ref: 'L548-554, L640-647' },
 };
 
 /** The step scenario of the cors-preflight page (Ders steps 1-10). */

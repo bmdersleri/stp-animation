@@ -2,6 +2,7 @@ import type { Mode } from '../../core/mode';
 import type { PlayerState, StepPlayer } from '../../core/player';
 import { CheckList } from '../../core/plot/check-list';
 import { CodeTrace } from '../../core/plot/code-trace';
+import { KitapBlokView } from '../../core/plot/kitap-blok';
 import { DataTable } from '../../core/plot/data-table';
 import { HttpCards } from '../../core/plot/http-cards';
 import { sourceBadge, type Rozet } from '../../core/plot/source-badge';
@@ -9,7 +10,7 @@ import { TextMeasure } from '../../core/plot/text-measure';
 import type { SceneHandle } from '../../core/shell';
 import { RATE_ROZET, type RateParams } from './scenario';
 import { TimelineLayer } from './scene-timeline';
-import { deriveRateView, rateLabRozet, type RateKitapBlok } from './view';
+import { deriveRateView, rateLabRozet } from './view';
 import './rate-limiting.css';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -62,8 +63,7 @@ export function mountRateScene(
   ust.append(lejant, rozetYeri);
 
   const stage = el(doc, 'div', 'rate-stage');
-  const kitapBlok = el(doc, 'div', 'kitap-blok');
-  const kitapTablolari: DataTable[] = [];
+  const kitap = new KitapBlokView(stage);
   const cizelge = el(doc, 'div', 'rate-cizelge');
   const svg = doc.createElementNS(NS, 'svg');
   svg.setAttribute('class', 'plot');
@@ -80,7 +80,7 @@ export function mountRateScene(
   const tablo = new DataTable(tabloYeri);
   const kartlar = new HttpCards(sagYer);
   const denetim = new CheckList(denetimYeri);
-  stage.append(kitapBlok, cizelge, alt);
+  stage.append(kitap.root, cizelge, alt);
   const stripHost = el(doc, 'div', 'code-strip');
   const strip = new CodeTrace(stripHost);
   scene.append(ust, stage, stripHost);
@@ -101,28 +101,6 @@ export function mountRateScene(
     rozetYeri.replaceChildren(sourceBadge(doc, r.tur, r.ref));
   }
 
-  /** Empties the book block (a flow step keeps no hidden book table). */
-  function kitapTemizle(): void {
-    kitapTablolari.splice(0).forEach((t) => t.destroy());
-    kitapBlok.replaceChildren();
-  }
-
-  /** The book's own text: the bold "Tanım." paragraph, the tables, then the muted sentences. */
-  function kitapYaz(b: RateKitapBlok): void {
-    kitapTemizle();
-    if (b.tanim) {
-      const para = el(doc, 'p', 'tanim-metin');
-      para.append(el(doc, 'strong', '', 'Tanım. '), b.tanim);
-      kitapBlok.append(para);
-    }
-    for (const spec of b.tablolar) {
-      const t = new DataTable(kitapBlok);
-      t.update(spec);
-      kitapTablolari.push(t);
-    }
-    for (const n of b.notlar) kitapBlok.append(el(doc, 'p', 'kitap-not', n));
-  }
-
   function draw(state: PlayerState<RateParams>): void {
     // the book's printed output belongs to the step's own badge; a Lab change drops it
     const v = deriveRateView(state.params, !labRozeti);
@@ -134,17 +112,17 @@ export function mountRateScene(
     strip.update({ ...v.code, window: STRIP_WINDOW });
 
     // intro and summary: the book's text takes the place of the legend, the timeline and the lower row
-    kitapBlok.hidden = v.kitap === null;
+    kitap.root.hidden = v.kitap === null;
     lejant.hidden = v.kitap !== null;
     cizelge.hidden = v.kitap !== null;
     alt.hidden = v.kitap !== null;
     if (v.kitap) {
-      kitapYaz(v.kitap);
+      kitap.update(v.kitap);
       drawnH = 0;
       rozet(state);
       return;
     }
-    kitapTemizle();
+    kitap.update(null);
 
     cors.hidden = !v.timeline.noktalar.some((n) => n.durum === '403');
     tablo.update(v.tablo);
@@ -207,7 +185,7 @@ export function mountRateScene(
       boxWatch?.disconnect();
       layer.destroy();
       tablo.destroy();
-      kitapTemizle();
+      kitap.destroy();
       denetim.destroy();
       kartlar.destroy();
       strip.destroy();

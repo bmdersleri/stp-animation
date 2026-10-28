@@ -4,20 +4,12 @@ import type { CodeTraceSpec } from '../../core/plot/code-trace';
 import type { DataTableSpec } from '../../core/plot/data-table';
 import type { HttpCardsSpec, HttpIstek, HttpYanit } from '../../core/plot/http-cards';
 import type { Lane, Message, SequenceSpec } from '../../core/plot/sequence';
+import type { KitapBlok } from '../../core/plot/kitap-blok';
 import type { Rozet } from '../../core/plot/source-badge';
 import { LISTINGS } from './code-text';
 import type { CorsParams } from './scenario';
 import { API_KOKENI } from './sunucu';
 import { calistir, KOKEN_URL } from './tarayici';
-
-/** The book's own text on the intro and summary steps, verbatim without code ticks and bold marks. */
-export interface CorsKitapBlok {
-  /** The definition paragraph, shown after a bold "Tanım. " (the book's own label). */
-  tanim?: string;
-  tablolar: readonly DataTableSpec[];
-  /** Further book sentences, shown muted under the rest. */
-  notlar: readonly string[];
-}
 
 export interface CorsView {
   sequence: SequenceSpec;
@@ -30,7 +22,7 @@ export interface CorsView {
   aciklama: string | null;
   ozet: boolean;
   /** The book block of the intro and summary steps (they draw no diagram); null on every flow step. */
-  kitap: CorsKitapBlok | null;
+  kitap: KitapBlok | null;
 }
 
 /** The book's definition (L540) and hint (L528), as the intro step shows them. */
@@ -38,7 +30,7 @@ const TANIM =
   'CORS, bir web sayfasının çalıştığı kökenden (origin — protokol + alan adı + port) farklı bir kökene tarayıcı üzerinden istek göndermesini denetleyen bir mekanizmadır. Sunucu, hangi kökenlerden gelen isteklere izin verdiğini Access-Control-Allow-Origin başlığıyla bildirir; tarayıcı bu başlığa göre yanıtı sayfanın betiğine (script) verip vermeyeceğine karar verir.';
 const IPUCU = 'İpucu: CORS bir sunucu güvenlik duvarı değildir; tarayıcının, farklı bir kökenden çalışan sayfa adına yapılan isteği ne zaman engelleyeceğini belirleyen bir tarayıcı politikasıdır.';
 
-/** The book's CORS / CSRF table (L550-554) under its own warning title (L548). */
+/** The book's CORS / CSRF table (L548-554, title and rows). */
 const CSRF_TABLO: DataTableSpec = {
   baslik: "CORS ile CSRF'i karıştırmayınız.",
   sutunlar: [{ ad: '' }, { ad: 'CORS / Same-Origin Policy' }, { ad: 'CSRF koruması' }],
@@ -49,7 +41,7 @@ const CSRF_TABLO: DataTableSpec = {
   ],
 };
 
-/** The book's alternatives table (L640 title, L642 header, L644-647 rows). */
+/** The book's alternatives table (L640-647, title through rows). */
 const ALTERNATIF_TABLO: DataTableSpec = {
   baslik: 'Alternatifler',
   sutunlar: [{ ad: 'Yaklaşım' }, { ad: 'Avantajı' }, { ad: 'Dezavantajı' }, { ad: 'Uygun kullanım' }],
@@ -61,8 +53,8 @@ const ALTERNATIF_TABLO: DataTableSpec = {
   ],
 };
 
-const TANITIM_BLOK: CorsKitapBlok = { tanim: TANIM, tablolar: [], notlar: [IPUCU] };
-const OZET_BLOK: CorsKitapBlok = { tablolar: [CSRF_TABLO, ALTERNATIF_TABLO], notlar: [] };
+const TANITIM_BLOK: KitapBlok = { tanim: TANIM, tablolar: [], notlar: [IPUCU] };
+const OZET_BLOK: KitapBlok = { tablolar: [CSRF_TABLO, ALTERNATIF_TABLO], notlar: [] };
 
 /** The three lanes of a CORS call (R18: the order of the calls). */
 export const CORS_LANES: Lane[] = [

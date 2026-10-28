@@ -15,7 +15,7 @@ const ROZET: [string, string][] = [
   ['kitap-kodu', 'L771'],
   ['kitap-kodu', 'L158, L1207-1208'],
   ['kitap-kodu', 'L1171-1172'],
-  ['kitap', 'L763, L771-774'],
+  ['kitap', 'L763, L767-774'],
 ];
 
 describe('rate-limiting scenario', () => {

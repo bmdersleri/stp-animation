@@ -30,6 +30,10 @@ export function hmacSha256B64url(anahtar: string, veri: string): string {
   return b64url(hmac(sha256, kodla(anahtar), kodla(veri)));
 }
 
+export function hmacSha256Hex(anahtar: string, veri: string): string {
+  return bytesToHex(hmac(sha256, kodla(anahtar), kodla(veri)));
+}
+
 /** JSON.stringify, UTF-8, base64url without padding. */
 export function b64urlJson(deger: object): string {
   return b64url(kodla(JSON.stringify(deger)));
