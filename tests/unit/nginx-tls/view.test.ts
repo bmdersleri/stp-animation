@@ -101,7 +101,8 @@ describe('nginx-tls view', () => {
     expect(v.notlar).toEqual(["Nginx varsayılanı: Host = $proxy_host (127.0.0.1:3000); Kod 15.5'in 443 bloğu yalnız X-Forwarded-Proto ekler."]);
     expect(odak(v)).toEqual([460, 463, 464, 468].map((n) => satir('kod-15-5', n)));
     expect(v.xff).toBeNull();
-    expect(v.sertifika!.baslik).toBe('Sertifika');
+    expect(v.sertifika).toBeNull();
+    expect(v.certbot).toBeNull();
   });
 
   it('step 9 certbot list and certificate table, no terminal', () => {

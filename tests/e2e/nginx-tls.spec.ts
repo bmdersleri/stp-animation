@@ -14,6 +14,18 @@ test.use({ reducedMotion: 'reduce' });
 
 const rest = (page: Page) => settled(() => page.locator('.nginx-scene').innerHTML());
 
+/** Real gap: the sag column area and each check list end at least 4 px above the stage bottom (the stage clips at 1 px). */
+const slackProblems = (page: Page): Promise<string[]> => page.evaluate(() => {
+  const st = document.querySelector('.nginx-stage')!.getBoundingClientRect();
+  const out: string[] = [];
+  for (const el of document.querySelectorAll<HTMLElement>('.nginx-sag, .nginx-sag-kolon, .nginx-sag .check-list')) {
+    if (el.closest('[hidden]') || el.getBoundingClientRect().height === 0) continue;
+    const gap = st.bottom - el.getBoundingClientRect().bottom;
+    if (gap < 4) out.push(`${el.className}: ${gap.toFixed(1)} px above the stage bottom`);
+  }
+  return out;
+});
+
 async function slide(page: Page, name: string, value: number): Promise<void> {
   await page.locator(`input[name="${name}"]`).evaluate((el, v) => {
     const i = el as HTMLInputElement;
@@ -63,7 +75,20 @@ test('lab: kalanGun 0 gives no response', async ({ page }) => {
   await rest(page);
   await expect(page.locator('.sertifika-yeri tbody')).toContainText('suresi-doldu');
   await expect(page.locator('.gorulen-yeri')).toBeHidden();
+  await expect(page.locator('.nginx-sag-kolon > p.yanit-yok')).toHaveText('yanıt yok: tarayıcı güvensiz uyarısı (sertifika süresi dolmuş)');
   await expect(page.locator('.certbot-yeri .denetim').nth(2)).toContainText('süresi dolmuş');
+});
+
+test('lab: https default with certbot fits at 1280x720', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await open(page, PAGE, 'lab', READY);
+  await gotoStep(page, 7, STEPS, 0);
+  await slide(page, 'kalanGun', 60);
+  await rest(page);
+  await expect(page.locator('.certbot-yeri .denetim')).toHaveCount(3);
+  expect(await stageBoxProblems(page, '.nginx-stage', STAGE_BOXES)).toEqual([]);
+  expect(await slackProblems(page)).toEqual([]);
+  expect(await seqOutsideSvg(page)).toEqual([]);
 });
 
 test('lab: ufw drop gives no response', async ({ page }) => {
@@ -92,6 +117,7 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
         expect(clipped, at).toEqual([]);
         expect(await seqOutsideSvg(page), `${at} diagram`).toEqual([]);
         if (w === 1280) expect(await stageBoxProblems(page, '.nginx-stage', STAGE_BOXES), `${at} boxes`).toEqual([]);
+        if (w === 1280 && mode === 'ders') expect(await slackProblems(page), `${at} slack`).toEqual([]);
         if (mode === 'ders' && w === 1280) expect((await pageOverflow(page)).y, at).toBeLessThanOrEqual(0);
       }
     });

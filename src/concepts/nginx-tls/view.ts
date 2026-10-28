@@ -172,7 +172,8 @@ function akisGorunumu(p: NginxTlsParams, kitapCiktisi: boolean): NginxView {
   if (p.ayar === 'basliksiz' && gorulen) notlar.push(BASLIK_NOTU);
   if (iz.yanit?.durumKodu === 301) notlar.push(YONLENDIRME_NOTU, YAYGIN_HATA_NOTU);
   if (p.hedef === 'https-443' && gorulen) notlar.push(VARSAYILAN_NOTU);
-  const tls = p.hedef === 'https-443';
+  // the certificate pieces belong to step 9 in Ders; the Lab shows them with every https request
+  const tls = p.hedef === 'https-443' && !kitapCiktisi;
   return {
     kitap: null,
     sequence: sira(iz.olaylar, 'İstek sıra diyagramı', iz.denetimler[0].durum === 'kaldi' ? 'ufw' : undefined),

@@ -97,7 +97,7 @@ export function istekIsle(p: NginxParams, yol: string = YOL): NginxIzi {
   if (p.sahteXff) gelen.push(['X-Forwarded-For', SAHTE_XFF]);
   const istek: HttpIstek = { metot: 'GET', kaynak: ISTEMCI_IP, yol, basliklar: gelen };
 
-  const olaylar: Message[] = [msg('istek', 'istemci', 'ufw', `GET ${yol} :${port}`, 'request')];
+  const olaylar: Message[] = [msg('istek', 'istemci', 'ufw', `GET :${port}`, 'request')];
   const denetim = (d: Partial<Denetim>[]): Denetim[] => zincirle(
     ['UFW', 'TLS', 'Yönlendirme', 'Proxy', 'Uygulama'].map((ad, i) => ({ ad, durum: 'atlandi' as const, ...d[i] })),
   );
@@ -152,7 +152,7 @@ export function istekIsle(p: NginxParams, yol: string = YOL): NginxIzi {
   const yon: Partial<Denetim> = { durum: 'gecti', ayrinti: blok === 443 ? 'HTTPS: yönlendirme gerekmez' : 'yönlendirme yok' };
 
   // 5. proxy
-  olaylar.push(msg('proxy', 'nginx', 'uygulama', `proxy_pass ${UYGULAMA}`, 'request'));
+  olaylar.push(msg('proxy', 'nginx', 'uygulama', `proxy_pass :${UYGULAMA.split(':')[1]}`, 'request'));
   if (p.uygulama === 'kapali') {
     olaylar.push(
       msg('uygulama-red', 'uygulama', 'nginx', 'bağlantı reddedildi', 'response', 'alarm'),

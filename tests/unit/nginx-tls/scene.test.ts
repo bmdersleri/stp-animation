@@ -24,6 +24,18 @@ describe('nginx-tls scene', () => {
     expect(el.querySelector<HTMLElement>('.gorulen-yeri')!.hidden).toBe(true);
   });
 
+  it('Ders steps 8 and 10 show no certificate pieces, the Lab does', () => {
+    const { el, player } = setup();
+    for (const id of ['tls-sonlandirma', 'bad-gateway-502']) {
+      go(player, id);
+      expect(el.querySelector<HTMLElement>('.certbot-yeri')!.hidden, id).toBe(true);
+      expect(el.querySelector<HTMLElement>('.sertifika-yeri')!.hidden, id).toBe(true);
+    }
+    player.setParam('kalanGun', 60);
+    expect(el.querySelector<HTMLElement>('.certbot-yeri')!.hidden).toBe(false);
+    expect(el.querySelector<HTMLElement>('.sertifika-yeri')!.hidden).toBe(false);
+  });
+
   it('step 10 shows 502 card', () => {
     const { el, player } = setup();
     go(player, 'bad-gateway-502');
