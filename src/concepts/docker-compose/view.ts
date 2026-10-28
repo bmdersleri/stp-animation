@@ -29,7 +29,6 @@ const K5 = L('kod-14-5');
 const K6 = L('kod-14-6');
 const K8 = L('code-008');
 const K9 = L('kod-14-9');
-const K9_CIKTI = L('kod-14-9-cikti').lines;
 const K12 = L('code-012');
 const K12_CIKTI = L('code-012-cikti').lines;
 const K14 = L('code-014');
@@ -66,6 +65,9 @@ const MATRIS: DataTableSpec = {
 
 const TANITIM_BLOK: KitapBlok = { tanim: TANIM, tablolar: [], notlar: [SINAV_NOTU] };
 const OZET_BLOK: KitapBlok = { tablolar: [MATRIS], notlar: [HEALTHCHECK_NOTU] };
+
+/** The book's own comment on `localhost` (code_012 L868-870, without the `// ` prefixes). */
+const LOCALHOST_YORUMU = [868, 869, 870].map((n) => kitapMetni(K12, n).replace(/^\s*\/\/ /, '')).join(' ');
 
 /** P11: the Turkish reading of R10's `unhealthy` state. */
 const UNHEALTHY_SATIRI = 'kutuphane-db unhealthy: service_healthy koşulu sağlanmadı, kutuphane-api başlatılmadı.';
@@ -126,17 +128,15 @@ function baslatmaGorunumu(p: ComposeParams, kitapCiktisi: boolean): ComposeView 
   let terminal: TerminalSatir[];
   if (sonuc.durum === 'bagimlilik-basarisiz') terminal = [{ metin: UNHEALTHY_SATIRI, akis: 'stderr' }];
   else if (sonuc.durum === 'hata') terminal = [{ metin: sonuc.baglanti!.hata!, akis: 'stderr' }];
-  else {
-    // Same value either way; with the badge showing, the line is the book's own (L990).
-    terminal = sonuc.baglanti!.log.map((metin) => ({ metin: kitapCiktisi && p.asama === 'kod-14-9' && K9_CIKTI.includes(metin) ? K9_CIKTI[K9_CIKTI.indexOf(metin)] : metin }));
-  }
+  else terminal = sonuc.baglanti!.log.map((metin) => ({ metin })); // on step 10 this is the book's own line (L990)
 
   const notlar = [`sayfa varsayımı: veritabanı ${saniyeEtiketi(p.dbHazirMs)}'de hazır`];
   if (p.asama === 'kod-14-9') notlar.push(DEPENDS_ON_NOTU);
 
   let code: CodeTraceSpec;
   if (sonuc.durum === 'bagimlilik-basarisiz') code = kodSeridi(K14, [673]);
-  else if (p.asama === 'kod-14-9') code = kodSeridi(K9, sonuc.durum === 'kuruldu' ? [955, 963] : [960]);
+  // Ders (the step's own badge shows): the step's listing; Lab (`kitapCiktisi` false): always Kod 14.9, the code that runs.
+  else if (p.asama === 'kod-14-9' || !kitapCiktisi) code = kodSeridi(K9, sonuc.durum === 'kuruldu' ? [955, 963] : [960]);
   else if (p.mod === 'sira') code = kodSeridi(K6, [596, 597]);
   else code = kodSeridi(K14, [673, 678, 679, 680, 681]);
 
@@ -190,7 +190,7 @@ export function deriveComposeView(p: ComposeParams, kitapCiktisi = false): Compo
     case 'localhost':
       return {
         ...bos(kodSeridi(K12, [872])),
-        tablo: tablo('DNS', ['ad', 'çözüm'], [{ key: 'localhost', cells: ['localhost', "kutuphane-api'nin kendi container'ı"] }]),
+        tablo: tablo('DNS', ['ad', 'çözüm'], [{ key: 'localhost', cells: ['localhost', LOCALHOST_YORUMU] }]),
         terminal: [{ metin: K12_CIKTI[0].replace(/^\/\/ Beklenmeyen çıktı: /, ''), akis: 'stderr' }],
       };
     case 'compose':

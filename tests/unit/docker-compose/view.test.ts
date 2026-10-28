@@ -15,7 +15,7 @@ describe('docker-compose view', () => {
   it('step 7 terminal is book L886', () => {
     const v = view(7);
     expect(v.terminal).toEqual([{ metin: 'Error: connect ECONNREFUSED 127.0.0.1:5432', akis: 'stderr' }]);
-    expect(v.tablo!.satirlar[0].cells).toEqual(['localhost', "kutuphane-api'nin kendi container'ı"]);
+    expect(v.tablo!.satirlar[0].cells).toEqual(['localhost', 'Hata 1: host adı olarak "localhost" kullanılıyor; ama API kendi container\x27ında çalıştığı için "localhost" kendi container\x27ını işaret eder, veritabanı container\x27ını değil.']);
   });
 
   it('step 8 api started at t = 0 s and db starting', () => {
@@ -47,6 +47,7 @@ describe('docker-compose view', () => {
     const v = view(10);
     expect(metinler(v)).toEqual([listing(LISTINGS, 'kod-14-9-cikti').lines[0]]);
     expect(metinler(view(10, false))).toEqual(metinler(v));
+    expect(v.terminal[0].akis).toBeUndefined();
     expect(v.problar).toBeNull();
   });
 
@@ -100,6 +101,23 @@ describe('docker-compose view', () => {
     expect(v10.code.lines[22]).toBe(satir('kod-14-9', 955));
     // the tanitim and ozet steps show Kod 14.6 with no active line
     for (const n of [1, 11]) expect(view(n).code).toMatchObject({ title: listing(LISTINGS, 'kod-14-6').title, active: [] });
+  });
+
+  it('lab code strip is always Kod 14.9 and the Ders strip follows the step', () => {
+    const k9 = listing(LISTINGS, 'kod-14-9').title;
+    const lab = (o: Partial<ComposeParams>) => deriveComposeView({ ...step(9), ...o }, false).code;
+    expect(lab({})).toMatchObject({ title: k9, active: [23, 31] });
+    expect(lab({ hostAdi: 'localhost' })).toMatchObject({ title: k9, active: [28] });
+    expect(lab({ mod: 'sira' })).toMatchObject({ title: k9 });
+    expect(lab({ dbHazirMs: 30_000 })).toMatchObject({ title: listing(LISTINGS, 'code-014').title, active: [6] });
+    // Ders, step 10 failing: the error line of Kod 14.9
+    const hata = deriveComposeView({ ...step(10), maksimumDeneme: 1 }, true);
+    expect(hata.code).toMatchObject({ title: k9, active: [28] });
+    expect(hata.code.lines[27]).toBe(satir('kod-14-9', 960));
+    expect(hata.terminal[0].akis).toBe('stderr');
+    // Ders steps 8 and 9 keep their own listings
+    expect(view(8).code.title).toBe(listing(LISTINGS, 'kod-14-6').title);
+    expect(view(9).code.title).toBe(listing(LISTINGS, 'code-014').title);
   });
 
   it('assumption note follows dbHazirMs', () => {
