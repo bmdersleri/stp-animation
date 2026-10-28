@@ -1,0 +1,54 @@
+/* rbac-401-403 page: badge row, definition, sequence diagram, repository / status table, token note, checks, cards, code strip, Lab controls. */
+.rbac-scene { width:100%; height:100%; min-height:0; display:flex; flex-direction:column; gap:6px; font-family:var(--font); color:var(--navy); }
+.rbac-scene [hidden] { display:none; }
+.rbac-scene .rozet-yeri { flex:none; display:flex; justify-content:flex-end; min-height:calc(1.3 * var(--fs-tick) + 4px); }
+.rbac-scene .kaynak-rozeti { white-space:normal; text-align:right; border-radius:14px; max-width:100%; }
+.rbac-stage { flex:1 1 0; min-height:0; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr); gap:12px; align-content:start; }
+.rbac-stage[data-yan] { grid-template-columns:minmax(0,1fr) minmax(250px, 36%); }
+.rbac-stage[data-yan][data-cok]:not([data-narrow]) { grid-template-columns:minmax(0,1fr) minmax(0,60%); }
+.rbac-stage[data-cok]:not([data-narrow]) .rbac-yan .http-cards { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; gap:6px; }
+.rbac-stage[data-akis] { grid-template-rows:minmax(0,1fr); }
+.rbac-stage[data-narrow] { grid-template-columns:minmax(0,1fr); grid-template-rows:none; overflow:auto; }
+/* under the diagram the whole stage scrolls: a block keeps its full height instead of shrinking into its neighbour */
+.rbac-stage[data-narrow] .rbac-main, .rbac-stage[data-narrow] .rbac-yan { min-height:auto; }
+.rbac-main { min-width:0; min-height:0; display:flex; flex-direction:column; gap:8px; }
+.rbac-yan { min-width:0; align-self:start; display:flex; flex-direction:column; gap:6px; }
+.rbac-yan [hidden] { display:none; }
+.rbac-yan .http-cards { display:flex; gap:6px; }
+.rbac-yan .istek-karti, .rbac-yan .yanit-karti, .rbac-yan .terminal, .rbac-yan .check-list { padding:3px 10px; }
+.rbac-yan .kart-baslik { margin-bottom:0; }
+.rbac-yan .durum-kodu { font-size:var(--fs-body); padding:0 .5em; }
+.rbac-yan .yanit-karti .mesaj, .rbac-yan pre.govde { margin-top:0; }
+.rbac-yan .istek-satir { overflow-wrap:anywhere; }
+.rbac-yan .yanit-karti .govde { overflow-wrap:anywhere; }
+.rbac-yan .terminal-satir { overflow-wrap:anywhere; }
+.rbac-yan .token-notu { margin:0; padding:3px 10px; border:2px dashed var(--line); border-radius:10px; font-size:var(--fs-tick); line-height:1.25; color:var(--muted); overflow-wrap:anywhere; }
+/* the check list and terminal titles go in the narrow side column (the first row and the terminal colours say what they are) */
+.rbac-stage:not([data-narrow]) .rbac-yan .check-list-title { display:none; }
+
+.rbac-scene .tanim { min-width:0; font-size:var(--fs-body); line-height:1.35; }
+.rbac-scene .tanim p { margin:0 0 6px; }
+.rbac-scene .tanim .tanim-not { font-weight:700; }
+
+.rbac-diyagram { position:relative; min-width:0; min-height:0; flex:1 1 0; overflow:hidden; }
+.rbac-stage[data-narrow] .rbac-diyagram { flex:none; height:var(--diyagram-h); }
+.rbac-diyagram svg.plot { position:static; display:block; }
+.rbac-diyagram .probe { visibility:hidden; font-size:var(--fs-tick); }
+
+.rbac-scene .tablo-yeri { flex:none; min-width:0; }
+.rbac-scene .data-table th, .rbac-scene .data-table td { padding:2px 6px; overflow-wrap:anywhere; }
+
+.rbac-scene .code-strip { flex:none; height:calc(3 * 1.25 * var(--fs-tick) + var(--fs-axis) + 28px); }
+.rbac-scene .code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:6px 12px; gap:4px; }
+.rbac-scene .code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:4px; }
+
+.rbac-params { display:grid; gap:8px; }
+.rbac-params .ctl { min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
+.rbac-params .ctl-label { font-weight:600; }
+.rbac-params select { min-height:var(--ctl); max-width:100%; box-sizing:border-box; padding:0 .5em; border:2px solid var(--navy); border-radius:8px; background:var(--surface); font:inherit; }
+.rbac-params input[type='range'] { width:100%; min-height:var(--ctl); }
+.rbac-params .dakika-deger { font-variant-numeric:tabular-nums; color:var(--muted); }
+
+/* Kod 10.6 puts three responses in one card: their bodies take the code size so the card fits the stage height */
+.rbac-stage[data-cok] .rbac-yan .yanit-karti .mesaj, .rbac-stage[data-cok] .rbac-yan .yanit-karti .govde { font-size:var(--fs-tick); line-height:1.2; margin:0; }
+.rbac-stage[data-cok] .rbac-yan .yanit + .yanit { margin-top:2px; padding-top:2px; }

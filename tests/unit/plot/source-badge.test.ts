@@ -16,6 +16,13 @@ describe('sourceBadge', () => {
     for (const b of [k, c, d]) expect(b.title.length).toBeGreaterThan(10);
   });
 
+  it('standart badge text and class', () => {
+    const s = sourceBadge(document, 'standart');
+    expect(s.className).toBe('kaynak-rozeti kaynak-standart');
+    expect(s.textContent).toBe('Standarttan · kitapta kodu yok');
+    expect(s.title).toBe('Bu davranış kitabın kodunda yok; tarayıcı ya da paket standardından gelir.');
+  });
+
   it('ref appended after a middle dot', () => {
     expect(sourceBadge(document, 'kitap', 'Kod 6.1').textContent).toBe('Kitabın çıktısı · Kod 6.1');
   });

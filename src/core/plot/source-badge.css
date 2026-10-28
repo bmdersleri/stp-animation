@@ -3,3 +3,4 @@
 .kaynak-kitap { background:var(--navy); color:#fff; }
 .kaynak-kitap-kodu { background:var(--navy-soft); color:var(--navy); }
 .kaynak-kitaba-dayali { background:var(--accent-soft); color:var(--accent-text); border-color:var(--accent); border-style:dashed; }
+.kaynak-standart { background:#e3f2e8; color:#14502a; border-color:#1E7B3A; border-style:dotted; }

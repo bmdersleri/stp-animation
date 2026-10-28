@@ -13,6 +13,11 @@ Sunucu tabanlı programlama kavramlarını adım adım animasyonlarla anlatan, d
 - REST CRUD: https://bmdersleri.github.io/stp-animation/rest-crud/
 - SQL JOIN: https://bmdersleri.github.io/stp-animation/sql-join/
 - Katmanlı mimari: https://bmdersleri.github.io/stp-animation/katmanli-mimari/
+- Parola güvenliği: https://bmdersleri.github.io/stp-animation/salt-hash/
+- JWT akışı: https://bmdersleri.github.io/stp-animation/jwt-akisi/
+- RBAC, 401 ve 403: https://bmdersleri.github.io/stp-animation/rbac-401-403/
+- CORS ve preflight: https://bmdersleri.github.io/stp-animation/cors-preflight/
+- Rate limiting: https://bmdersleri.github.io/stp-animation/rate-limiting/
 - Ders modu: https://bmdersleri.github.io/stp-animation/istek-yanit/?mod=ders
 
 Site, GitHub Pages etkinleştirildiğinde (Settings > Pages > Source: GitHub Actions) `main` dalına her push ile yayına girer. GitHub Actions yalnızca derleyip yayınlar; testler yerelde çalışır. `npm ci` bir push öncesi kancası (`.githooks/pre-push`) kurar: `main`'e her push'tan önce `npm run check` kendiliğinden çalışır ve geçmezse push durur.
@@ -35,9 +40,18 @@ Herhangi bir kavram sayfasına `?mod=ders` eklemek, sınıfta projeksiyon için 
 | N | Middleware zinciri: istekGunlugu'nda next'i aç / kapa |
 | T | REST CRUD: tekrar sayısını döndür |
 | U | Katmanlı mimari: kitap uygunluğunu değiştir |
-| [ / ] | Bütün sayfalar (Lab): önceki / sonraki kare (event loop), olay (istek-yanıt, middleware, katmanlı mimari), gönderim (REST CRUD), çift (SQL JOIN) |
+| S | Parola güvenliği: yeni salt |
+| B | JWT akışı: bozulmayı değiştir |
+| R | RBAC: izinli rolleri değiştir |
+| O | CORS: kökeni döndür |
+| G | Rate limiting: istek gönder |
+| [ / ] | Bütün sayfalar (Lab): önceki / sonraki kare (event loop), olay (istek-yanıt, middleware, katmanlı mimari), gönderim (REST CRUD), çift (SQL JOIN), istek (rate limiting) |
 
 390 px genişliğindeki telefonlarda Ders modundaki kod şeridi gizlenir.
+
+## Bağımlılıklar
+
+`@noble/hashes`, tarayıcıda Node `crypto` ile aynı hash sonucunu vermek için kullanılır (parola güvenliği sayfası).
 
 ## Geliştirme
 

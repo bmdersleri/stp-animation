@@ -13,6 +13,9 @@
 .seq-msg.alarm .seq-msg-label { fill:#C0392B; }
 .seq-msg.alarm .seq-note { stroke:#C0392B; }
 .seq-msg.ok .seq-note { stroke:#1E7B3A; }
+.seq-arrow-head.head-bilgi { fill:#2B6CB0; }
+.seq-msg.bilgi .seq-arrow { stroke:#2B6CB0; }
+.seq-msg.bilgi .seq-msg-label { fill:#2B6CB0; }
 .seq-msg.old { display:none; }
 
 .seq-token { fill:#F08A00; stroke:#fff; stroke-width:2; }

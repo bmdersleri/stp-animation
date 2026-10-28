@@ -32,3 +32,15 @@ declare module 'node:child_process' {
 }
 
 declare const process: { execPath: string; env: Record<string, string | undefined> };
+
+declare module 'node:crypto' {
+  interface Digestible {
+    update(data: string): Digestible;
+    digest(encoding: 'hex' | 'base64url'): string;
+  }
+  export function createHash(algorithm: string): Digestible;
+  export function createHmac(algorithm: string, key: string): Digestible;
+  export function scryptSync(password: string, salt: string, keylen: number): { toString(encoding: 'hex'): string };
+}
+
+declare const Buffer: { from(text: string): { toString(encoding: 'base64url'): string } };

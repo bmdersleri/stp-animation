@@ -72,6 +72,29 @@ describe('HttpCards', () => {
     expect(host.querySelector('.terminal .kart-baslik')!.textContent).toBe('Terminal');
   });
 
+  it('OPTIONS method badge', () => {
+    const { host, c } = make();
+    c.update(spec({ istek: { metot: 'OPTIONS', yol: '/api/kitaplar' } }));
+    const m = host.querySelector('.istek-satir .metot')!;
+    expect(m.textContent).toBe('OPTIONS');
+    expect(m.classList.contains('metot-options')).toBe(true);
+  });
+
+  it('eksikBasliklar renders alarm rows', () => {
+    const { host, c } = make();
+    c.update(spec({ yanitlar: [{ durumKodu: 204, govde: null, basliklar: [['allow', 'GET']], eksikBasliklar: ['access-control-allow-origin', 'access-control-allow-methods'] }] }));
+    const li = [...host.querySelectorAll('.yanit li.eksik-baslik')];
+    expect(li.map((l) => l.textContent)).toEqual(['access-control-allow-origin: yok', 'access-control-allow-methods: yok']);
+  });
+
+  it('kaynak shows on request card', () => {
+    const { host, c } = make();
+    c.update(spec({ istek: { metot: 'GET', yol: '/api/x', kaynak: 'http://localhost:5173' } }));
+    const satir = host.querySelector('.istek-satir')!;
+    expect(satir.querySelector('.kaynak')!.textContent).toBe('http://localhost:5173');
+    expect(satir.textContent).toBe('http://localhost:5173 · GET /api/x');
+  });
+
   it('update twice keeps one card of each kind', () => {
     const { host, c } = make();
     const s = spec({ istek: { metot: 'GET', yol: '/' }, yanitlar: [{ durumKodu: 200, govde: 'ok' }], terminal: [{ metin: 'a' }] });

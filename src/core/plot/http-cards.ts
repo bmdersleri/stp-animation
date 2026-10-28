@@ -1,8 +1,10 @@
 import './http-cards.css';
 
-export type Metot = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+export type Metot = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE' | 'OPTIONS';
 export interface HttpIstek {
   metot: Metot;
+  /** Where the request comes from (e.g. an origin): shown as `kaynak · METOT yol`. */
+  kaynak?: string;
   yol: string;
   basliklar?: readonly [string, string][];
   /** Formatted JSON text. */
@@ -14,6 +16,8 @@ export interface HttpYanit {
   basliklar?: readonly [string, string][];
   /** `null` shows "gövde yok". */
   govde?: string | null;
+  /** Header names the response lacks: each is listed under the headers as `ad: yok`, in the alarm colour. */
+  eksikBasliklar?: readonly string[];
   /** The request never got an answer: the card shows no status. */
   askida?: boolean;
   /** Repeated sends: 1, 2, 3. */
@@ -101,6 +105,7 @@ export class HttpCards {
       return;
     }
     const satir = el(doc, 'p', 'istek-satir');
+    if (i.kaynak) satir.append(el(doc, 'span', 'kaynak', i.kaynak), ' · ');
     satir.append(el(doc, 'span', `metot metot-${i.metot.toLowerCase()}`, i.metot), ' ', el(doc, 'code', 'yol', i.yol));
     const parts: (HTMLElement | null)[] = [el(doc, 'div', 'kart-baslik', 'İstek'), satir, basliklar(doc, i.basliklar)];
     if (i.govde !== undefined) parts.push(govde(doc, i.govde, true));
@@ -122,6 +127,11 @@ export class HttpCards {
       b.append(ust);
       const bl = basliklar(doc, y.basliklar);
       if (bl) b.append(bl);
+      if (y.eksikBasliklar && y.eksikBasliklar.length > 0) {
+        const ul = el(doc, 'ul', 'eksik-basliklar');
+        for (const ad of y.eksikBasliklar) ul.append(el(doc, 'li', 'eksik-baslik', `${ad}: yok`));
+        b.append(ul);
+      }
       if (y.govde === null) b.append(el(doc, 'p', 'govde-yok', 'gövde yok'));
       else if (y.govde !== undefined) b.append(govde(doc, y.govde, false));
       return b;

@@ -1,0 +1,78 @@
+/* cors-preflight page: origin tags, sequence diagram, checks, cards, explanation, code strip, Lab controls. */
+.cors-scene { width:100%; height:100%; min-height:0; display:flex; flex-direction:column; gap:4px; font-family:var(--font); color:var(--navy); }
+.cors-scene [hidden] { display:none !important; }
+/* tags and badge share one row; the badge shrinks and wraps, the tags do not break inside a word */
+.cors-ust { flex:none; display:flex; justify-content:space-between; align-items:flex-start; gap:6px 10px; min-height:calc(1.3 * var(--fs-tick) + 4px); }
+.cors-ust .rozet-yeri { flex:0 1 auto; margin-left:auto; display:flex; justify-content:flex-end; min-width:0; }
+.cors-scene .kaynak-rozeti { white-space:normal; text-align:right; border-radius:14px; max-width:100%; }
+.koken-serit { flex:none; min-width:0; display:flex; flex-wrap:wrap; gap:4px 6px; }
+.koken-etiketi { min-width:0; display:flex; gap:6px; align-items:baseline; padding:1px 10px; border:2px solid var(--line); border-radius:10px; font-size:var(--fs-tick); line-height:1.25; background:var(--surface); }
+.koken-baslik { color:var(--muted); font-weight:700; }
+.koken-deger { font-weight:700; overflow-wrap:normal; }
+.koken-serit[data-ayni] .koken-etiketi { border-color:var(--navy); }
+
+.cors-stage { flex:1 1 0; min-height:0; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr); gap:12px; align-content:start; }
+.cors-stage[data-yan] { grid-template-columns:minmax(0,35%) minmax(0,1fr); }
+.cors-stage[data-narrow] { grid-template-columns:minmax(0,1fr); grid-template-rows:none; overflow:auto; }
+.cors-stage[data-narrow] .cors-main, .cors-stage[data-narrow] .cors-yan { min-height:auto; }
+.cors-main { min-width:0; min-height:0; display:flex; flex-direction:column; }
+.cors-yan { min-width:0; min-height:0; align-self:start; display:flex; flex-direction:column; gap:6px; }
+.cors-yan .http-cards { display:flex; flex-direction:column; gap:6px; }
+/* desktop: three columns. Request card left; one response next to the checks, the terminal under both; two responses (preflight and real one) side by side over the checks */
+.cors-stage:not([data-narrow]) .cors-yan { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); grid-auto-rows:auto; gap:6px; align-content:start; }
+.cors-stage:not([data-narrow]) .cors-yan .http-cards { display:contents; }
+.cors-stage:not([data-narrow]) .istek-karti { grid-column:1; grid-row:1 / span 3; align-self:start; }
+.cors-stage:not([data-narrow]) .yanit-karti { grid-column:2; grid-row:1; align-self:start; }
+.cors-stage:not([data-narrow]) .denetim-yeri { grid-column:3; grid-row:1; min-width:0; align-self:start; }
+.cors-stage:not([data-narrow]) .terminal { grid-column:2 / -1; grid-row:2; align-self:start; }
+/* two responses: the card dissolves, each response is its own card (preflight in the middle column, the real one in the right one, with the checks and the terminal under it) */
+.cors-stage:not([data-narrow]) .yanit-karti:has(.yanit + .yanit) { display:contents; }
+.cors-stage:not([data-narrow]) .yanit-karti:has(.yanit + .yanit) > .kart-baslik { display:none; }
+.cors-stage:not([data-narrow]) .yanit-karti:has(.yanit + .yanit) > .yanit { border:2px solid var(--line); border-radius:10px; background:var(--surface); padding:3px 10px; min-width:0; align-self:start; margin:0; }
+.cors-stage:not([data-narrow]) .yanit-karti:has(.yanit + .yanit) > .kart-baslik + .yanit { grid-column:2; grid-row:1 / span 3; }
+.cors-stage:not([data-narrow]) .yanit-karti:has(.yanit + .yanit) > .yanit + .yanit { grid-column:3; grid-row:1; }
+.cors-stage:not([data-narrow]) .denetim-yeri:has(+ .http-cards .yanit + .yanit) { grid-column:3; grid-row:2; }
+.cors-stage:not([data-narrow]) .http-cards:has(.yanit + .yanit) .terminal { grid-column:3; grid-row:3; }
+.cors-yan .alanlar { display:block; }
+.cors-yan .alanlar dt, .cors-yan .alanlar dd { display:inline; margin:0; }
+.cors-yan .alanlar dd::after { content:'\A'; white-space:pre; }
+.cors-yan .alanlar dt::after { content:' '; }
+.cors-yan .denetim { padding:1px 0; line-height:1.15; }
+.cors-yan .check-list-rows, .cors-yan .alanlar { margin:0; }
+.cors-yan .istek-karti, .cors-yan .yanit-karti, .cors-yan .terminal, .cors-yan .check-list { padding:3px 10px; min-width:0; }
+.cors-yan .kart-baslik { margin-bottom:0; }
+.cors-yan .durum-kodu { font-size:var(--fs-body); padding:0 .5em; }
+.cors-yan .yanit-karti .mesaj, .cors-yan pre.govde { margin-top:0; }
+.cors-yan .istek-satir, .cors-yan .yanit-karti .govde, .cors-yan .terminal-satir, .cors-yan .alanlar dd, .cors-yan .alanlar dt, .cors-yan .eksik-baslik { overflow-wrap:normal; }
+.cors-yan .istek-satir .kaynak, .cors-yan .istek-satir .yol, .cors-yan .denetim-ayrinti, .cors-yan .denetim-ad { overflow-wrap:normal; }
+.cors-stage:not([data-narrow]) .cors-yan .check-list-title { display:none; }
+
+.cors-diyagram { position:relative; min-width:0; min-height:0; flex:1 1 0; overflow:hidden; }
+.cors-stage[data-narrow] .cors-diyagram { flex:none; height:var(--diyagram-h); }
+.cors-diyagram svg.plot { position:static; display:block; }
+.cors-diyagram .probe { visibility:hidden; font-size:var(--fs-tick); }
+
+/* intro and summary: the book's definition and tables in place of the diagram */
+.cors-scene .kitap-blok { flex:none; min-width:0; font-size:var(--fs-body); line-height:1.35; }
+.cors-scene .kitap-blok p { margin:0 0 6px; }
+.cors-scene .kitap-blok .kitap-not { color:var(--muted); }
+.cors-scene .kitap-blok .data-table { margin-bottom:8px; }
+.cors-scene .kitap-blok .data-table th, .cors-scene .kitap-blok .data-table td { padding:2px 6px; overflow-wrap:normal; }
+.cors-stage[data-narrow] .kitap-blok .data-table th, .cors-stage[data-narrow] .kitap-blok .data-table td { overflow-wrap:anywhere; }
+
+.cors-aciklama { flex:none; margin:6px 0 0; padding:3px 10px; border:2px dashed var(--line); border-radius:10px; font-size:var(--fs-tick); line-height:1.25; color:var(--muted); overflow-wrap:anywhere; }
+
+.cors-scene .code-strip { flex:none; height:calc(3 * 1.25 * var(--fs-tick) + var(--fs-axis) + 18px); }
+.cors-scene .code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:3px 12px; gap:2px; }
+.cors-scene .code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:2px 4px; }
+
+.cors-params { display:grid; gap:8px; }
+.cors-params .ctl { min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
+.cors-params .ctl-label { font-weight:600; }
+.cors-params select { min-height:var(--ctl); max-width:100%; box-sizing:border-box; padding:0 .5em; border:2px solid var(--navy); border-radius:8px; background:var(--surface); font:inherit; }
+.cors-params select:disabled { opacity:.55; }
+
+/* fit levels set by the scene: 1 drops the terminal title, 2 the terminal; request, responses and checks always stay */
+.cors-stage:not([data-narrow])[data-sik='1'] .terminal .kart-baslik, .cors-stage:not([data-narrow])[data-sik='2'] .terminal .kart-baslik { display:none; }
+.cors-stage:not([data-narrow])[data-sik='2'] .terminal { display:none; }
+@media (max-width: 900px) { .cors-yan .istek-satir, .cors-yan .istek-satir .kaynak, .cors-yan .istek-satir .yol, .cors-yan .yanit-karti .govde, .cors-yan .terminal-satir, .cors-yan .alanlar dd, .cors-yan .alanlar dt, .cors-yan .eksik-baslik, .cors-yan .denetim-ayrinti, .cors-yan .denetim-ad { overflow-wrap:anywhere; } .cors-ust { flex-wrap:wrap; } .koken-serit { flex:1 1 100%; flex-direction:column; } .koken-etiketi { max-width:100%; } .koken-deger { min-width:0; overflow-wrap:anywhere; } }

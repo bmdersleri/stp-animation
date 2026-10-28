@@ -1,0 +1,58 @@
+/* jwt-akisi page: badge row, token strip, decoded JSON boxes, signature strips, checks, terminal, diagram, code strip, Lab controls. */
+.jwt-scene { width:100%; height:100%; min-height:0; display:flex; flex-direction:column; gap:6px; font-family:var(--font); color:var(--navy); }
+.jwt-scene [hidden] { display:none; }
+.jwt-scene .rozet-yeri { flex:none; display:flex; justify-content:flex-end; min-height:calc(1.3 * var(--fs-tick) + 4px); }
+.jwt-scene .kaynak-rozeti { white-space:normal; text-align:right; border-radius:14px; max-width:100%; }
+.jwt-stage { flex:1 1 0; min-height:0; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr); gap:12px; align-content:start; }
+.jwt-stage[data-yan] { grid-template-columns:minmax(0,1fr) minmax(230px, 34%); }
+.jwt-stage[data-akis] { grid-template-rows:minmax(0,1fr); }
+.jwt-stage[data-narrow] { grid-template-columns:minmax(0,1fr); grid-template-rows:none; overflow:auto; }
+/* under the strips the whole stage scrolls: a block keeps its full height instead of shrinking into its neighbour */
+.jwt-stage[data-narrow] .jwt-main, .jwt-stage[data-narrow] .jwt-yan { min-height:auto; }
+.jwt-main { min-width:0; min-height:0; display:flex; flex-direction:column; gap:8px; }
+.jwt-yan { min-width:0; align-self:start; display:flex; flex-direction:column; gap:6px; }
+.jwt-yan .http-cards { display:block; }
+.jwt-yan .terminal { padding:3px 10px; }
+/* step 10 prints four book lines beside five checks: the column has no room for the two box titles (the first row and the terminal colours say what they are) */
+.jwt-yan .terminal .kart-baslik, .jwt-yan .check-list-title { display:none; }
+.jwt-stage[data-narrow] .jwt-yan .terminal .kart-baslik, .jwt-stage[data-narrow] .jwt-yan .check-list-title { display:block; }
+.jwt-yan [hidden] { display:none; }
+.jwt-yan .check-list { padding:3px 10px; }
+
+.jwt-scene .tanim { min-width:0; font-size:var(--fs-body); line-height:1.35; }
+.jwt-scene .tanim p { margin:0; }
+
+/* strips: a 3-part token and 43-character signatures wrap on character boundaries */
+.jwt-scene .segment-strip { padding:3px 10px; }
+.jwt-scene .token-yeri, .jwt-scene .imzalar { min-width:0; }
+.jwt-scene .imzalar { display:flex; flex-direction:column; gap:6px; }
+.jwt-scene .parca { flex-direction:row; align-items:baseline; gap:0 6px; padding:0 6px; max-width:100%; }
+/* wide stage: the title sits left of the segments, which saves a line per strip */
+.jwt-stage:not([data-narrow]) .segment-strip { display:grid; grid-template-columns:8.5em minmax(0,1fr); gap:0 10px; align-items:baseline; }
+.jwt-stage:not([data-narrow]) .segment-strip-title { margin:0; }
+.jwt-scene .parca-etiket { flex:none; }
+.jwt-scene .parca-metin { min-width:0; word-break:break-all; }
+
+/* decoded JSON: header and payload side by side, stacked on a phone */
+.json-kutular { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; min-width:0; }
+.json-kutular[data-tek] { grid-template-columns:minmax(0,1fr); }
+.jwt-stage[data-narrow] .json-kutular { grid-template-columns:minmax(0,1fr); }
+.json-kutu { min-width:0; border:2px solid var(--line); border-radius:10px; background:var(--surface); padding:3px 10px; }
+.json-baslik { font-weight:700; font-size:var(--fs-axis); color:var(--muted); line-height:1.2; }
+.json-metin { margin:0; font-family:var(--mono, ui-monospace, Consolas, monospace); font-size:var(--fs-tick); line-height:1.2; white-space:pre-wrap; overflow-wrap:anywhere; }
+
+.jwt-diyagram { position:relative; min-width:0; min-height:0; flex:1 1 0; overflow:hidden; }
+.jwt-stage[data-narrow] .jwt-diyagram { flex:none; height:var(--diyagram-h); }
+.jwt-diyagram svg.plot { position:static; display:block; }
+.jwt-diyagram .probe { visibility:hidden; font-size:var(--fs-tick); }
+
+.jwt-scene .code-strip { flex:none; height:calc(3 * 1.25 * var(--fs-tick) + var(--fs-axis) + 28px); }
+.jwt-scene .code-strip .code-trace { height:100%; box-sizing:border-box; grid-template-rows:auto minmax(0,1fr); padding:6px 12px; gap:4px; }
+.jwt-scene .code-strip .code-trace-lines { overflow:hidden; line-height:1.25; padding:4px; }
+
+.jwt-params { display:grid; gap:8px; }
+.jwt-params .ctl { min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
+.jwt-params .ctl-label { font-weight:600; }
+.jwt-params select { min-height:var(--ctl); max-width:100%; box-sizing:border-box; padding:0 .5em; border:2px solid var(--navy); border-radius:8px; background:var(--surface); font:inherit; }
+.jwt-params input[type='range'] { width:100%; min-height:var(--ctl); }
+.jwt-params .dakika-deger { font-variant-numeric:tabular-nums; color:var(--muted); }
