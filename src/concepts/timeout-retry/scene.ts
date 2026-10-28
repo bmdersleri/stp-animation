@@ -9,12 +9,12 @@ import { HttpCards } from '../../core/plot/http-cards';
 import { KitapBlokView } from '../../core/plot/kitap-blok';
 import { breakWord } from '../../core/plot/lane-words';
 import { SequenceLayer } from '../../core/plot/sequence';
-import { sourceBadge, type Rozet } from '../../core/plot/source-badge';
+import { rozetSatiri, sourceBadge, type Rozet } from '../../core/plot/source-badge';
 import { TextMeasure } from '../../core/plot/text-measure';
 import type { SceneHandle } from '../../core/shell';
 import { ZamanLayer } from './scene-zaman';
 import { TIMEOUT_ROZET, type TimeoutParams } from './scenario';
-import { SAYFA_NOTLARI, deriveTimeoutView, timeoutLabRozet } from './view';
+import { KITAP_NOT_SATIRI, SAYFA_NOTLARI, deriveTimeoutView, timeoutLabRozet } from './view';
 import './timeout-retry.css';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -115,8 +115,11 @@ export function mountTimeoutScene(
   /** Height (px) the diagram was last drawn at; a later change of its box redraws it. */
   let drawnH = 0;
 
+  const aktifRozet = (state: PlayerState<TimeoutParams>): Rozet =>
+    labRozeti ? timeoutLabRozet(state.params) : (TIMEOUT_ROZET[state.step.id] ?? { tur: 'kitap' });
+
   function rozet(state: PlayerState<TimeoutParams>): void {
-    const r: Rozet = labRozeti ? timeoutLabRozet(state.params) : (TIMEOUT_ROZET[state.step.id] ?? { tur: 'kitap' });
+    const r = aktifRozet(state);
     rozetYeri.replaceChildren(sourceBadge(doc, r.tur, r.ref));
   }
 
@@ -154,10 +157,15 @@ export function mountTimeoutScene(
     if (v.denetim) denetim.update(v.denetim);
     tabloYeri.hidden = !v.hataTablosu;
     if (v.hataTablosu) tablo.update(v.hataTablosu);
-    // the page's own sentences (R29-R31) are not the book's: they get their own style
+    // the page's own sentences (R29-R31) are not the book's: they get their own style; a book note carries its book line
     const sayfa = (n: string): boolean => SAYFA_NOTLARI.includes(n);
     notlarYeri.replaceChildren(
-      ...v.notlar.map((n) => el(doc, 'p', sayfa(n) ? 'timeout-not timeout-sayfa-notu' : 'timeout-not', n)),
+      ...v.notlar.map((n) => {
+        const p = el(doc, 'p', sayfa(n) ? 'timeout-not timeout-sayfa-notu' : 'timeout-not', n);
+        const satir = KITAP_NOT_SATIRI.get(n);
+        if (satir !== undefined) p.dataset.kitapSatir = String(satir);
+        return p;
+      }),
       ...(v.uyari ? [el(doc, 'p', 'uyari', v.uyari)] : []),
     );
 
@@ -177,10 +185,13 @@ export function mountTimeoutScene(
     }
 
     // wide screens: what does not fit under the axis is left out, least important first (the Ders stage is only ~375 px
-    // tall). The key pieces (axis, cards, terminal, checks, table) never go: the book notes go first, then the
-    // diagram; the page's own notes and the warning stay.
+    // tall). The key pieces (axis, cards, terminal, checks, table), every book note the badge cites and the warning never
+    // go: the uncited book notes go first, then the page's own notes, then the diagram.
     let cizgi = v.sequence !== null;
+    const ref = aktifRozet(state).ref;
     const kitapNotlari = [...notlarYeri.querySelectorAll<HTMLElement>('.timeout-not:not(.timeout-sayfa-notu)')];
+    const sayfaNotlari = [...notlarYeri.querySelectorAll<HTMLElement>('.timeout-sayfa-notu')];
+    const atlanabilir = kitapNotlari.filter((n) => !rozetSatiri(ref, Number(n.dataset.kitapSatir)));
     const ayarla = (): void => {
       diyagram.hidden = !cizgi;
       govde.toggleAttribute('data-cizgi', cizgi);
@@ -192,14 +203,19 @@ export function mountTimeoutScene(
       const gizle = (y: HTMLElement): Birakilabilir => ({ hide: () => { if (y.hidden) return false; y.hidden = true; return true; }, show: () => { y.hidden = false; } });
       fitDrops(
         [
-          ...[...kitapNotlari].reverse().map(gizle),
+          ...[...atlanabilir].reverse().map(gizle),
+          ...[...sayfaNotlari].reverse().map(gizle),
           { hide: () => { if (!cizgi) return false; cizgi = false; return true; }, show: () => { cizgi = true; } },
         ],
         () => sag.getBoundingClientRect().height + zamanH + (grafik ? 6 : 0) <= govde.clientHeight - SLACK,
         ayarla,
       );
     }
-    govde.dataset.birakilan = [!cizgi && v.sequence ? 'sira' : '', kitapNotlari.some((n) => n.hidden) ? 'not' : ''].filter(Boolean).join(' ');
+    govde.dataset.birakilan = [
+      !cizgi && v.sequence ? 'sira' : '',
+      sayfaNotlari.some((n) => n.hidden) ? 'sayfa-notu' : '',
+      kitapNotlari.some((n) => n.hidden) ? 'not' : '',
+    ].filter(Boolean).join(' ');
     if (!cizgi) bosalt();
 
     if (v.sequence && cizgi) {

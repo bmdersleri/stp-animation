@@ -141,6 +141,35 @@ export function stageBoxProblems(page: Page, stage: string, sel: string): Promis
 }
 
 /**
+ * Book notes the shown source badge cites but the reader cannot see. A book note carries its book line in
+ * `data-kitap-satir`; the badge's ref (`L398, L433-435`) is read from `.rozet-yeri .kaynak-rozeti`. A cited note must
+ * be shown, must not scroll inside and must lie inside the `stage` box. `satirlar` are the lines the step must show:
+ * a missing one is a problem too. Returns `L<line>: <reason>`.
+ */
+export function citedNoteProblems(page: Page, stage: string, satirlar: readonly number[]): Promise<string[]> {
+  return page.evaluate(([stage, satirlar]) => {
+    const ref = document.querySelector('.rozet-yeri .kaynak-rozeti')?.textContent ?? '';
+    const cites = (n: number): boolean => [...ref.matchAll(/\bL(\d+)(?:-(\d+))?/g)].some((m) => n >= Number(m[1]) && n <= Number(m[2] ?? m[1]));
+    const st = document.querySelector<HTMLElement>(stage)!.getBoundingClientRect();
+    const out: string[] = [];
+    const notlar = [...document.querySelectorAll<HTMLElement>('[data-kitap-satir]')];
+    for (const n of satirlar) {
+      if (!cites(n)) out.push(`L${n}: not cited by the badge "${ref}"`);
+      if (!notlar.some((el) => Number(el.dataset.kitapSatir) === n)) out.push(`L${n}: no note on the page`);
+    }
+    for (const el of notlar) {
+      const n = Number(el.dataset.kitapSatir);
+      if (!cites(n)) continue;
+      const r = el.getBoundingClientRect();
+      if (el.closest('[hidden]') || getComputedStyle(el).display === 'none' || r.width === 0 || r.height === 0) { out.push(`L${n}: hidden`); continue; }
+      if (el.scrollHeight - el.clientHeight > 1) out.push(`L${n}: scrolls ${el.scrollHeight - el.clientHeight}`);
+      if (r.top < st.top - 1 || r.bottom > st.bottom + 1 || r.left < st.left - 1 || r.right > st.right + 1) out.push(`L${n}: outside the stage`);
+    }
+    return out;
+  }, [stage, satirlar] as const);
+}
+
+/**
  * Sequence-diagram parts that the diagram's own `<svg>` clips (it has `overflow: hidden`): every visible
  * (non-`old`) message row — arrow, label, note box — the stop mark, the token and the lane titles must lie inside
  * the bounding box of the svg that holds them. Checking against `.stage` is not enough, since the stage also covers

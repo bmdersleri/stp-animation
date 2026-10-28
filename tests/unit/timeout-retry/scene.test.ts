@@ -1,12 +1,25 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { timeoutScenario } from '../../../src/concepts/timeout-retry/scenario';
-import { RETRY_NOTU, SAYFA_NOTLARI, SINYAL_NOTU, deriveTimeoutView } from '../../../src/concepts/timeout-retry/view';
+import { KITAP_NOT_SATIRI, RETRY_NOTU, SAYFA_NOTLARI, SINYAL_NOTU, deriveTimeoutView } from '../../../src/concepts/timeout-retry/view';
 import { go, setup, texts } from './harness';
 
 const rozetler = (el: HTMLElement): HTMLElement[] => [...el.querySelectorAll<HTMLElement>('.rozet-yeri .kaynak-rozeti')];
 
 describe('timeout-retry scene', () => {
+  it('every Ders note is a page note or a book note tagged with its book line', () => {
+    const { el, player } = setup();
+    const satirlar: Record<string, number[]> = {};
+    for (const s of timeoutScenario.steps) {
+      go(player, s.id);
+      for (const n of deriveTimeoutView(player.state.params, true).notlar) expect(SAYFA_NOTLARI.includes(n) || KITAP_NOT_SATIRI.has(n), n).toBe(true);
+      const notlar = [...el.querySelectorAll<HTMLElement>('.timeout-not')];
+      for (const n of notlar) expect(n.classList.contains('timeout-sayfa-notu'), n.textContent!).toBe(n.dataset.kitapSatir === undefined);
+      satirlar[s.id] = notlar.filter((n) => n.dataset.kitapSatir).map((n) => Number(n.dataset.kitapSatir));
+    }
+    expect(satirlar).toMatchObject({ abort: [], basarili: [419], 'gecici-kalici': [337], 'retry-bekle': [], 'retry-tukendi': [448] });
+  });
+
   it('step 3 bar has an alarm tip', () => {
     const { el, player } = setup();
     go(player, 'abort');

@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { clippedBoxes, fontSizes, gotoStep, open, overlaps, pageOverflow, scrollReach, seqOutsideSvg, settled, stageBoxProblems, stepCount } from './helpers';
+import { citedNoteProblems, clippedBoxes, fontSizes, gotoStep, open, overlaps, pageOverflow, scrollReach, seqOutsideSvg, settled, stageBoxProblems, stepCount } from './helpers';
 
 const PAGE = '/timeout-retry/';
 const READY = '.timeout-scene .timeout-stage';
@@ -13,6 +13,10 @@ const TEXTS = '.denetim, .terminal-satir, .data-table th, .data-table td, .tanim
 test.use({ reducedMotion: 'reduce' });
 
 const rest = (page: Page) => settled(() => page.locator('.timeout-scene').innerHTML());
+
+/** The text of the diagram's last arrow label, its wrapped lines (tspans) joined with spaces. */
+const sonEtiket = (page: Page): Promise<string> => page.locator('.timeout-diyagram g.seq-msg').last().locator('text.seq-msg-label tspan')
+  .evaluateAll((ts) => ts.map((t) => t.textContent ?? '').join(' '));
 
 /** Real gap: the right column, its stack and each check list end at least 4 px above the stage bottom (the stage clips at 1 px). */
 const slackProblems = (page: Page): Promise<string[]> => page.evaluate(() => {
@@ -97,8 +101,7 @@ test('lab: maksRetry 0 on gecici gives özet yok', async ({ page }) => {
   await expect(page.locator('svg.plot.zaman rect.deneme-cubuk')).toHaveCount(1);
   await expect(page.locator('svg.plot.zaman g.bekle')).toHaveCount(0);
   await expect(page.locator('.rozet-yeri .kaynak-rozeti')).toHaveCount(1);
-  await expect(page.locator('.timeout-diyagram g.seq-msg').last()).toContainText('200 OK (özet yok,');
-  await expect(page.locator('.timeout-diyagram g.seq-msg').last()).toContainText('temel veri korunur)');
+  expect(await sonEtiket(page)).toBe('200 OK (özet yok, temel veri korunur)');
   expect(await zamanProblems(page)).toEqual([]);
 });
 
@@ -254,11 +257,13 @@ const KEY_STEPS: { n: number; check: (page: Page) => Promise<void> }[] = [
     await expect(p.locator('.timeout-kart')).toContainText('özet yok');
     await expect(p.locator('.terminal-satir').first()).toHaveText('Özet alınamadı: AI servisi zaman aşımına uğradı.');
     await expect(p.locator('.timeout-sayfa-notu')).toHaveCount(2);
+    // the page's retry note and the code_006 counter-note (L448) are on screen
+    await expect(p.locator('.timeout-sayfa-notu').first()).toBeVisible();
+    await expect(p.locator('.timeout-not[data-kitap-satir="448"]')).toBeVisible();
     // the closing 17.5 arrow is on screen, inside the diagram's svg
     await expect(p.locator('.timeout-govde')).not.toHaveAttribute('data-birakilan', /sira/);
     const ok = p.locator('.timeout-diyagram g.seq-msg').last();
-    await expect(ok).toContainText('200 OK (özet yok,');
-    await expect(ok).toContainText('veri korunur)');
+    expect(await sonEtiket(p)).toBe('200 OK (özet yok, temel veri korunur)');
     expect(await seqOutsideSvg(p)).toEqual([]);
     const svg = (await p.locator('.timeout-diyagram svg.plot').boundingBox())!;
     const kutu = (await ok.boundingBox())!;
@@ -287,10 +292,36 @@ for (const k of KEY_STEPS) {
     await k.check(page);
     // the key pieces are inside the stage and unclipped, and none of them was left out for room
     expect(await stageBoxProblems(page, '.timeout-stage', '.timeout-zaman, .check-list, .data-table, .terminal, .http-cards, .timeout-sayfa-notu, .uyari'), `step ${k.n}`).toEqual([]);
-    const birakilan = (await page.locator('.timeout-govde').getAttribute('data-birakilan')) ?? '';
-    expect(birakilan, `step ${k.n} dropped`).toMatch(/^(sira|not|\s)*$/);
+    // a book note never gives way; the diagram stays on steps 4, 7 and 8 (step 8's closing arrow lives there)
+    const birakilan = ((await page.locator('.timeout-govde').getAttribute('data-birakilan')) ?? '').split(' ').filter(Boolean);
+    expect(birakilan.filter((t) => !['sira', 'sayfa-notu'].includes(t)), `step ${k.n} dropped`).toEqual([]);
+    if ([4, 7, 8].includes(k.n)) expect(birakilan, `step ${k.n} dropped`).not.toContain('sira');
+    expect(await citedNoteProblems(page, '.timeout-stage', CITED_NOTES[k.n] ?? []), `step ${k.n} cited notes`).toEqual([]);
     // steps 1 and 10 and the others: only steps 1 and 10 hide the code strip
     await expect(page.locator('.code-strip')).toBeVisible();
+  });
+}
+
+/** Book notes the Ders steps show whose line the badge cites (spec step table): L337 on step 6, L448 on step 8. */
+const CITED_NOTES: Readonly<Record<number, readonly number[]>> = { 6: [337], 8: [448] };
+
+for (const [w, h] of [[1280, 720], [1280, 740]] as const) {
+  test(`ders: every book note the badge cites is visible and unclipped at ${w}x${h}`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await open(page, PAGE, 'ders', READY);
+    for (let n = 2; n <= STEPS - 1; n++) {
+      await gotoStep(page, n - 1, STEPS, 0);
+      await rest(page);
+      expect(await citedNoteProblems(page, '.timeout-stage', CITED_NOTES[n] ?? []), `step ${n}`).toEqual([]);
+      expect(await clippedBoxes(page, '.timeout-not'), `step ${n}`).toEqual([]);
+      const birakilan = ((await page.locator('.timeout-govde').getAttribute('data-birakilan')) ?? '').split(' ');
+      expect(birakilan, `step ${n}`).not.toContain('not');
+      if ([4, 7, 8].includes(n)) expect(birakilan, `step ${n}`).not.toContain('sira');
+    }
+    // step 4's L419 note (spec-named, not in the badge) stays on screen too
+    await gotoStep(page, 3, STEPS, 0);
+    await rest(page);
+    await expect(page.locator('.timeout-not[data-kitap-satir="419"]')).toBeVisible();
   });
 }
 

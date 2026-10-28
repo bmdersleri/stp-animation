@@ -11,6 +11,8 @@
 .iot-stage[data-narrow] .iot-govde { flex:none; }
 .iot-seri { flex:0 0 clamp(100px, 28%, 150px); min-width:0; position:relative; overflow:hidden; }
 .iot-stage[data-narrow] .iot-seri { flex:none; height:var(--seri-h, 240px); }
+/* a wide stage short of room gives the chart only its floor height before a note is left out */
+.iot-stage:not([data-narrow]) .iot-govde[data-seri-dar] .iot-seri { flex-basis:100px; }
 .iot-seri svg.plot, .iot-diyagram svg.plot { position:static; display:block; }
 .iot-seri .probe, .iot-diyagram .probe { visibility:hidden; font-size:var(--fs-tick); }
 .iot-seri .seri-etiket { fill:#A85A00; font-weight:700; }
@@ -27,6 +29,8 @@
 .iot-kolonlar { min-width:0; display:grid; grid-template-columns:repeat(var(--kol, 2), minmax(0,1fr)); gap:4px 6px; align-items:start; }
 .iot-kolonlar > * { min-width:0; }
 .iot-kolonlar > [hidden] { display:none; }
+/* checks, record and terminal side by side: each column as wide as its content (the record keeps one line per row) */
+.iot-stage:not([data-narrow]) .iot-kolonlar[data-icerik] { grid-template-columns:repeat(3, auto); }
 /* step 10: the two tables stacked on the left, the SQL on the right */
 .iot-kolonlar[data-ozet] .ozet-yeri { grid-column:1; grid-row:1; }
 .iot-kolonlar[data-ozet] .tampon-yeri { grid-column:1; grid-row:2; }

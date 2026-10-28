@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { clippedBoxes, fontSizes, gotoStep, labelCollisions, open, overlaps, pageOverflow, scrollReach, seqOutsideSvg, settled, stageBoxProblems, stepCount } from './helpers';
+import { citedNoteProblems, clippedBoxes, fontSizes, gotoStep, labelCollisions, open, overlaps, pageOverflow, scrollReach, seqOutsideSvg, settled, stageBoxProblems, stepCount } from './helpers';
 
 const PAGE = '/iot-zaman-serisi/';
 const READY = '.iot-scene .iot-stage';
@@ -254,8 +254,29 @@ for (const k of KEY_STEPS) {
     await k.check(page);
     // the key pieces are inside the stage and unclipped, and none of them was left out for room
     expect(await stageBoxProblems(page, '.iot-stage', '.iot-seri, .check-list, .data-table, .terminal, .segment-strip'), `step ${k.n}`).toEqual([]);
-    const birakilan = (await page.locator('.iot-govde').getAttribute('data-birakilan')) ?? '';
-    expect(birakilan, `step ${k.n} dropped`).toMatch(/^(arguman|sira|not|\s)*$/);
+    // only the arguments, the diagram, the chart's spare height and the page's own note may give way; never a book note
+    const birakilan = ((await page.locator('.iot-govde').getAttribute('data-birakilan')) ?? '').split(' ').filter(Boolean);
+    expect(birakilan.filter((t) => !['arguman', 'sira', 'seri-dar', 'sayfa-notu'].includes(t)), `step ${k.n} dropped`).toEqual([]);
+    expect(await citedNoteProblems(page, '.iot-stage', CITED_NOTES[k.n] ?? []), `step ${k.n} cited notes`).toEqual([]);
+  });
+}
+
+/** Book notes each Ders step shows, every one cited by the step's badge (spec step table): L434, L433 + L770, L554 + L558, L761. */
+const CITED_NOTES: Readonly<Record<number, readonly number[]>> = { 6: [434], 7: [433, 770], 9: [554, 558], 10: [761] };
+
+for (const [w, h] of [[1280, 720], [1280, 740]] as const) {
+  test(`ders: every book note the badge cites is visible and unclipped at ${w}x${h}`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await open(page, PAGE, 'ders', READY);
+    for (let n = 2; n <= STEPS - 1; n++) {
+      await gotoStep(page, n - 1, STEPS, 0);
+      await rest(page);
+      expect(await citedNoteProblems(page, '.iot-stage', CITED_NOTES[n] ?? []), `step ${n}`).toEqual([]);
+      expect(await clippedBoxes(page, '.iot-not'), `step ${n}`).toEqual([]);
+      expect(await slackProblems(page), `step ${n} slack`).toEqual([]);
+      const birakilan = ((await page.locator('.iot-govde').getAttribute('data-birakilan')) ?? '').split(' ');
+      expect(birakilan, `step ${n}`).not.toContain('not');
+    }
   });
 }
 

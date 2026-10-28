@@ -9,13 +9,13 @@ import { KitapBlokView } from '../../core/plot/kitap-blok';
 import { breakWord } from '../../core/plot/lane-words';
 import { SegmentStrip, type SegmentStripSpec } from '../../core/plot/segment-strip';
 import { SequenceLayer } from '../../core/plot/sequence';
-import { sourceBadge, type Rozet } from '../../core/plot/source-badge';
+import { rozetSatiri, sourceBadge, type Rozet } from '../../core/plot/source-badge';
 import { TextMeasure } from '../../core/plot/text-measure';
 import type { SceneHandle } from '../../core/shell';
 import { fitDrops, type Birakilabilir } from '../../core/plot/fit-drops';
 import { SeriLayer } from './scene-seri';
 import { IOT_ROZET, type IotParams } from './scenario';
-import { BIRLESTIRME_NOTU, deriveIotView, iotLabRozet } from './view';
+import { BIRLESTIRME_NOTU, KITAP_NOT_SATIRI, deriveIotView, iotLabRozet } from './view';
 import './iot-zaman-serisi.css';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -127,8 +127,11 @@ export function mountIotScene(
   let drawnH = 0;
   let drawnSeriH = 0;
 
+  const aktifRozet = (state: PlayerState<IotParams>): Rozet =>
+    labRozeti ? iotLabRozet(state.params) : (IOT_ROZET[state.step.id] ?? { tur: 'kitap' });
+
   function rozet(state: PlayerState<IotParams>): void {
-    const r: Rozet = labRozeti ? iotLabRozet(state.params) : (IOT_ROZET[state.step.id] ?? { tur: 'kitap' });
+    const r = aktifRozet(state);
     rozetYeri.replaceChildren(sourceBadge(doc, r.tur, r.ref));
   }
 
@@ -179,25 +182,40 @@ export function mountIotScene(
     imzaYeri.hidden = v.imzalar.length === 0;
     terminal.update({ yanitlar: [], terminal: v.terminal });
     terminalYeri.hidden = v.terminal.length === 0;
-    // the page's own sentence (R24) is not the book's: it gets its own style
-    notlarYeri.replaceChildren(...v.notlar.map((n) => el(doc, 'p', n === BIRLESTIRME_NOTU ? 'iot-not iot-sayfa-notu' : 'iot-not', n)));
+    // the page's own sentence (R24) is not the book's: it gets its own style; a book note carries its book line
+    notlarYeri.replaceChildren(...v.notlar.map((n) => {
+      const p = el(doc, 'p', n === BIRLESTIRME_NOTU ? 'iot-not iot-sayfa-notu' : 'iot-not', n);
+      const satir = KITAP_NOT_SATIRI.get(n);
+      if (satir !== undefined) p.dataset.kitapSatir = String(satir);
+      return p;
+    }));
     notlarYeri.hidden = v.notlar.length === 0;
 
     // wide screens: what does not fit under the chart is left out, least important first (the Ders stage is only ~375 px
-    // tall). The spec's key pieces (checks, record, terminal, strips) go last, the chart and the sequence diagram never
-    // outrank them; the book notes go before them.
+    // tall). The spec's key pieces (checks, record, terminal, strips) and every book note the badge cites are never left
+    // out: the arguments, the sequence diagram, the chart's spare height, the page's own note and the uncited book notes
+    // go first, in that order.
     const grafik = v.seri !== null;
     seriYeri.hidden = !grafik;
     govde.toggleAttribute('data-grafik', grafik);
     let cizgi = v.sequence !== null;
-    const kitapNotlari = [...notlarYeri.children].filter((n) => !n.classList.contains('iot-sayfa-notu')) as HTMLElement[];
+    let seriDar = false;
+    const notlar = [...notlarYeri.children] as HTMLElement[];
+    const ref = aktifRozet(state).ref;
+    const sayfaNotlari = notlar.filter((n) => n.classList.contains('iot-sayfa-notu'));
+    const kitapNotlari = notlar.filter((n) => !n.classList.contains('iot-sayfa-notu'));
+    const atlanabilir = kitapNotlari.filter((n) => !rozetSatiri(ref, Number(n.dataset.kitapSatir)));
     const ayarla = (): void => {
       diyagram.hidden = !cizgi;
       govde.toggleAttribute('data-cizgi', cizgi);
+      govde.toggleAttribute('data-seri-dar', seriDar);
       kolonlar.hidden = [argumanYeri, imzaYeri, ozetYeri, tamponYeri, denetimYeri, kayitYeri, terminalYeri].every((y) => y.hidden);
-      kolonlar.style.setProperty('--kol', String(narrow ? 1 : cizgi || !ozetYeri.hidden ? 2 : 3));
+      const kol = narrow ? 1 : cizgi || !ozetYeri.hidden ? 2 : 3;
+      kolonlar.style.setProperty('--kol', String(kol));
       kolonlar.toggleAttribute('data-ozet', !narrow && !ozetYeri.hidden);
-      notlarYeri.hidden = [...notlarYeri.children].every((n) => (n as HTMLElement).hidden);
+      // checks, record and terminal side by side: each column as wide as its content, so the record keeps one line per row
+      kolonlar.toggleAttribute('data-icerik', kol === 3 && !kayitYeri.hidden && argumanYeri.hidden === true && imzaYeri.hidden === true);
+      notlarYeri.hidden = notlar.every((n) => n.hidden);
     };
     ayarla();
     if (!narrow && govde.clientHeight > 0) {
@@ -206,13 +224,21 @@ export function mountIotScene(
         [
           gizle(argumanYeri),
           { hide: () => { if (!cizgi) return false; cizgi = false; return true; }, show: () => { cizgi = true; } },
-          ...[...kitapNotlari].reverse().map(gizle),
+          { hide: () => { if (!grafik || seriDar) return false; seriDar = true; return true; }, show: () => { seriDar = false; } },
+          ...[...sayfaNotlari].reverse().map(gizle),
+          ...[...atlanabilir].reverse().map(gizle),
         ],
         () => sag.getBoundingClientRect().height + (grafik ? seriYeri.getBoundingClientRect().height + 6 : 0) <= govde.clientHeight - SLACK,
         ayarla,
       );
     }
-    govde.dataset.birakilan = [argumanYeri.hidden && v.argumanlar ? 'arguman' : '', !cizgi && v.sequence ? 'sira' : '', kitapNotlari.some((n) => n.hidden) ? 'not' : ''].filter(Boolean).join(' ');
+    govde.dataset.birakilan = [
+      argumanYeri.hidden && v.argumanlar ? 'arguman' : '',
+      !cizgi && v.sequence ? 'sira' : '',
+      seriDar ? 'seri-dar' : '',
+      sayfaNotlari.some((n) => n.hidden) ? 'sayfa-notu' : '',
+      kitapNotlari.some((n) => n.hidden) ? 'not' : '',
+    ].filter(Boolean).join(' ');
     if (!cizgi) {
       layer.clear();
       drawnH = 0;

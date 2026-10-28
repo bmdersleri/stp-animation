@@ -81,6 +81,10 @@ const AG_GECIKMESI_NOTU = 'Dikkat noktası: Zaman damgasının istemci yerine su
 const TAMPON_NOTU = 'Başarısız yazmada tampon geri yüklenir; ancak bellek içi batch, süreç yeniden başlarsa veriyi kaybeder — dayanıklı kuyruk ayrı mekanizmadır.'; // L761
 /** The page's own note (R24), not a book sentence. */
 export const BIRLESTIRME_NOTU = 'Pencere, imza ve aralık denetimlerinin birleştirilmesi bu sayfanındır.';
+/** The book line of every book note a request or buffer stage shows: a note whose line the step's badge cites is a key piece. */
+export const KITAP_NOT_SATIRI: ReadonlyMap<string, number> = new Map([
+  [IMZA_KAPSAMI_NOTU, 434], [PENCERE_NOTU, 433], [YASEMIN_NOTU, 770], [SUNUCU_ZAMANI_NOTU, 554], [AG_GECIKMESI_NOTU, 558], [TAMPON_NOTU, 761],
+]);
 
 const ALTERNATIFLER: DataTableSpec = {
   baslik: 'Alternatifler', // L565

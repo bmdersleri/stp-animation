@@ -82,6 +82,8 @@ export const SINYAL_NOTU = 'Kitabın örnek çağrıları sinyali kullanmaz; bu 
 export const RETRY_NOTU = 'Kod 17.3/17.5 tek deneme yapar (L339); yeniden deneme bu sayfanın uzantısıdır';
 export const VARSAYIM_NOTU = `sayfa varsayımı: bekleme tabanı ${BEKLEME_TABANI_MS} ms, yavaş servis ${YAVAS_MS} ms, hızlı servis ${HIZLI_MS} ms`;
 export const SAYFA_NOTLARI: readonly string[] = [SINYAL_NOTU, RETRY_NOTU, VARSAYIM_NOTU];
+/** The book line of every book note a flow stage shows: a note whose line the step's badge cites is a key piece. */
+export const KITAP_NOT_SATIRI: ReadonlyMap<string, number> = new Map([[FINALLY_NOTU, 419], [AGRESIF_RETRY_NOTU, 448], [NASIL_KULLANILIR, 337]]);
 
 const UYARI = "bekleme yok: code_006'nın deseni (L448)";
 const OZET_VAR = '200 OK (özet var)';

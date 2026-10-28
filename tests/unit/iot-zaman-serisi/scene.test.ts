@@ -1,12 +1,25 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { iotScenario } from '../../../src/concepts/iot-zaman-serisi/scenario';
-import { BIRLESTIRME_NOTU, deriveIotView } from '../../../src/concepts/iot-zaman-serisi/view';
+import { BIRLESTIRME_NOTU, KITAP_NOT_SATIRI, deriveIotView } from '../../../src/concepts/iot-zaman-serisi/view';
 import { go, setup, texts } from './harness';
 
 const rozetler = (el: HTMLElement): HTMLElement[] => [...el.querySelectorAll<HTMLElement>('.rozet-yeri .kaynak-rozeti')];
 
 describe('iot-zaman-serisi scene', () => {
+  it('every Ders note is the page note or a book note tagged with its book line', () => {
+    const { el, player } = setup();
+    const satirlar: Record<string, number[]> = {};
+    for (const s of iotScenario.steps) {
+      go(player, s.id);
+      for (const n of deriveIotView(player.state.params, true).notlar) expect(n === BIRLESTIRME_NOTU || KITAP_NOT_SATIRI.has(n), n).toBe(true);
+      const notlar = [...el.querySelectorAll<HTMLElement>('.iot-not')];
+      for (const n of notlar) expect(n.classList.contains('iot-sayfa-notu'), n.textContent!).toBe(n.dataset.kitapSatir === undefined);
+      satirlar[s.id] = notlar.filter((n) => n.dataset.kitapSatir).map((n) => Number(n.dataset.kitapSatir));
+    }
+    expect(satirlar).toMatchObject({ 'govde-degisti': [434], 'pencere-ici-tekrar': [433, 770], 'sunucu-zamani-kayit': [554, 558], 'tampon-saatlik': [761] });
+  });
+
   it('step 6 shows two strips', () => {
     const { el, player } = setup();
     go(player, 'govde-degisti');

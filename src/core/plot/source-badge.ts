@@ -27,3 +27,12 @@ export function sourceBadge(doc: Document, tur: KaynakTuru, ref?: string): HTMLS
   s.title = ACIKLAMA[tur];
   return s;
 }
+
+/** Whether the badge's ref (e.g. `L398, L433-435, L770`) cites book line `satir`; a ref without `L` numbers cites none. */
+export function rozetSatiri(ref: string | undefined, satir: number): boolean {
+  for (const m of (ref ?? '').matchAll(/\bL(\d+)(?:-(\d+))?/g)) {
+    const bas = Number(m[1]);
+    if (satir >= bas && satir <= Number(m[2] ?? bas)) return true;
+  }
+  return false;
+}
