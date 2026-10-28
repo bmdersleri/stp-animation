@@ -12,6 +12,7 @@ import { SequenceLayer } from '../../core/plot/sequence';
 import { sourceBadge, type Rozet } from '../../core/plot/source-badge';
 import { TextMeasure } from '../../core/plot/text-measure';
 import type { SceneHandle } from '../../core/shell';
+import { fitDrops, type Birakilabilir } from './scene-fit';
 import { SeriLayer } from './scene-seri';
 import { IOT_ROZET, type IotParams } from './scenario';
 import { BIRLESTIRME_NOTU, deriveIotView, iotLabRozet } from './view';
@@ -86,8 +87,6 @@ export function mountIotScene(
 
   const sag = el(doc, 'div', 'iot-sag');
   const kolonlar = el(doc, 'div', 'iot-kolonlar');
-  const sagA = el(doc, 'div', 'iot-sag-kolon');
-  const sagB = el(doc, 'div', 'iot-sag-kolon');
   const argumanYeri = el(doc, 'div', 'tablo-yeri arguman-yeri');
   const imzaYeri = el(doc, 'div', 'imza-yeri');
   const denetimYeri = el(doc, 'div', 'denetim-yeri');
@@ -96,9 +95,7 @@ export function mountIotScene(
   const tamponYeri = el(doc, 'div', 'tablo-yeri tampon-yeri');
   const terminalYeri = el(doc, 'div', 'iot-terminal');
   const notlarYeri = el(doc, 'div', 'iot-notlar');
-  sagA.append(argumanYeri, imzaYeri, ozetYeri, tamponYeri);
-  sagB.append(denetimYeri, kayitYeri, terminalYeri);
-  kolonlar.append(sagA, sagB);
+  kolonlar.append(argumanYeri, imzaYeri, ozetYeri, tamponYeri, denetimYeri, kayitYeri, terminalYeri);
   sag.append(kolonlar, notlarYeri);
   alt.append(diyagram, sag);
   govde.append(seriYeri, alt);
@@ -185,57 +182,37 @@ export function mountIotScene(
     // the page's own sentence (R24) is not the book's: it gets its own style
     notlarYeri.replaceChildren(...v.notlar.map((n) => el(doc, 'p', n === BIRLESTIRME_NOTU ? 'iot-not iot-sayfa-notu' : 'iot-not', n)));
     notlarYeri.hidden = v.notlar.length === 0;
-    kolonlar.hidden = false;
-    sagA.hidden = [argumanYeri, imzaYeri, ozetYeri, tamponYeri].every((y) => y.hidden);
-    sagB.hidden = [denetimYeri, kayitYeri, terminalYeri].every((y) => y.hidden);
 
-    // wide screens: what does not fit under the chart is dropped, least important first (the Ders stage is only ~400 px tall)
+    // wide screens: what does not fit under the chart is left out, least important first (the Ders stage is only ~375 px
+    // tall). The spec's key pieces (checks, record, terminal, strips) go last, the chart and the sequence diagram never
+    // outrank them; the book notes go before them.
     const grafik = v.seri !== null;
     seriYeri.hidden = !grafik;
     govde.toggleAttribute('data-grafik', grafik);
     let cizgi = v.sequence !== null;
+    const kitapNotlari = [...notlarYeri.children].filter((n) => !n.classList.contains('iot-sayfa-notu')) as HTMLElement[];
     const ayarla = (): void => {
       diyagram.hidden = !cizgi;
       govde.toggleAttribute('data-cizgi', cizgi);
-      sagA.hidden = [argumanYeri, imzaYeri, ozetYeri, tamponYeri].every((y) => y.hidden);
-      sagB.hidden = [denetimYeri, kayitYeri, terminalYeri].every((y) => y.hidden);
-      kolonlar.hidden = sagA.hidden && sagB.hidden;
-      kolonlar.toggleAttribute('data-tek', sagA.hidden !== sagB.hidden);
+      kolonlar.hidden = [argumanYeri, imzaYeri, ozetYeri, tamponYeri, denetimYeri, kayitYeri, terminalYeri].every((y) => y.hidden);
+      kolonlar.style.setProperty('--kol', String(narrow ? 1 : cizgi || !ozetYeri.hidden ? 2 : 3));
+      kolonlar.toggleAttribute('data-ozet', !narrow && !ozetYeri.hidden);
+      notlarYeri.hidden = [...notlarYeri.children].every((n) => (n as HTMLElement).hidden);
     };
     ayarla();
     if (!narrow && govde.clientHeight > 0) {
-      const sigar = (): boolean => {
-        const gerek = sag.getBoundingClientRect().height + (grafik ? seriYeri.getBoundingClientRect().height + 6 : 0);
-        return gerek <= govde.clientHeight - SLACK;
-      };
-      // each entry hides one piece and returns the call that puts it back, or null when there is nothing to hide
-      const birakilabilir: (() => (() => void) | null)[] = [
-        () => { if (argumanYeri.hidden) return null; argumanYeri.hidden = true; return () => { argumanYeri.hidden = false; }; },
-        () => { if (!cizgi) return null; cizgi = false; return () => { cizgi = true; }; },
-        () => { if (kayitYeri.hidden) return null; kayitYeri.hidden = true; return () => { kayitYeri.hidden = false; }; },
-        () => { if (denetimYeri.hidden) return null; denetimYeri.hidden = true; return () => { denetimYeri.hidden = false; }; },
-        () => { if (terminalYeri.hidden) return null; terminalYeri.hidden = true; return () => { terminalYeri.hidden = false; }; },
-      ];
-      const geri: ((() => void) | null)[] = [];
-      for (const birak of birakilabilir) {
-        if (sigar()) { geri.push(null); continue; }
-        const r = birak();
-        geri.push(r);
-        if (r) ayarla();
-      }
-      // a piece dropped early may fit after a later, larger one went: put back the most important ones that now fit
-      for (let i = geri.length - 1; i >= 0; i--) {
-        const r = geri[i];
-        if (!r) continue;
-        r();
-        ayarla();
-        if (!sigar()) {
-          birakilabilir[i]();
-          ayarla();
-        }
-      }
+      const gizle = (y: HTMLElement): Birakilabilir => ({ hide: () => { if (y.hidden) return false; y.hidden = true; return true; }, show: () => { y.hidden = false; } });
+      fitDrops(
+        [
+          gizle(argumanYeri),
+          { hide: () => { if (!cizgi) return false; cizgi = false; return true; }, show: () => { cizgi = true; } },
+          ...[...kitapNotlari].reverse().map(gizle),
+        ],
+        () => sag.getBoundingClientRect().height + (grafik ? seriYeri.getBoundingClientRect().height + 6 : 0) <= govde.clientHeight - SLACK,
+        ayarla,
+      );
     }
-    govde.dataset.birakilan = [argumanYeri.hidden && v.argumanlar ? 'arguman' : '', !cizgi && v.sequence ? 'sira' : '', kayitYeri.hidden && v.kayit ? 'kayit' : '', denetimYeri.hidden && v.denetim ? 'denetim' : '', terminalYeri.hidden && v.terminal.length > 0 ? 'terminal' : ''].filter(Boolean).join(' ');
+    govde.dataset.birakilan = [argumanYeri.hidden && v.argumanlar ? 'arguman' : '', !cizgi && v.sequence ? 'sira' : '', kitapNotlari.some((n) => n.hidden) ? 'not' : ''].filter(Boolean).join(' ');
     if (!cizgi) {
       layer.clear();
       drawnH = 0;

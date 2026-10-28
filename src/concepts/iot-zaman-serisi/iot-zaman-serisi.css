@@ -24,10 +24,13 @@
 .iot-stage[data-narrow] .iot-diyagram { height:var(--diyagram-h); }
 
 .iot-sag { min-width:0; min-height:0; display:flex; flex-direction:column; gap:4px; align-self:start; }
-.iot-kolonlar { min-width:0; display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:4px 6px; align-items:start; }
-.iot-sag-kolon { min-width:0; display:flex; flex-direction:column; gap:4px; }
-.iot-kolonlar[data-tek] { grid-template-columns:minmax(0,1fr); }
-.iot-stage[data-narrow] .iot-kolonlar { grid-template-columns:minmax(0,1fr); }
+.iot-kolonlar { min-width:0; display:grid; grid-template-columns:repeat(var(--kol, 2), minmax(0,1fr)); gap:4px 6px; align-items:start; }
+.iot-kolonlar > * { min-width:0; }
+.iot-kolonlar > [hidden] { display:none; }
+/* step 10: the two tables stacked on the left, the SQL on the right */
+.iot-kolonlar[data-ozet] .ozet-yeri { grid-column:1; grid-row:1; }
+.iot-kolonlar[data-ozet] .tampon-yeri { grid-column:1; grid-row:2; }
+.iot-kolonlar[data-ozet] .iot-terminal { grid-column:2; grid-row:1 / span 2; }
 .iot-sag .data-table th, .iot-sag .data-table td { overflow-wrap:anywhere; padding:1px 6px; line-height:1.1; }
 .iot-sag .data-table-title { margin-bottom:0; }
 .iot-sag .http-cards { min-width:0; }
@@ -63,3 +66,5 @@
 .iot-stage .kitap-blok .data-table { margin-bottom:4px; }
 .iot-stage .kitap-blok .data-table-title { line-height:1.1; margin:0; }
 .iot-stage .kitap-blok p { margin-bottom:2px; }
+/* the record's two number columns never break inside a number */
+.iot-sag .kayit-yeri th:nth-child(2), .iot-sag .kayit-yeri td:nth-child(2), .iot-sag .kayit-yeri th:nth-child(3), .iot-sag .kayit-yeri td:nth-child(3) { white-space:nowrap; }

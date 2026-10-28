@@ -11,13 +11,19 @@ const NS = 'http://www.w3.org/2000/svg';
 const R = 6;
 /** Room (px) kept between a dot and the plot edge, so a dot on the edge is not cut by the svg. */
 const EDGE = R + 2;
-/** The x axis is labelled every 30 minutes; a narrow plot drops to every hour. */
-const YARIM_SAAT = 30 * 60_000;
-const SAAT = 60 * 60_000;
+const DAKIKA = 60_000;
+const SAAT = 60 * DAKIKA;
+/** Label spacings tried from the finest: a zoomed axis gets minutes, the full axis half hours or hours. */
+const ADIMLAR = [5 * DAKIKA, 10 * DAKIKA, 30 * DAKIKA, SAAT];
+/** Two points closer than this many px zoom the x axis; the zoom keeps this many ms around them. */
+const MIN_AYRIM = 12;
+const YAKIN_PAY = 10 * DAKIKA;
 const GRID = '#E3E9F0';
 
 const sayi = (v: number): string => String(v).replace('-', '−').replace('.', ',');
 const saat = (ms: number): string => new Date(ms).toISOString().slice(11, 16);
+
+let klipSayac = 0;
 
 interface NoktaCizim extends SeriNokta { i: number; x: number; y: number; sabit: boolean; etiket: boolean }
 
@@ -28,6 +34,7 @@ interface NoktaCizim extends SeriNokta { i: number; x: number; y: number; sabit:
  * labelled with its value. `update` re-joins everything with d3, so repeated calls never add elements.
  */
 export class SeriLayer {
+  private readonly clipId: string;
   private readonly root: Selection<SVGGElement, unknown, null, undefined>;
 
   constructor(svg: SVGSVGElement, private readonly measure: TextMeasure) {
@@ -35,6 +42,8 @@ export class SeriLayer {
     g.setAttribute('class', 'iot-seri-katman');
     svg.append(g);
     this.root = select(g);
+    this.clipId = `seri-klip-${klipSayac++}`;
+    this.root.append('clipPath').attr('id', this.clipId).append('rect');
     for (const c of ['seri-eksen', 'seri-cizgiler', 'seri-noktalar', 'seri-basliklar']) this.root.append('g').attr('class', c);
   }
 
@@ -47,28 +56,34 @@ export class SeriLayer {
     const alt = rect.top + rect.height - altH;
     const yAdet = Math.max(2, Math.floor((alt - ust) / (tick * 1.6)));
     const y0 = scaleLinear().domain([spec.yAlan[0], spec.yAlan[1]]).range([alt - EDGE, ust]);
-    // labels keep clear of the unit title above and of each other (thinned from the bottom up)
+    // labels keep clear of each other (thinned from the bottom up); there are always at least two
     const yTicks: number[] = [];
     for (const d of y0.ticks(yAdet)) {
-      const yy = y0(d);
       const oncekiY = yTicks.length > 0 ? y0(yTicks[yTicks.length - 1]) : Infinity;
-      if (yy - tick * 0.6 >= rect.top + ustH && oncekiY - yy >= tick * 1.3) yTicks.push(d);
+      if (oncekiY - y0(d) >= tick * 1.3) yTicks.push(d);
     }
+    if (yTicks.length < 2) yTicks.splice(0, yTicks.length, spec.yAlan[0], spec.yAlan[1]);
     const solW = Math.ceil(this.measure.maxWidth(yTicks.map(yEtiket), 'tick', tick)) + 10;
     const xBaslik = 'saat (UTC)';
     const xBaslikW = Math.ceil(this.measure.width(xBaslik, 'tick', tick));
     const ilkEtiketW = this.measure.width('07:00', 'tick', tick);
     const sol = rect.left + Math.max(solW, xBaslikW + Math.ceil(ilkEtiketW / 2) + 8);
     const sag = rect.left + rect.width - Math.ceil(ilkEtiketW / 2) - 2;
-    const x = scaleTime().domain([new Date(spec.xAlan[0]), new Date(spec.xAlan[1])]).range([sol, Math.max(sol + 10, sag)]);
+    // points that would sit under one dot at the full axis (two requests 20 s apart) zoom the axis in around them
+    const zamanlar = spec.noktalar.map((n) => n.zaman);
+    const aralik = zamanlar.length > 1 ? Math.max(...zamanlar) - Math.min(...zamanlar) : 0;
+    const genislik = Math.max(10, sag - sol);
+    const yakin = aralik > 0 && (aralik / (spec.xAlan[1] - spec.xAlan[0])) * genislik < MIN_AYRIM;
+    const alan: readonly [number, number] = yakin ? [Math.max(spec.xAlan[0], Math.min(...zamanlar) - YAKIN_PAY), Math.min(spec.xAlan[1], Math.max(...zamanlar) + YAKIN_PAY)] : spec.xAlan;
+    const x = scaleTime().domain([new Date(alan[0]), new Date(alan[1])]).range([sol, sol + genislik]);
     const px = (t: number): number => x(new Date(t));
     const py = (v: number): number => y0(Math.min(spec.yAlan[1], Math.max(spec.yAlan[0], v)));
 
     // axes: grid lines and labels, re-joined by value
     const eksen = this.root.select<SVGGElement>('g.seri-eksen');
-    const adim = (sag - sol) / ((spec.xAlan[1] - spec.xAlan[0]) / YARIM_SAAT) >= ilkEtiketW * 1.5 ? YARIM_SAAT : SAAT;
+    const adim = ADIMLAR.find((a) => (genislik / ((alan[1] - alan[0]) / a)) >= ilkEtiketW * 1.5) ?? SAAT;
     const xTicks: number[] = [];
-    for (let t = Math.ceil(spec.xAlan[0] / adim) * adim; t <= spec.xAlan[1]; t += adim) xTicks.push(t);
+    for (let t = Math.ceil(alan[0] / adim) * adim; t <= alan[1]; t += adim) xTicks.push(t);
     const xt = eksen.selectAll<SVGGElement, number>('g.seri-x-tick').data(xTicks, (d) => d);
     xt.exit().remove();
     const xYeni = xt.enter().append('g').attr('class', 'seri-x-tick');
@@ -97,13 +112,15 @@ export class SeriLayer {
     // axis titles: the unit above the y labels, the time zone at the left end of the x label row
     const basliklar = this.root.select<SVGGElement>('g.seri-basliklar');
     const bas = basliklar.selectAll<SVGTextElement, { ad: string; x: number; y: number; anchor: string }>('text.seri-baslik').data([
-      { ad: '°C', x: sol - 6, y: rect.top + tick, anchor: 'end' },
+      { ad: '°C', x: rect.left, y: rect.top + tick, anchor: 'start' },
       { ad: xBaslik, x: rect.left, y: alt + tick * 1.25, anchor: 'start' },
     ], (d) => d.ad);
     bas.enter().append('text').attr('class', 'tick seri-baslik').merge(bas)
       .attr('text-anchor', (d) => d.anchor).attr('x', (d) => r1(d.x)).attr('y', (d) => r1(d.y)).text((d) => d.ad);
 
-    // the series: one line
+    // the series: one line, clipped to the plot (a zoomed axis cuts it at the edges)
+    this.root.select('clipPath rect').attr('x', sol).attr('y', ust - EDGE / 2).attr('width', Math.max(0, sag - sol + 2)).attr('height', Math.max(0, alt - ust + EDGE / 2));
+    this.root.select('g.seri-cizgiler').attr('clip-path', `url(#${this.clipId})`);
     const veri = spec.seri.map((o) => `${r1(px(o.zaman))},${r1(py(o.deger))}`);
     const cizgi = this.root.select<SVGGElement>('g.seri-cizgiler').selectAll<SVGPathElement, string>('path.seri-cizgi').data(veri.length > 0 ? [`M${veri.join('L')}`] : []);
     cizgi.exit().remove();
@@ -126,13 +143,24 @@ export class SeriLayer {
     hepsi.attr('data-durum', (d) => d.durum);
     hepsi.select('circle').attr('cx', (d) => r1(d.x)).attr('cy', (d) => r1(d.y)).attr('fill', (d) => (d.durum === 'kabul' ? MARK[0] : MARK[1]));
     const etiket = hepsi.select<SVGTextElement>('text.seri-etiket');
+    // one line "value · kaydedilmedi" left of the dot; where that would reach the y labels, two lines
+    const bosluk = (d: NoktaCizim): number => d.x - R - 6 - sol - 4;
+    const tek = (d: NoktaCizim): boolean => this.measure.width(`${sayi(d.deger)} °C · kaydedilmedi`, 'tick', tick) <= bosluk(d);
     etiket.attr('display', (d) => (d.etiket ? null : 'none')).attr('x', (d) => r1(d.x - R - 6)).attr('y', (d) => r1(d.y + tick * 0.35));
     etiket.selectAll('tspan').remove();
     etiket.each(function (d) {
       if (!d.etiket) return;
       const t = select(this);
-      if (d.sabit) t.append('tspan').attr('class', 'seri-deger').text(`${sayi(d.deger)} °C · `);
-      t.append('tspan').attr('class', 'seri-kayitsiz').text('kaydedilmedi');
+      const x = r1(d.x - R - 6);
+      if (d.sabit && tek(d)) {
+        t.append('tspan').attr('class', 'seri-deger').text(`${sayi(d.deger)} °C · `);
+        t.append('tspan').attr('class', 'seri-kayitsiz').text('kaydedilmedi');
+      } else if (d.sabit) {
+        t.append('tspan').attr('class', 'seri-deger').attr('x', x).attr('dy', r1(d.y > (ust + alt) / 2 ? -tick * 1.5 : 0)).text(`${sayi(d.deger)} °C`);
+        t.append('tspan').attr('class', 'seri-kayitsiz').attr('x', x).attr('dy', r1(tick * 1.1)).text('kaydedilmedi');
+      } else {
+        t.append('tspan').attr('class', 'seri-kayitsiz').text('kaydedilmedi');
+      }
     });
     if (ms > 0) tr(yeni.style('opacity', 0), 'seri', ms).style('opacity', 1);
   }

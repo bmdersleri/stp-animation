@@ -7,7 +7,7 @@ const STEPS = 11;
 /** Scene boxes that must show all their content; the stage scrolls on purpose only at phone width. */
 const BOXES = '.data-table, .terminal, .check-list, .segment-strip, .iot-seri, .iot-diyagram, .kitap-blok, .iot-not';
 /** Boxes checked against the `.iot-stage` box at desktop widths. */
-const STAGE_BOXES = '.iot-seri, .iot-diyagram, .iot-sag, .iot-sag-kolon, .data-table, .terminal, .check-list, .segment-strip, .kitap-blok, .iot-not';
+const STAGE_BOXES = '.iot-seri, .iot-diyagram, .iot-sag, .iot-kolonlar, .data-table, .terminal, .check-list, .segment-strip, .kitap-blok, .iot-not';
 const TEXTS = '.denetim, .terminal-satir, .data-table th, .data-table td, .tanim-metin, .kitap-not, .iot-not, .segment-strip-title';
 
 test.use({ reducedMotion: 'reduce' });
@@ -18,7 +18,7 @@ const rest = (page: Page) => settled(() => page.locator('.iot-scene').innerHTML(
 const slackProblems = (page: Page): Promise<string[]> => page.evaluate(() => {
   const st = document.querySelector('.iot-stage')!.getBoundingClientRect();
   const out: string[] = [];
-  for (const el of document.querySelectorAll<HTMLElement>('.iot-sag, .iot-kolonlar, .iot-sag-kolon, .iot-sag .check-list')) {
+  for (const el of document.querySelectorAll<HTMLElement>('.iot-sag, .iot-kolonlar, .iot-sag .check-list')) {
     if (el.closest('[hidden]') || el.getBoundingClientRect().height === 0) continue;
     const gap = st.bottom - el.getBoundingClientRect().bottom;
     if (gap < 4) out.push(`${el.className}: ${gap.toFixed(1)} px above the stage bottom`);
@@ -188,6 +188,71 @@ for (const [w, h] of [[1280, 720], [1280, 740], [390, 844]] as const) {
       }
     });
   }
+}
+
+/** Key pieces the spec names per Ders step: they must be shown, inside the stage and unclipped at 1280x720 (nothing is dropped for them). */
+const KEY_STEPS: { n: number; check: (page: Page) => Promise<void> }[] = [
+  { n: 2, check: async (p) => {
+    await expect(p.locator('.iot-seri circle.seri-nokta')).toHaveCount(1);
+    await expect(p.locator('.terminal-satir')).toHaveText('Kaydedildi: -999°C');
+  } },
+  { n: 3, check: async (p) => {
+    await expect(p.locator('.arguman-yeri tbody tr')).toHaveCount(4);
+    await expect(p.locator('.imza-yeri .segment-strip')).toHaveCount(1);
+  } },
+  { n: 4, check: async (p) => {
+    await expect(p.locator('.denetim-yeri .denetim')).toHaveCount(5);
+    await expect(p.locator('.denetim-yeri .denetim-kaldi .denetim-ad')).toHaveText('Zaman penceresi');
+    await expect(p.locator('.terminal-satir')).toHaveText('Zaman damgası süresi dolmuş veya geçersiz (Replay Attack riski).');
+  } },
+  { n: 5, check: async (p) => {
+    await expect(p.locator('.denetim-yeri .denetim-gecti')).toHaveCount(3);
+    await expect(p.locator('.denetim-yeri .denetim-bekliyor')).toHaveCount(2);
+  } },
+  { n: 6, check: async (p) => {
+    await expect(p.locator('.denetim-yeri .denetim-kaldi .denetim-ad')).toHaveText('HMAC');
+    await expect(p.locator('.imza-yeri .segment-strip')).toHaveCount(2);
+    await expect(p.locator('.terminal-satir')).toHaveText('HMAC imzası geçersiz; veri yolda değiştirilmiş olabilir.');
+    await expect(p.locator('.iot-seri circle.seri-nokta')).toHaveAttribute('fill', '#F08A00');
+  } },
+  { n: 7, check: async (p) => {
+    await expect(p.locator('.denetim-yeri .denetim-gecti')).toHaveCount(5);
+    await expect(p.locator('.kayit-yeri tbody tr')).toHaveCount(2);
+    await expect(p.locator('.terminal-satir')).toHaveCount(4);
+    const cx = await p.locator('.iot-seri circle.seri-nokta').evaluateAll((c) => c.map((e) => Number(e.getAttribute('cx'))));
+    expect(cx).toHaveLength(2);
+    expect(Math.abs(cx[1] - cx[0]), 'the two points are visibly apart').toBeGreaterThanOrEqual(8);
+  } },
+  { n: 8, check: async (p) => {
+    await expect(p.locator('.denetim-yeri .denetim')).toHaveCount(5);
+    await expect(p.locator('.denetim-yeri .denetim-kaldi .denetim-ad')).toHaveText('Sıcaklık');
+    await expect(p.locator('.terminal-satir')).toHaveCount(3);
+  } },
+  { n: 9, check: async (p) => {
+    await expect(p.locator('.kayit-yeri tbody tr')).toHaveCount(1);
+    await expect(p.locator('.kayit-yeri tbody')).toContainText('2026-09-05T10:00:00.000Z');
+    await expect(p.locator('.denetim-yeri .denetim-gecti')).toHaveCount(5);
+    await expect(p.locator('.terminal-satir')).toHaveCount(2);
+  } },
+  { n: 10, check: async (p) => {
+    await expect(p.locator('.ozet-yeri tbody tr')).toHaveCount(3);
+    await expect(p.locator('.tampon-yeri tbody tr')).toHaveCount(2);
+    await expect(p.locator('.terminal-satir').first()).toHaveText('SELECT');
+  } },
+];
+
+for (const k of KEY_STEPS) {
+  test(`ders: step ${k.n} shows its key pieces at 1280x720`, async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await open(page, PAGE, 'ders', READY);
+    await gotoStep(page, k.n - 1, STEPS, 0);
+    await rest(page);
+    await k.check(page);
+    // the key pieces are inside the stage and unclipped, and none of them was left out for room
+    expect(await stageBoxProblems(page, '.iot-stage', '.iot-seri, .check-list, .data-table, .terminal, .segment-strip'), `step ${k.n}`).toEqual([]);
+    const birakilan = (await page.locator('.iot-govde').getAttribute('data-birakilan')) ?? '';
+    expect(birakilan, `step ${k.n} dropped`).toMatch(/^(arguman|sira|not|\s)*$/);
+  });
 }
 
 test('ders: steps 1 and 11 show the book block at 1280x720', async ({ page }) => {

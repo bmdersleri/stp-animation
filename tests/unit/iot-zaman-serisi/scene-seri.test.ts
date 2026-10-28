@@ -67,6 +67,30 @@ describe('SeriLayer', () => {
     expect(svg.querySelectorAll('path.seri-cizgi')).toHaveLength(1);
   });
 
+  it('two points 20 s apart are drawn visibly apart', () => {
+    const { svg, layer } = kur();
+    layer.update(spec([{ zaman: T10, deger: 21.5, durum: 'kabul' }, { zaman: T10 + 20_000, deger: 21.5, durum: 'kabul' }]), RECT, 0);
+    const cx = [...svg.querySelectorAll('circle.seri-nokta')].map((c) => Number(c.getAttribute('cx')));
+    expect(Math.abs(cx[1] - cx[0])).toBeGreaterThanOrEqual(8);
+    expect([...svg.querySelectorAll('.seri-x-tick text')].map((t) => t.textContent)).toContain('10:00');
+  });
+
+  it('a lone point keeps the full axis from 07:00 to 10:00', () => {
+    const { svg, layer } = kur();
+    layer.update(spec([{ zaman: T10, deger: 21.5, durum: 'kabul' }]), RECT, 0);
+    const t = [...svg.querySelectorAll('.seri-x-tick text')].map((x) => x.textContent);
+    expect(t[0]).toBe('07:00');
+    expect(t[t.length - 1]).toBe('10:00');
+  });
+
+  it('always has at least two y labels, also in a short chart', () => {
+    const { svg, layer } = kur();
+    layer.update(spec([]), { ...RECT, height: 100 }, 0);
+    expect(svg.querySelectorAll('.seri-y-tick').length).toBeGreaterThanOrEqual(2);
+    layer.update(spec([{ zaman: T10, deger: -999, durum: 'red' }], [-1000, 24]), { ...RECT, height: 100 }, 0);
+    expect(svg.querySelectorAll('.seri-y-tick').length).toBeGreaterThanOrEqual(2);
+  });
+
   it('a changed point replaces the old one', () => {
     const { svg, layer } = kur();
     layer.update(spec([{ zaman: T10, deger: 21.5, durum: 'kabul' }]), RECT, 0);
